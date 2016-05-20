@@ -8,6 +8,8 @@ struct vdb_event
     bool StepOver;
     bool StepOnce;
     bool Exit;
+    // bool TakeScreenshot;
+    // bool Take;
 };
 
 enum vdb_keys;
@@ -15,10 +17,8 @@ enum vdb_keys;
 #ifdef _WIN32
 #include "vdb_win32.cpp"
 #undef GetWindowFont
-#elif __linux__
-#error "Linux not yet supported"
 #else
-#error "Your platform is not supported on this version of gdebug"
+#error "Your platform is not supported"
 #endif
 
 void vdb_imgui_renderDrawLists(ImDrawData* draw_data)
@@ -123,6 +123,14 @@ void vdb_imgui_init()
     IO.RenderDrawListsFn = vdb_imgui_renderDrawLists;   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
     IO.SetClipboardTextFn = vdb_setClipboardText;
     IO.GetClipboardTextFn = vdb_getClipboardText;
+
+    #ifdef VDB_MY_CONFIG
+    ImGuiStyle &Style = ImGui::GetStyle();
+    Style.FrameRounding = 2.0f;
+    Style.GrabRounding = 2.0f;
+    IO.IniFilename = "./build/imgui.ini";
+    IO.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    #endif
 
     // Build texture atlas
     unsigned char* Pixels;

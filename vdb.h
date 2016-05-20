@@ -4,8 +4,8 @@
 #include <windows.h>
 #include <assert.h>
 #include <gl/gl.h>
-#elif __linux__
-#error "Include my stuff"
+#else
+#error "Implement SDL platform layer"
 #endif
 #include "lib/imgui.h"
 #include <functional>
@@ -35,7 +35,8 @@ struct vdb_input
         } Left, Middle, Right;
     } Mouse;
 
-    bool Keys[256];
+    // @ Proper WasDown/IsDown for all keyboard keys
+    bool TextKey[256];
 
     int WindowWidth;
     int WindowHeight;

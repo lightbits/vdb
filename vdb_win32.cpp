@@ -400,7 +400,7 @@ bool vdb_processMessages(vdb_window Window, vdb_input *Input, vdb_event *Event)
     // Reset character input events
     for (int AnsiCode = 0; AnsiCode < 256; AnsiCode++)
     {
-        Input->Keys[AnsiCode] = false;
+        Input->TextKey[AnsiCode] = false;
     }
 
     Input->Mouse.Left.WasDownThisFrame = false;
@@ -438,7 +438,7 @@ bool vdb_processMessages(vdb_window Window, vdb_input *Input, vdb_event *Event)
             case WM_CHAR:
             {
                 if (Message.wParam < 256)
-                    Input->Keys[Message.wParam] = true;
+                    Input->TextKey[Message.wParam] = true;
             } break;
 
             case WM_LBUTTONDOWN: Input->Mouse.Left.IsDown   = true; Input->Mouse.Left.WasDownThisFrame = true; break;
@@ -498,5 +498,5 @@ void vdb_sleep(int milliseconds)
 
 void vdb_exit()
 {
-    exit(1);
+    exit(0);
 }
