@@ -1,5 +1,3 @@
-// @ ifdef msvc
-// @ subsystem: windows and entrypoint: crt?
 #pragma comment(lib, "user32")
 #pragma comment(lib, "gdi32")
 #pragma comment(lib, "opengl32")
@@ -7,69 +5,35 @@
 #include <windowsx.h> // GET_X_LPARAM, GET_Y_LPARAM
 #include <mmsystem.h> // timeBeginPeriod
 
-// https://msdn.microsoft.com/en-us/library/windows/desktop/dd375731(v=vs.85).aspx
 enum vdb_keys
 {
-    VDB_KEY_TAB = VK_TAB,
-    VDB_KEY_LEFT = VK_LEFT,
-    VDB_KEY_RIGHT = VK_RIGHT,
-    VDB_KEY_UP = VK_UP,
-    VDB_KEY_DOWN = VK_DOWN,
-    VDB_KEY_PAGEUP = VK_PRIOR,
-    VDB_KEY_PAGEDOWN = VK_NEXT,
-    VDB_KEY_HOME = VK_HOME,
-    VDB_KEY_END = VK_END,
-    VDB_KEY_DELETE = VK_DELETE,
-    VDB_KEY_BACK = VK_BACK,
-    VDB_KEY_ENTER = VK_RETURN,
-    VDB_KEY_ESCAPE = VK_ESCAPE,
-    VDB_KEY_A = 0x41,
-    VDB_KEY_C = 0x43,
-    VDB_KEY_V = 0x56,
-    VDB_KEY_X = 0x58,
-    VDB_KEY_Y = 0x59,
-    VDB_KEY_Z = 0x5A
+    VDB_KEY_TAB         = VK_TAB,
+    VDB_KEY_LEFT        = VK_LEFT,
+    VDB_KEY_RIGHT       = VK_RIGHT,
+    VDB_KEY_UP          = VK_UP,
+    VDB_KEY_DOWN        = VK_DOWN,
+    VDB_KEY_PAGEUP      = VK_PRIOR,
+    VDB_KEY_PAGEDOWN    = VK_NEXT,
+    VDB_KEY_HOME        = VK_HOME,
+    VDB_KEY_END         = VK_END,
+    VDB_KEY_DELETE      = VK_DELETE,
+    VDB_KEY_BACK        = VK_BACK,
+    VDB_KEY_ENTER       = VK_RETURN,
+    VDB_KEY_ESCAPE      = VK_ESCAPE,
+
+    VDB_KEY_A           = 0x41,
+    VDB_KEY_C           = 0x43,
+    VDB_KEY_V           = 0x56,
+    VDB_KEY_X           = 0x58,
+    VDB_KEY_Y           = 0x59,
+    VDB_KEY_Z           = 0x5A
 };
-
-typedef BOOL (WINAPI *wgl_swap_interval_ext)(int Interval);
-wgl_swap_interval_ext wglSwapIntervalEXT;
-
-#define GL_SHADING_LANGUAGE_VERSION               0x8B8C
-#define WGL_CONTEXT_MAJOR_VERSION_ARB             0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB             0x2092
-#define WGL_CONTEXT_LAYER_PLANE_ARB               0x2093
-#define WGL_CONTEXT_FLAGS_ARB                     0x2094
-#define WGL_CONTEXT_PROFILE_MASK_ARB              0x9126
-#define WGL_CONTEXT_DEBUG_BIT_ARB                 0x0001
-#define WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB    0x0002
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB          0x00000001
-#define WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB 0x00000002
-
-typedef HGLRC (WINAPI wgl_create_context_attribs_arb)(HDC DC, HGLRC ShareContext, const int *Attribs);
-wgl_create_context_attribs_arb *wglCreateContextAttribsARB;
-
-typedef BOOL (WINAPI wgl_choose_pixel_format_arb)(HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-wgl_choose_pixel_format_arb *wglChoosePixelFormatARB;
-
-// TODO: Find out why this did not work...
-// typedef HGLRC (wgl_create_context_attribs_arb(HDC DC,
-//                                               HGLRC ShareContext,
-//                                               const int *AttribList));
-// wgl_create_context_attribs_arb *wglCreateContextAttribsARB;
-
-struct opengl_information
-{
-    char *Vendor;
-    char *Renderer;
-    char *Version;
-    char *GLSLVersion;
-    bool ModernContext;
-    int ColorBits;
-} OpenGLInfo;
 
 struct vdb_window
 {
     HWND Handle;
+    vdb_u64 StartTick;
+    vdb_u64 LastTick;
 };
 
 static void
@@ -96,106 +60,19 @@ vdb_initOpenGL(HWND Window)
         0, 0, 0                // layer masks ignored
     };
 
-    HDC WindowDC = GetDC(Window);
-    int GotFormatIndex = ChoosePixelFormat(WindowDC, &DesiredFormat);
+    HDC DC = GetDC(Window);
+    int GotFormatIndex = ChoosePixelFormat(DC, &DesiredFormat);
     PIXELFORMATDESCRIPTOR GotFormat;
-    DescribePixelFormat(WindowDC, GotFormatIndex,
-                        sizeof(GotFormat), &GotFormat);
-    SetPixelFormat(WindowDC, GotFormatIndex, &GotFormat);
+    DescribePixelFormat(DC, GotFormatIndex, sizeof(GotFormat), &GotFormat);
+    SetPixelFormat(DC, GotFormatIndex, &GotFormat);
 
-    HGLRC OpenGLRC = wglCreateContext(WindowDC);
-    if (!wglMakeCurrent(WindowDC, OpenGLRC))
+    HGLRC OpenGLRC = wglCreateContext(DC);
+    if (!wglMakeCurrent(DC, OpenGLRC))
     {
         assert(false);
     }
 
-    OpenGLInfo.ModernContext = false;
-
-    #if 0
-    wglChoosePixelFormatARB = (wgl_choose_pixel_format_arb*)wglGetProcAddress("wglChoosePixelFormatARB");
-
-    if (wglChoosePixelFormatARB)
-    {
-        // glEnable(GL_MULTISAMPLE)
-        int GotFormatIndex;
-        UINT MaxFormats = 1;
-        UINT ReturnedFormats;
-        int AttribList[] = {
-
-        };
-        wglChoosePixelFormatARB(WindowDC, IAttribList, 0, MaxFormats, &GotFormatIndex, &ReturnedFormats);
-
-        PIXELFORMATDESCRIPTOR GotFormat;
-        DescribePixelFormat(WindowDC, GotFormatIndex,
-                            sizeof(GotFormat), &GotFormat);
-        SetPixelFormat(WindowDC, GotFormatIndex, &GotFormat);
-    }
-    #endif
-
-    wglCreateContextAttribsARB = (wgl_create_context_attribs_arb*)wglGetProcAddress("wglCreateContextAttribsARB");
-    if (wglCreateContextAttribsARB)
-    {
-        HGLRC ShareContext = 0;
-        int AttribList[] = {
-            WGL_CONTEXT_MAJOR_VERSION_ARB,
-            1,
-
-            WGL_CONTEXT_MINOR_VERSION_ARB,
-            5,
-
-            WGL_CONTEXT_FLAGS_ARB,
-            WGL_CONTEXT_DEBUG_BIT_ARB,
-
-            WGL_CONTEXT_PROFILE_MASK_ARB,
-            WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
-
-            0 // Terminate list
-        };
-        HGLRC NewOpenGLRC = wglCreateContextAttribsARB(WindowDC, ShareContext, AttribList);
-        if (NewOpenGLRC && wglMakeCurrent(WindowDC, NewOpenGLRC))
-        {
-            wglDeleteContext(OpenGLRC);
-            OpenGLRC = NewOpenGLRC;
-            OpenGLInfo.ModernContext = true;
-        }
-        else
-        {
-            wglMakeCurrent(WindowDC, OpenGLRC);
-        }
-    }
-
-    // Get OpenGL information
-    {
-        OpenGLInfo.ColorBits = GotFormat.cColorBits;
-        OpenGLInfo.Vendor = (char*)glGetString(GL_VENDOR);
-        OpenGLInfo.Renderer = (char*)glGetString(GL_RENDERER);
-        OpenGLInfo.Version = (char*)glGetString(GL_VERSION);
-        if (OpenGLInfo.ModernContext)
-        {
-            OpenGLInfo.GLSLVersion = (char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
-        }
-        else
-        {
-            OpenGLInfo.GLSLVersion = 0;
-        }
-        char *Extensions = (char*)glGetString(GL_EXTENSIONS);
-        #if 0
-        printf("Extensions: %s\n", Extensions);
-        printf("Vendor: %s\n", OpenGLInfo.Vendor);
-        printf("Renderer: %s\n", OpenGLInfo.Renderer);
-        printf("Version: %s\n", OpenGLInfo.Version);
-        printf("GLSLVersion: %s\n", OpenGLInfo.GLSLVersion);
-        printf("Color bits: %d\n", OpenGLInfo.ColorBits);
-        #endif
-    }
-
-    ReleaseDC(Window, WindowDC);
-
-    wglSwapIntervalEXT = (wgl_swap_interval_ext)wglGetProcAddress("wglSwapIntervalEXT");
-    if (wglSwapIntervalEXT)
-    {
-        wglSwapIntervalEXT(1);
-    }
+    ReleaseDC(Window, DC);
 }
 
 static LRESULT CALLBACK
@@ -215,6 +92,28 @@ vdb_windowProc(HWND   Window,
     return DefWindowProcW(Window, Message, WParam, LParam);
 }
 
+static vdb_u64
+vdb_getTicks()
+{
+    LARGE_INTEGER Ticks;
+    QueryPerformanceCounter(&Ticks);
+    return Ticks.QuadPart;
+}
+
+static vdb_u64
+vdb_getFrequency()
+{
+    LARGE_INTEGER Frequency;
+    QueryPerformanceFrequency(&Frequency);
+    return Frequency.QuadPart;
+}
+
+static vdb_r32
+vdb_getElapsedSeconds(u64 Begin, u64 End)
+{
+    return (r32)(End-Begin) / (r32)vdb_getFrequency();
+}
+
 vdb_window
 vdb_openWindow(int WindowWidth, int WindowHeight)
 {
@@ -228,7 +127,6 @@ vdb_openWindow(int WindowWidth, int WindowHeight)
 
     if (!RegisterClassW(&WindowClass))
     {
-        // Failed to register window
         assert(false);
     }
 
@@ -252,7 +150,6 @@ vdb_openWindow(int WindowWidth, int WindowHeight)
 
     if (!WindowHandle)
     {
-        // Failed to open window
         assert(false);
     }
 
@@ -264,23 +161,9 @@ vdb_openWindow(int WindowWidth, int WindowHeight)
 
     vdb_window Result = {0};
     Result.Handle = WindowHandle;
+    Result.StartTick = vdb_getTicks();
+    Result.LastTick = Result.StartTick;
     return Result;
-}
-
-static int vdb_charCountOfUTF8String(const char *Text)
-{
-    int CharCount = 0;
-    const vdb_u08 *ByteIndex = (const vdb_u08*)Text;
-    while (*ByteIndex)
-    {
-        vdb_u08 UpperTwoBits = *ByteIndex & 0xC0;
-        if (UpperTwoBits != 0x80)
-        {
-            CharCount++;
-        }
-        ByteIndex++;
-    }
-    return CharCount;
 }
 
 // Returns a utf-8 encoded and null terminated string
@@ -298,12 +181,8 @@ const char *vdb_getClipboardText()
                 if (ClipboardText)
                 {
                     // Hope that the ClipboardText is null terminated...
-                    #if 1
                     WideCharToMultiByte(CP_UTF8, 0, ClipboardText, -1,
                                         TextBuffer, sizeof(TextBuffer), 0, 0);
-                    #else
-                    vdb_toUTF8(TextBuffer, ClipboardText, sizeof(TextBuffer));
-                    #endif
                     GlobalUnlock(Clipboard);
                 }
             }
@@ -320,7 +199,6 @@ void vdb_setClipboardText(const char *Text)
     if (OpenClipboard(0))
     {
         EmptyClipboard();
-        #if 1
         int BufferSizeInChars = MultiByteToWideChar(CP_UTF8, 0, Text, -1, NULL, 0);
         // The size includes the null-terminator
         int BufferSizeInBytes = BufferSizeInChars*sizeof(wchar_t);
@@ -333,21 +211,6 @@ void vdb_setClipboardText(const char *Text)
             GlobalUnlock(Memory);
             SetClipboardData(CF_UNICODETEXT, Memory);
         }
-        #else
-        int CharCount = vdb_charCountOfUTF8String(Text);
-        // utf-16 has two bytes per character
-        // We want to include the null-terminator, which becomes
-        // two bytes in WCHAR format.
-        int AllocLength = (CharCount+1)*2;
-        HGLOBAL Memory = GlobalAlloc(GMEM_MOVEABLE, AllocLength);
-        if (Memory)
-        {
-            wchar_t *Destination = (wchar_t*)GlobalLock(Memory);
-            vdb_fromUTF8(Destination, Text, AllocLength);
-            GlobalUnlock(Memory);
-            SetClipboardData(CF_UNICODETEXT, Memory);
-        }
-        #endif
         CloseClipboard();
     }
 }
@@ -360,8 +223,8 @@ void vdb_imgui_processMessage(MSG Message)
         case WM_KEYUP:
         case WM_KEYDOWN:
         {
-            int vk = Message.wParam;
-            IO.KeysDown[vk] = (Message.message == WM_KEYDOWN);
+            int VKCode = Message.wParam;
+            IO.KeysDown[VKCode] = (Message.message == WM_KEYDOWN);
             IO.KeyShift = (GetKeyState(VK_SHIFT) & 128) != 0;
             IO.KeyCtrl = (GetKeyState(VK_CONTROL) & 128) != 0;
             IO.KeyAlt = (GetKeyState(VK_MENU) & 128) != 0;
@@ -374,10 +237,10 @@ void vdb_imgui_processMessage(MSG Message)
 
         case WM_MOUSEWHEEL:
         {
-            int WheelDelta = GET_WHEEL_DELTA_WPARAM(Message.wParam);
-            if (WheelDelta > 0)
+            int Delta = GET_WHEEL_DELTA_WPARAM(Message.wParam);
+            if (Delta > 0)
                 IO.MouseWheel = +1.0f;
-            else if (WheelDelta < 0)
+            else if (Delta < 0)
                 IO.MouseWheel = -1.0f;
         } break;
 
@@ -390,18 +253,12 @@ void vdb_imgui_processMessage(MSG Message)
     }
 }
 
-bool vdb_processMessages(vdb_window Window, vdb_input *Input, vdb_event *Event)
+bool vdb_processMessages(vdb_window *Window, vdb_input *Input, vdb_event *Event)
 {
-    // Hide OS mouse cursor if ImGui is drawing it
-    // Should handle mouse tracking if this is enabled
-    // ImGuiIO.MouseDrawCursor = true;
-    // ShowCursor(false);
-
-    // Reset character input events
-    for (int AnsiCode = 0; AnsiCode < 256; AnsiCode++)
-    {
-        Input->TextKey[AnsiCode] = false;
-    }
+    vdb_u64 CurrTick = vdb_getTicks();
+    Input->DeltaTime = vdb_getElapsedSeconds(Window->LastTick, CurrTick);
+    Input->ElapsedTime = vdb_getElapsedSeconds(Window->StartTick, CurrTick);
+    Window->LastTick = CurrTick;
 
     Input->Mouse.Left.WasDownThisFrame = false;
     Input->Mouse.Right.WasDownThisFrame = false;
@@ -435,12 +292,6 @@ bool vdb_processMessages(vdb_window Window, vdb_input *Input, vdb_event *Event)
                 TranslateMessage(&Message);
             } break;
 
-            case WM_CHAR:
-            {
-                if (Message.wParam < 256)
-                    Input->TextKey[Message.wParam] = true;
-            } break;
-
             case WM_LBUTTONDOWN: Input->Mouse.Left.IsDown   = true; Input->Mouse.Left.WasDownThisFrame = true; break;
             case WM_RBUTTONDOWN: Input->Mouse.Right.IsDown  = true; Input->Mouse.Right.WasDownThisFrame = true; break;
             case WM_MBUTTONDOWN: Input->Mouse.Middle.IsDown = true; Input->Mouse.Middle.WasDownThisFrame = true; break;
@@ -465,7 +316,7 @@ bool vdb_processMessages(vdb_window Window, vdb_input *Input, vdb_event *Event)
     }
 
     RECT ClientRect;
-    GetClientRect(Window.Handle, &ClientRect);
+    GetClientRect(Window->Handle, &ClientRect);
     Input->WindowWidth = ClientRect.right-ClientRect.left;
     Input->WindowHeight = ClientRect.bottom-ClientRect.top;
 

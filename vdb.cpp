@@ -13,6 +13,7 @@ struct vdb_event
 };
 
 enum vdb_keys;
+struct vdb_window;
 
 #ifdef _WIN32
 #include "vdb_win32.cpp"
@@ -192,8 +193,10 @@ void vdb(char *Label, vdb_callback Callback)
     float MainGuiAlpha = 1.0f;
     vdb_input Input = {0};
     vdb_event Event = {0};
-    while (vdb_processMessages(Window, &Input, &Event))
+    bool running = true;
+    while (running)
     {
+        running = vdb_processMessages(&Window, &Input, &Event);
         ImGui::NewFrame();
 
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, MainGuiAlpha);
@@ -239,7 +242,12 @@ void vdb(char *Label, vdb_callback Callback)
         ImGui::Render();
 
         vdb_swapBuffers(Window);
-        vdb_sleep(4); // @ performance counters, fps lock
+        if (Input.DeltaTime < 1.0f / 60.0f)
+        {
+            r32 SleepSec = (1.0f/60.0f) - Input.DeltaTime;
+            int SleepMs = (int)(SleepSec*1000.0f);
+            vdb_sleep(SleepMs);
+        }
     }
 
     if (Event.Exit)

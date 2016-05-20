@@ -35,9 +35,6 @@ struct vdb_input
         } Left, Middle, Right;
     } Mouse;
 
-    // @ Proper WasDown/IsDown for all keyboard keys
-    bool TextKey[256];
-
     int WindowWidth;
     int WindowHeight;
     float DeltaTime;
