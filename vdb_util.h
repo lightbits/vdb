@@ -4,6 +4,14 @@ void vdbClear(float r, float g, float b, float a)
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void vdbView3D(mat4 model, mat4 view, mat4 projection)
+{
+    mat4 pvm = projection * view * model;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixf(pvm.data);
+}
+
 void vdbOrtho(float left, float right, float bottom, float top)
 {
     glMatrixMode(GL_MODELVIEW);

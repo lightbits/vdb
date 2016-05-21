@@ -3,6 +3,10 @@ Graphical Debugger
 
 Sort of like a programmable Simulink scope that you can insert into your C++ code to visualize your data.
 
+Usage
+-----
+See test.cpp
+
 Todo
 ----
 * Store skipped windows in imgui.ini
