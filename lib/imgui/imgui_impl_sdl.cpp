@@ -146,8 +146,17 @@ bool ImGui_ImplSdl_ProcessEvent(SDL_Event* event)
 
 bool ImGui_ImplSdl_CreateDeviceObjects()
 {
-    // Build texture atlas
     ImGuiIO& io = ImGui::GetIO();
+
+    #ifdef VDB_MY_CONFIG
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.FrameRounding = 2.0f;
+    style.GrabRounding = 2.0f;
+    io.IniFilename = "./.build/imgui.ini";
+    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    #endif
+
+    // Build texture atlas
     unsigned char* pixels;
     int width, height;
     io.Fonts->GetTexDataAsAlpha8(&pixels, &width, &height);

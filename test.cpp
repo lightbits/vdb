@@ -1,6 +1,6 @@
 #include "vdb.cpp"
 
-int main()
+int main(int argc, char **argv)
 {
     vdb("test 1", [](vdb_input Input)
     {
@@ -15,12 +15,29 @@ int main()
         ImGui::ShowTestWindow();
     });
 
+    u08 data[128*128*3];
+    for (int y = 0; y < 128; y++)
+    for (int x = 0; x < 128; x++)
+    {
+        u08 xmod = x % 32;
+        u08 ymod = y % 32;
+        u08 r = 64+4*xmod;
+        u08 g = 64+4*ymod;
+        u08 b = xmod+ymod;
+        data[(x+y*128)*3+0] = r;
+        data[(x+y*128)*3+1] = g;
+        data[(x+y*128)*3+2] = b;
+    }
+
     // test step once
 
-    vdb("test 2", [](vdb_input Input)
+    GLuint texture = 0;
+    vdb("test 2", [&](vdb_input Input)
     {
         glClearColor(0.8f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
+        vdbOrtho(-1.0f, +1.0f, +1.0f, -1.0f);
+        vdbImage(data, 128, 128, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
     });
 
     // test step over
@@ -41,7 +58,6 @@ int main()
             r32 D1 = 0.7f;
             r32 D2 = 0.8f;
             r32 D3 = 0.88f;
-            r32 TWO_PI = 3.1415926f*2.0f;
             r32 t = x / 10.0f;
             if (t > 1.0f) t = 1.0f;
             if (t < 0.0f) t = 0.0f;
@@ -59,4 +75,6 @@ int main()
         glClearColor(0.8f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
     });
+
+    return 0;
 }

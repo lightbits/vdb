@@ -1,37 +1,24 @@
 #pragma once
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <assert.h>
-#include <gl/gl.h>
-#else
-#error "Implement SDL platform layer"
-#endif
-#include "lib/imgui.h"
 #include <functional>
 #include <stdint.h>
-typedef float    vdb_r32;
-typedef uint64_t vdb_u64;
-typedef uint32_t vdb_u32;
-typedef uint16_t vdb_u16;
-typedef uint8_t  vdb_u08;
-typedef int64_t  vdb_s64;
-typedef int32_t  vdb_s32;
-typedef int16_t  vdb_s16;
-typedef int8_t   vdb_s08;
+#include "lib/imgui/imgui.h"
 
 struct vdb_input
 {
     struct mouse
     {
-        // Position in pixels relative upper-left corner
-        float X;
-        float Y;
+        // Cursor location in pixels relative to upper-left corner
+        int X;
+        int Y;
+
+        // Cursor location in [-1, 1] coordinates relative to upper-left corner
+        float X_NDC;
+        float Y_NDC;
 
         struct button
         {
-            bool WasDownThisFrame;
-            bool IsDown;
+            bool Down;
+            bool Released;
         } Left, Middle, Right;
     } Mouse;
 
@@ -42,13 +29,15 @@ struct vdb_input
 };
 
 typedef std::function<void (vdb_input Input) > vdb_callback;
-void vdb(vdb_callback Callback);
-
-#define IFKEY(Key) if (Input.Keys[Key])
-#define MOUSEX Input.Mouse.X
-#define MOUSEY Input.Mouse.Y
+void vdb(char *Label, vdb_callback Callback);
 
 #ifdef VDB_MY_CONFIG
+#define VDBBS(Label) vdb(Label, [&](vdb_input Input) { using namespace ImGui;
+#define VDBB(Label) vdb(Label, [&](vdb_input Input) { using namespace ImGui;
+#define VDBE() });
+#define VDB_SETTINGS_FILENAME "./.build/vdb.ini"
+#define MOUSEX Input.Mouse.X_NDC
+#define MOUSEY Input.Mouse.Y_NDC
 typedef float    r32;
 typedef uint64_t u64;
 typedef uint32_t u32;

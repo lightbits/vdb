@@ -6,13 +6,12 @@ Sort of like a programmable Simulink scope that you can insert into your C++ cod
 Todo
 ----
 * Store skipped windows in imgui.ini
-* Allow to set (and remember) window size and position
-    numerically.
-* Custom texture drawing
-* Custom line drawing
-* Custom shape drawing
-* Custom point drawing
 * Return hover position and belonging item
     In callback function?
+* Better sliders. When moving mouse slowly: Higher precision, fast: large steps?
+
+Done
+----
+* Allow to set (and remember) window size and position
 * Screenshot and note taking
 * Quick exit

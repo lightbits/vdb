@@ -1,158 +1,252 @@
 #include "vdb.h"
-#include "lib/imgui_draw.cpp"
-#include "lib/imgui.cpp"
-#include "lib/imgui_demo.cpp"
+#include <SDL.h>
+#include <SDL_syswm.h>
+#include <SDL_opengl.h>
+#include <SDL_assert.h>
+#include "lib/imgui/imgui_draw.cpp"
+#include "lib/imgui/imgui.cpp"
+#include "lib/imgui/imgui_demo.cpp"
+#include "lib/imgui/imgui_impl_sdl.cpp"
+#include "lib/so_math.h"
+
+#ifndef VDB_NO_STB_IMAGE_WRITE
+#ifdef STB_IMAGE_WRITE_IMPLEMENTATION
+#error "Library conflict: Please #define VDB_NO_STB_IMAGE_WRITE before including vdb"
+#endif
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "lib/stb_image_write.h"
+#endif
+
+#ifndef VDB_NO_STB_IMAGE
+#ifdef STB_IMAGE_IMPLEMENTATION
+#error "Library conflict: Please #define VDB_NO_STB_IMAGE before including vdb"
+#endif
+#define STB_IMAGE_IMPLEMENTATION
+#include "lib/stb_image.h"
+#endif
+
+static bool VDB_FIRST_LOOP_ITERATION = false;
+
+bool vdb_isFirstLoopIteration()
+{
+    return VDB_FIRST_LOOP_ITERATION;
+}
+
+#include "vdb_util.h"
+
+struct vdb_window
+{
+    SDL_Window *SDLWindow;
+    SDL_GLContext GLContext;
+    bool HasVsync;
+};
 
 struct vdb_event
 {
     bool StepOver;
     bool StepOnce;
+    bool TakeNote;
+    bool TakeScreenshot;
+    bool ReturnPressed;
+    bool WindowSizeChanged;
     bool Exit;
-    // bool TakeScreenshot;
-    // bool Take;
 };
 
-enum vdb_keys;
-struct vdb_window;
-
-#ifdef _WIN32
-#include "vdb_win32.cpp"
-#undef GetWindowFont
-#else
-#error "Your platform is not supported"
-#endif
-
-void vdb_imgui_renderDrawLists(ImDrawData* draw_data)
+struct vdb_settings
 {
-    // We are using the OpenGL fixed pipeline to make the example code simpler to read!
-    // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers.
-    GLint last_texture; glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
-    GLint last_viewport[4]; glGetIntegerv(GL_VIEWPORT, last_viewport);
-    glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_TRANSFORM_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_SCISSOR_TEST);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnable(GL_TEXTURE_2D);
-    //glUseProgram(0); // You may want this if using this code in an OpenGL 3+ context
+    int Width;
+    int Height;
+    int PositionX;
+    int PositionY;
+};
 
-    // Handle cases of screen coordinates != from framebuffer coordinates (e.g. retina displays)
-    ImGuiIO& io = ImGui::GetIO();
-    int fb_width = (int)(io.DisplaySize.x * io.DisplayFramebufferScale.x);
-    int fb_height = (int)(io.DisplaySize.y * io.DisplayFramebufferScale.y);
-    draw_data->ScaleClipRects(io.DisplayFramebufferScale);
-
-    // Setup viewport, orthographic projection matrix
-    glViewport(0, 0, (GLsizei)fb_width, (GLsizei)fb_height);
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0.0f, io.DisplaySize.x, io.DisplaySize.y, 0.0f, -1.0f, +1.0f);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-
-    // Render command lists
-    #define OFFSETOF(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
+vdb_settings vdb_loadSettings()
+{
+    vdb_settings Result = {0};
+    #ifdef VDB_MY_CONFIG
+    FILE *File = fopen(VDB_SETTINGS_FILENAME, "rb");
+    if (File)
     {
-        const ImDrawList* cmd_list = draw_data->CmdLists[n];
-        const unsigned char* vtx_buffer = (const unsigned char*)&cmd_list->VtxBuffer.front();
-        const ImDrawIdx* idx_buffer = &cmd_list->IdxBuffer.front();
-        glVertexPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, pos)));
-        glTexCoordPointer(2, GL_FLOAT, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, uv)));
-        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(ImDrawVert), (void*)(vtx_buffer + OFFSETOF(ImDrawVert, col)));
-
-        for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.size(); cmd_i++)
+        char Buffer[sizeof(vdb_settings)];
+        size_t Count = fread(Buffer, sizeof(vdb_settings), 1, File);
+        if (Count == 1)
         {
-            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-            if (pcmd->UserCallback)
-            {
-                pcmd->UserCallback(cmd_list, pcmd);
-            }
-            else
-            {
-                glBindTexture(GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-                glScissor((int)pcmd->ClipRect.x, (int)(fb_height - pcmd->ClipRect.w), (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y));
-                glDrawElements(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer);
-            }
-            idx_buffer += pcmd->ElemCount;
+            Result = *(vdb_settings*)Buffer;
         }
+        fclose(File);
     }
-    #undef OFFSETOF
-
-    // Restore modified state
-    glDisableClientState(GL_COLOR_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glBindTexture(GL_TEXTURE_2D, last_texture);
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glPopAttrib();
-    glViewport(last_viewport[0], last_viewport[1], (GLsizei)last_viewport[2], (GLsizei)last_viewport[3]);
+    else
+    {
+        Result.Width = 640;
+        Result.Height = 480;
+        Result.PositionX = SDL_WINDOWPOS_UNDEFINED;
+        Result.PositionY = SDL_WINDOWPOS_UNDEFINED;
+    }
+    #else
+    Result.Width = 640;
+    Result.Height = 480;
+    Result.PositionX = SDL_WINDOWPOS_UNDEFINED;
+    Result.PositionY = SDL_WINDOWPOS_UNDEFINED;
+    #endif
+    return Result;
 }
 
-void vdb_imgui_init()
+void vdb_saveSettings(vdb_settings Settings)
 {
-    ImGuiIO &IO = ImGui::GetIO();
-    IO.KeyMap[ImGuiKey_Tab] = VDB_KEY_TAB;
-    IO.KeyMap[ImGuiKey_LeftArrow] = VDB_KEY_LEFT;
-    IO.KeyMap[ImGuiKey_RightArrow] = VDB_KEY_RIGHT;
-    IO.KeyMap[ImGuiKey_UpArrow] = VDB_KEY_UP;
-    IO.KeyMap[ImGuiKey_DownArrow] = VDB_KEY_DOWN;
-    IO.KeyMap[ImGuiKey_PageUp] = VDB_KEY_PAGEUP;
-    IO.KeyMap[ImGuiKey_PageDown] = VDB_KEY_PAGEDOWN;
-    IO.KeyMap[ImGuiKey_Home] = VDB_KEY_HOME;
-    IO.KeyMap[ImGuiKey_End] = VDB_KEY_END;
-    IO.KeyMap[ImGuiKey_Delete] = VDB_KEY_DELETE;
-    IO.KeyMap[ImGuiKey_Backspace] = VDB_KEY_BACK;
-    IO.KeyMap[ImGuiKey_Enter] = VDB_KEY_ENTER;
-    IO.KeyMap[ImGuiKey_Escape] = VDB_KEY_ESCAPE;
-    IO.KeyMap[ImGuiKey_A] = VDB_KEY_A;
-    IO.KeyMap[ImGuiKey_C] = VDB_KEY_C;
-    IO.KeyMap[ImGuiKey_V] = VDB_KEY_V;
-    IO.KeyMap[ImGuiKey_X] = VDB_KEY_X;
-    IO.KeyMap[ImGuiKey_Y] = VDB_KEY_Y;
-    IO.KeyMap[ImGuiKey_Z] = VDB_KEY_Z;
-
-    IO.RenderDrawListsFn = vdb_imgui_renderDrawLists;   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-    IO.SetClipboardTextFn = vdb_setClipboardText;
-    IO.GetClipboardTextFn = vdb_getClipboardText;
-
     #ifdef VDB_MY_CONFIG
-    ImGuiStyle &Style = ImGui::GetStyle();
-    Style.FrameRounding = 2.0f;
-    Style.GrabRounding = 2.0f;
-    IO.IniFilename = "./build/imgui.ini";
-    IO.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    FILE *File = fopen(VDB_SETTINGS_FILENAME, "wb+");
+    if (File)
+    {
+        fwrite((const void*)&Settings, sizeof(vdb_settings), 1, File);
+        fclose(File);
+    }
     #endif
+}
 
-    // Build texture atlas
-    unsigned char* Pixels;
-    int Width, Height;
-    IO.Fonts->GetTexDataAsAlpha8(&Pixels, &Width, &Height);
+vdb_window vdb_openWindow()
+{
+    vdb_window Result = {0};
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0); // @ Find out why this stopped working
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
 
-    // Upload texture to graphics system
-    GLint LastTexture;
-    GLuint FontTexture;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &LastTexture);
-    glGenTextures(1, &FontTexture);
-    glBindTexture(GL_TEXTURE_2D, FontTexture);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, Width, Height, 0, GL_ALPHA, GL_UNSIGNED_BYTE, Pixels);
+    vdb_settings Settings = vdb_loadSettings();
+    Result.SDLWindow = SDL_CreateWindow(
+        "vdb",
+        Settings.PositionX,
+        Settings.PositionY,
+        Settings.Width,
+        Settings.Height,
+        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-    // Store our identifier
-    IO.Fonts->TexID = (void *)(intptr_t)FontTexture;
+    SDL_assert(Result.SDLWindow);
 
-    // Restore state
-    glBindTexture(GL_TEXTURE_2D, LastTexture);
+    Result.GLContext = SDL_GL_CreateContext(Result.SDLWindow);
+
+    // 0 for immediate updates, 1 for updates synchronized with the
+    // vertical retrace. If the system supports it, you may
+    // specify -1 to allow late swaps to happen immediately
+    // instead of waiting for the next retrace.
+    SDL_GL_SetSwapInterval(1);
+
+    // Instead of using vsync, you can specify a desired framerate
+    // that the application will attempt to keep. If a frame rendered
+    // too fast, it will sleep the remaining time. Leave swap_interval
+    // at 0 when using this.
+    if (SDL_GL_GetSwapInterval() == 1)
+        Result.HasVsync = true;
+    else
+        Result.HasVsync = false;
+
+    return Result;
+}
+
+void vdb_processMessages(vdb_input *Input,
+                         vdb_event *InterestingEvents)
+{
+    Input->Mouse.Left.Released = false;
+    Input->Mouse.Right.Released = false;
+    Input->Mouse.Middle.Released = false;
+    InterestingEvents->WindowSizeChanged = false;
+    InterestingEvents->Exit = false;
+    InterestingEvents->StepOnce = false;
+    InterestingEvents->StepOver = false;
+    InterestingEvents->TakeNote = false;
+    InterestingEvents->TakeScreenshot = false;
+    InterestingEvents->ReturnPressed = false;
+
+    SDL_Event Event;
+    while (SDL_PollEvent(&Event))
+    {
+        ImGui_ImplSdl_ProcessEvent(&Event);
+
+        // TODO: Check if IMGUI wants to capture mouse/key
+        switch (Event.type)
+        {
+            case SDL_WINDOWEVENT:
+            {
+                switch (Event.window.event)
+                {
+                    case SDL_WINDOWEVENT_SIZE_CHANGED:
+                    {
+                        InterestingEvents->WindowSizeChanged = true;
+                    } break;
+                }
+            } break;
+
+            case SDL_KEYDOWN:
+            {
+                if (Event.key.keysym.sym == SDLK_ESCAPE)
+                    InterestingEvents->Exit = true;
+            } break;
+
+            case SDL_KEYUP:
+            {
+                if (Event.key.keysym.scancode == SDL_SCANCODE_F5)
+                    InterestingEvents->StepOver = true;
+                if (Event.key.keysym.scancode == SDL_SCANCODE_F10)
+                    InterestingEvents->StepOnce = true;
+                if (Event.key.keysym.scancode == SDL_SCANCODE_F12)
+                    InterestingEvents->TakeNote = true;
+                if (Event.key.keysym.scancode == SDL_SCANCODE_PRINTSCREEN)
+                    InterestingEvents->TakeScreenshot = true;
+                if (Event.key.keysym.scancode == SDL_SCANCODE_RETURN)
+                    InterestingEvents->ReturnPressed = true;
+                break;
+            }
+
+            case SDL_QUIT:
+            {
+                InterestingEvents->Exit = true;
+            } break;
+
+            case SDL_MOUSEBUTTONDOWN:
+            {
+                if (SDL_BUTTON_LMASK & Event.button.button)
+                    Input->Mouse.Left.Down = true;
+                if (SDL_BUTTON_RMASK & Event.button.button)
+                    Input->Mouse.Right.Down = true;
+                if (SDL_BUTTON_MMASK & Event.button.button)
+                    Input->Mouse.Middle.Down = true;
+                break;
+            }
+
+            case SDL_MOUSEBUTTONUP:
+            {
+                if (SDL_BUTTON_LMASK & Event.button.button)
+                {
+                    Input->Mouse.Left.Down = false;
+                    Input->Mouse.Left.Released = true;
+                }
+                if (SDL_BUTTON_RMASK & Event.button.button)
+                {
+                    Input->Mouse.Right.Down = false;
+                    Input->Mouse.Right.Released = true;
+                }
+                if (SDL_BUTTON_MMASK & Event.button.button)
+                {
+                    Input->Mouse.Middle.Down = false;
+                    Input->Mouse.Middle.Released = true;
+                }
+                break;
+            }
+        }
+    }
+}
+
+u64 vdb_getTicks()
+{
+    return SDL_GetPerformanceCounter();
+}
+
+r32 vdb_getElapsedSeconds(u64 Begin, u64 End)
+{
+    u64 Frequency = SDL_GetPerformanceFrequency();
+    return (r32)(End-Begin) / (r32)Frequency;
 }
 
 void vdb(char *Label, vdb_callback Callback)
@@ -163,8 +257,8 @@ void vdb(char *Label, vdb_callback Callback)
     static vdb_window Window = {0};
     if (!Initialized)
     {
-        Window = vdb_openWindow(640, 480);
-        vdb_imgui_init();
+        Window = vdb_openWindow();
+        ImGui_ImplSdl_Init(Window.SDLWindow);
         Initialized = true;
     }
 
@@ -190,20 +284,73 @@ void vdb(char *Label, vdb_callback Callback)
         }
     }
 
-    float MainGuiAlpha = 1.0f;
+    u64 StartTick = vdb_getTicks();
+    u64 LastTick = StartTick;
+    r32 MainGuiAlpha = 1.0f;
+    r32 MainMenuAlpha = 0.7f;
+    bool Running = true;
+    bool SaveScreenshot = false;
+    char *ScreenshotFilename = 0;
     vdb_input Input = {0};
     vdb_event Event = {0};
-    bool running = true;
-    while (running)
+    VDB_FIRST_LOOP_ITERATION = true;
+    while (Running)
     {
-        running = vdb_processMessages(&Window, &Input, &Event);
-        ImGui::NewFrame();
+        u64 CurrTick = vdb_getTicks();
+        Input.DeltaTime = vdb_getElapsedSeconds(LastTick, CurrTick);
+        Input.ElapsedTime = vdb_getElapsedSeconds(StartTick, CurrTick);
+        LastTick = CurrTick;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, MainGuiAlpha);
+        vdb_processMessages(&Input, &Event);
+
+        if (Event.Exit)
+        {
+            break;
+        }
+        if (Event.StepOnce)
+        {
+            break;
+        }
+        if (Event.StepOver)
+        {
+            StepOver = true;
+            break;
+        }
+
+        SDL_GetWindowSize(Window.SDLWindow, &Input.WindowWidth, &Input.WindowHeight);
+        SDL_GetMouseState(&Input.Mouse.X, &Input.Mouse.Y);
+        Input.Mouse.X_NDC = -1.0f + 2.0f * Input.Mouse.X / Input.WindowWidth;
+        Input.Mouse.Y_NDC = -1.0f + 2.0f * Input.Mouse.Y / Input.WindowHeight;
+
+        glViewport(0, 0, Input.WindowWidth, Input.WindowHeight);
+        ImGui_ImplSdl_NewFrame(Window.SDLWindow);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                            SaveScreenshot ? 0.0f : MainGuiAlpha);
+
+        // Pre-callback state initialization
+        {
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glEnable(GL_POINT_SMOOTH);
+            glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+            glPointSize(1.0f);
+
+            glEnable(GL_LINE_SMOOTH);
+            glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+            glLineWidth(1.0f);
+
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+        }
         Callback(Input);
         ImGui::PopStyleVar();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.7f);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                            SaveScreenshot ? 0.0f : MainMenuAlpha);
         if (ImGui::BeginMainMenuBar())
         {
             if (ImGui::BeginMenu("Options"))
@@ -215,6 +362,16 @@ void vdb(char *Label, vdb_callback Callback)
                     if (MainGuiAlpha > 0.95f)
                         MainGuiAlpha = 1.0f;
                 }
+                #if 1
+                static int UserWidth = Input.WindowWidth;
+                static int UserHeight = Input.WindowHeight;
+                ImGui::InputInt("Window width", &UserWidth, 1, 2560);
+                ImGui::InputInt("Window height", &UserHeight, 1, 2560);
+                if (ImGui::Button("Set window size"))
+                {
+                    SDL_SetWindowSize(Window.SDLWindow, UserWidth, UserHeight);
+                }
+                #endif
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Debugger"))
@@ -225,33 +382,81 @@ void vdb(char *Label, vdb_callback Callback)
                     Event.StepOver = true;
                 ImGui::EndMenu();
             }
+
             ImGui::EndMainMenuBar();
         }
         ImGui::PopStyleVar();
 
-        if (Event.StepOnce)
+        if (SaveScreenshot)
         {
-            break;
+            int Width = Input.WindowWidth;
+            int Height = Input.WindowHeight;
+            u08 *Pixels = (u08*)calloc(Width*Height,3);
+
+            // Read the back buffer. Note: I set the pack alignment to 1
+            // before reading to avoid corruption.
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            glReadPixels(0, 0, Width, Height, GL_RGB, GL_UNSIGNED_BYTE, Pixels);
+
+            // Write result flipped vertically starting from the beginning of
+            // the last row, and moving backward.
+            u08 *End = Pixels + Width*Height*3 - Width*3;
+            stbi_write_png(ScreenshotFilename, Width, Height, 3, End, -Width*3);
+            free(Pixels);
+            SaveScreenshot = false;
         }
-        if (Event.StepOver)
+
+        if (Event.TakeScreenshot)
+            ImGui::OpenPopup("Save screenshot as...");
+        if (ImGui::BeginPopupModal("Save screenshot as...",
+            NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            StepOver = true;
-            break;
+            static char Filename[1024];
+            ImGui::SetKeyboardFocusHere();
+            ImGui::InputText("Filename", Filename, sizeof(Filename));
+            ImGui::Separator();
+
+            if (ImGui::Button("OK", ImVec2(120,0)) || Event.ReturnPressed)
+            {
+                SaveScreenshot = true;
+                ScreenshotFilename = Filename;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120,0)))
+            {
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndPopup();
         }
 
         ImGui::Render();
+        SDL_GL_SwapWindow(Window.SDLWindow);
 
-        vdb_swapBuffers(Window);
-        if (Input.DeltaTime < 1.0f / 60.0f)
+        if (!Window.HasVsync && Input.DeltaTime < 1.0f/60.0f)
         {
             r32 SleepSec = (1.0f/60.0f) - Input.DeltaTime;
-            int SleepMs = (int)(SleepSec*1000.0f);
-            vdb_sleep(SleepMs);
+            u32 SleepMs = (u32)(SleepSec*1000.0f);
+            SDL_Delay(SleepMs);
         }
+
+        GLenum Error = glGetError();
+        SDL_assert(Error == GL_NO_ERROR);
+
+        VDB_FIRST_LOOP_ITERATION = false;
     }
 
     if (Event.Exit)
     {
-        vdb_exit();
+        vdb_settings Settings = {0};
+        Settings.Width = 0,
+        Settings.Height = 0;
+        Settings.PositionX = 0;
+        Settings.PositionY = 0;
+        SDL_GetWindowSize(Window.SDLWindow, &Settings.Width, &Settings.Height);
+        SDL_GetWindowPosition(Window.SDLWindow, &Settings.PositionX, &Settings.PositionY);
+        vdb_saveSettings(Settings);
+        ImGui_ImplSdl_Shutdown();
+        exit(0);
     }
 }
