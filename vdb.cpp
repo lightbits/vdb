@@ -238,15 +238,15 @@ void vdb_processMessages(vdb_input *Input,
     }
 }
 
-u64 vdb_getTicks()
+uint64_t vdb_getTicks()
 {
     return SDL_GetPerformanceCounter();
 }
 
-r32 vdb_getElapsedSeconds(u64 Begin, u64 End)
+float vdb_getElapsedSeconds(uint64_t Begin, uint64_t End)
 {
-    u64 Frequency = SDL_GetPerformanceFrequency();
-    return (r32)(End-Begin) / (r32)Frequency;
+    uint64_t Frequency = SDL_GetPerformanceFrequency();
+    return (float)(End-Begin) / (float)Frequency;
 }
 
 void vdb(char *Label, vdb_callback Callback)
@@ -284,10 +284,10 @@ void vdb(char *Label, vdb_callback Callback)
         }
     }
 
-    u64 StartTick = vdb_getTicks();
-    u64 LastTick = StartTick;
-    r32 MainGuiAlpha = 1.0f;
-    r32 MainMenuAlpha = 0.7f;
+    uint64_t StartTick = vdb_getTicks();
+    uint64_t LastTick = StartTick;
+    float MainGuiAlpha = 1.0f;
+    float MainMenuAlpha = 0.7f;
     bool Running = true;
     bool SaveScreenshot = false;
     char *ScreenshotFilename = 0;
@@ -296,26 +296,12 @@ void vdb(char *Label, vdb_callback Callback)
     VDB_FIRST_LOOP_ITERATION = true;
     while (Running)
     {
-        u64 CurrTick = vdb_getTicks();
+        uint64_t CurrTick = vdb_getTicks();
         Input.DeltaTime = vdb_getElapsedSeconds(LastTick, CurrTick);
         Input.ElapsedTime = vdb_getElapsedSeconds(StartTick, CurrTick);
         LastTick = CurrTick;
 
         vdb_processMessages(&Input, &Event);
-
-        if (Event.Exit)
-        {
-            break;
-        }
-        if (Event.StepOnce)
-        {
-            break;
-        }
-        if (Event.StepOver)
-        {
-            StepOver = true;
-            break;
-        }
 
         SDL_GetWindowSize(Window.SDLWindow, &Input.WindowWidth, &Input.WindowHeight);
         SDL_GetMouseState(&Input.Mouse.X, &Input.Mouse.Y);
@@ -376,10 +362,12 @@ void vdb(char *Label, vdb_callback Callback)
             }
             if (ImGui::BeginMenu("Debugger"))
             {
-                if (ImGui::MenuItem("Step once"))
+                if (ImGui::MenuItem("Step once [F10]"))
                     Event.StepOnce = true;
-                if (ImGui::MenuItem("Step over"))
+                if (ImGui::MenuItem("Step over [F5]"))
                     Event.StepOver = true;
+                if (ImGui::MenuItem("Screenshot [PrtScreen]"))
+                    Event.TakeScreenshot = true;
                 ImGui::EndMenu();
             }
 
@@ -391,7 +379,7 @@ void vdb(char *Label, vdb_callback Callback)
         {
             int Width = Input.WindowWidth;
             int Height = Input.WindowHeight;
-            u08 *Pixels = (u08*)calloc(Width*Height,3);
+            uint8_t *Pixels = (uint8_t*)calloc(Width*Height,3);
 
             // Read the back buffer. Note: I set the pack alignment to 1
             // before reading to avoid corruption.
@@ -400,7 +388,7 @@ void vdb(char *Label, vdb_callback Callback)
 
             // Write result flipped vertically starting from the beginning of
             // the last row, and moving backward.
-            u08 *End = Pixels + Width*Height*3 - Width*3;
+            uint8_t *End = Pixels + Width*Height*3 - Width*3;
             stbi_write_png(ScreenshotFilename, Width, Height, 3, End, -Width*3);
             free(Pixels);
             SaveScreenshot = false;
@@ -435,8 +423,8 @@ void vdb(char *Label, vdb_callback Callback)
 
         if (!Window.HasVsync && Input.DeltaTime < 1.0f/60.0f)
         {
-            r32 SleepSec = (1.0f/60.0f) - Input.DeltaTime;
-            u32 SleepMs = (u32)(SleepSec*1000.0f);
+            float SleepSec = (1.0f/60.0f) - Input.DeltaTime;
+            uint32_t SleepMs = (uint32_t)(SleepSec*1000.0f);
             SDL_Delay(SleepMs);
         }
 
@@ -444,6 +432,20 @@ void vdb(char *Label, vdb_callback Callback)
         SDL_assert(Error == GL_NO_ERROR);
 
         VDB_FIRST_LOOP_ITERATION = false;
+
+        if (Event.Exit)
+        {
+            break;
+        }
+        if (Event.StepOnce)
+        {
+            break;
+        }
+        if (Event.StepOver)
+        {
+            StepOver = true;
+            break;
+        }
     }
 
     if (Event.Exit)

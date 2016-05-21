@@ -63,6 +63,10 @@ int main(int argc, char **argv)
             glVertex3f(a, -2.0f, 0.0f);
             glVertex3f(a, +2.0f, 0.0f);
         }
+
+        glColor4f(1.0f, 0.2f, 0.1f, 1.0f);
+        glVertex3f(-0.5f, 0.5f, 0.5f);
+        glVertex3f(+0.5f, 0.5f, 0.5f);
         glEnd();
 
         ImGui::SliderAngle("Rotate X", &rotate_x);
