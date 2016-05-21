@@ -56,7 +56,7 @@ int main(int argc, char **argv)
         for (int i = 0; i <= 20; i++)
         {
             float a = -2.0f + 4.0f*i/20.0f;
-            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            glColor4f(0.8f, 0.7f, 0.51f, 1.0f);
             glVertex3f(-2.0f, a, 0.0f);
             glVertex3f(+2.0f, a, 0.0f);
 
@@ -77,18 +77,20 @@ int main(int argc, char **argv)
         ImGui::SliderFloat("Translate Z", &translate_z, -1.0f, +1.0f);
     });
 
-    unsigned char data[128*128*3];
-    for (int y = 0; y < 128; y++)
-    for (int x = 0; x < 128; x++)
+    const int width = 129;
+    const int height = 128;
+    unsigned char data[width*height*3];
+    for (int y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
     {
         unsigned char xmod = x % 32;
         unsigned char ymod = y % 32;
         unsigned char r = 64+4*xmod;
         unsigned char g = 64+4*ymod;
         unsigned char b = xmod+ymod;
-        data[(x+y*128)*3+0] = r;
-        data[(x+y*128)*3+1] = g;
-        data[(x+y*128)*3+2] = b;
+        data[(x+y*width)*3+0] = r;
+        data[(x+y*width)*3+1] = g;
+        data[(x+y*width)*3+2] = b;
     }
 
     // test step once
@@ -99,7 +101,7 @@ int main(int argc, char **argv)
         glClearColor(0.8f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         vdbOrtho(-1.0f, +1.0f, +1.0f, -1.0f);
-        vdbImage(data, 128, 128, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
+        vdbImage(data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
     });
 
     // test step over

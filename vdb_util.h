@@ -97,6 +97,27 @@ GLuint vdbMakeTexture(void *data, int width, int height,
     return result;
 }
 
+GLuint vdbLoadTexture(char *filename,
+                      GLenum mag_filter = GL_LINEAR,
+                      GLenum min_filter = GL_LINEAR,
+                      GLenum wrap_s = GL_CLAMP_TO_EDGE,
+                      GLenum wrap_t = GL_CLAMP_TO_EDGE,
+                      GLenum internal_format = GL_RGBA)
+{
+    int width, height, channels;
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
+    SDL_assert(data);
+
+    GLuint result = vdbMakeTexture(data, width, height,
+                    GL_RGBA, GL_UNSIGNED_BYTE,
+                    min_filter, mag_filter,
+                    wrap_s, wrap_t,
+                    internal_format);
+
+    stbi_image_free(data);
+    return result;
+}
+
 void vdbDrawTexture(GLuint texture)
 {
     glEnable(GL_BLEND);

@@ -330,6 +330,10 @@ void vdb(char *Label, vdb_callback Callback)
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+            // Specify the start of each pixel row in memory to be 1-byte aligned
+            // as opposed to 4-byte aligned or something.
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
             vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
         }
         Callback(Input);
