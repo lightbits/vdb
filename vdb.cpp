@@ -1,4 +1,6 @@
 #include "vdb.h"
+
+#define SDL_ASSERT_LEVEL 2
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include <SDL_opengl.h>
@@ -249,6 +251,11 @@ float vdb_getElapsedSeconds(uint64_t Begin, uint64_t End)
     return (float)(End-Begin) / (float)Frequency;
 }
 
+#define COROUTINE(Trigger, Duration) \
+    static u64 TickBegin_##__LINE__ = 0; \
+    if (Trigger) TickBegin_##__LINE__ = vdb_getTicks(); \
+    if (vdb_getElapsedSeconds(TickBegin_##__LINE__, vdb_getTicks()) < Duration) \
+
 void vdb(char *Label, vdb_callback Callback)
 {
     static char *PrevLabel = 0;
@@ -288,8 +295,13 @@ void vdb(char *Label, vdb_callback Callback)
     uint64_t LastTick = StartTick;
     float MainGuiAlpha = 1.0f;
     float MainMenuAlpha = 0.7f;
+    bool MainMenuActive = false;
     bool Running = true;
     bool SaveScreenshot = false;
+    static bool DrawCursorInScreenshot = true;
+    static bool DrawGuiInScreenshot = true;
+    int ScreenshotCursorX = 0;
+    int ScreenshotCursorY = 0;
     char *ScreenshotFilename = 0;
     vdb_input Input = {0};
     vdb_event Event = {0};
@@ -311,8 +323,20 @@ void vdb(char *Label, vdb_callback Callback)
         glViewport(0, 0, Input.WindowWidth, Input.WindowHeight);
         ImGui_ImplSdl_NewFrame(Window.SDLWindow);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
-                            SaveScreenshot ? 0.0f : MainGuiAlpha);
+        if (SaveScreenshot)
+        {
+            ImGui::GetIO().MouseDrawCursor = false;
+            if (!DrawGuiInScreenshot)
+            {
+                MainGuiAlpha = 0.0f;
+            }
+        }
+        else
+        {
+            ImGui::GetIO().MouseDrawCursor = true;
+            MainGuiAlpha = 1.0f;
+        }
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, MainGuiAlpha);
 
         // Pre-callback state initialization
         {
@@ -339,20 +363,18 @@ void vdb(char *Label, vdb_callback Callback)
         Callback(Input);
         ImGui::PopStyleVar();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
-                            SaveScreenshot ? 0.0f : MainMenuAlpha);
+        if (Input.Mouse.Y < 30 || MainMenuActive)
+            MainMenuAlpha = 0.7f;
+        else
+            MainMenuAlpha = 0.0f;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, MainMenuAlpha);
         if (ImGui::BeginMainMenuBar())
         {
+            MainMenuActive = false;
             if (ImGui::BeginMenu("Options"))
             {
-                if (ImGui::SliderFloat("Gui alpha", &MainGuiAlpha, 0.0f, 1.0f))
-                {
-                    if (MainGuiAlpha < 0.05f)
-                        MainGuiAlpha = 0.0f;
-                    if (MainGuiAlpha > 0.95f)
-                        MainGuiAlpha = 1.0f;
-                }
-                #if 1
+                MainMenuActive = true;
                 static int UserWidth = Input.WindowWidth;
                 static int UserHeight = Input.WindowHeight;
                 ImGui::InputInt("Window width", &UserWidth, 1, 2560);
@@ -361,11 +383,11 @@ void vdb(char *Label, vdb_callback Callback)
                 {
                     SDL_SetWindowSize(Window.SDLWindow, UserWidth, UserHeight);
                 }
-                #endif
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Debugger"))
             {
+                MainMenuActive = true;
                 if (ImGui::MenuItem("Step once [F10]"))
                     Event.StepOnce = true;
                 if (ImGui::MenuItem("Step over [F5]"))
@@ -379,38 +401,50 @@ void vdb(char *Label, vdb_callback Callback)
         }
         ImGui::PopStyleVar();
 
-        if (SaveScreenshot)
+        if (SaveScreenshot && DrawCursorInScreenshot)
         {
-            int Width = Input.WindowWidth;
-            int Height = Input.WindowHeight;
-            uint8_t *Pixels = (uint8_t*)calloc(Width*Height,3);
+            glDisable(GL_LINE_SMOOTH);
+            glLineWidth(1.0f);
 
-            // Read the back buffer. Note: I set the pack alignment to 1
-            // before reading to avoid corruption.
-            glPixelStorei(GL_PACK_ALIGNMENT, 1);
-            glReadPixels(0, 0, Width, Height, GL_RGB, GL_UNSIGNED_BYTE, Pixels);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE_MINUS_DST_COLOR, GL_ZERO);
 
-            // Write result flipped vertically starting from the beginning of
-            // the last row, and moving backward.
-            uint8_t *End = Pixels + Width*Height*3 - Width*3;
-            stbi_write_png(ScreenshotFilename, Width, Height, 3, End, -Width*3);
-            free(Pixels);
-            SaveScreenshot = false;
+            int X = ScreenshotCursorX;
+            int Y = ScreenshotCursorY;
+            vdbOrtho(0.0f, Input.WindowWidth, Input.WindowHeight, 0.0f);
+            glBegin(GL_LINES);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            glVertex2f(X-8.0f, Y);
+            glVertex2f(X+8.0f, Y);
+            glVertex2f(X, Y-8.0f);
+            glVertex2f(X, Y+8.0f);
+            glEnd();
         }
 
+        bool BeginSaveScreenshot = false;
         if (Event.TakeScreenshot)
+        {
             ImGui::OpenPopup("Save screenshot as...");
+            ScreenshotCursorX = Input.Mouse.X;
+            ScreenshotCursorY = Input.Mouse.Y;
+        }
         if (ImGui::BeginPopupModal("Save screenshot as...",
             NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             static char Filename[1024];
-            ImGui::SetKeyboardFocusHere();
-            ImGui::InputText("Filename", Filename, sizeof(Filename));
+            COROUTINE(Event.TakeScreenshot, 1.0f)
+            {
+                ImGui::SetKeyboardFocusHere();
+            }
+            ImGui::InputText("Filename", Filename, sizeof(Filename), ImGuiInputTextFlags_AutoSelectAll);
             ImGui::Separator();
+
+            ImGui::Checkbox("Draw GUI", &DrawGuiInScreenshot);
+            ImGui::Checkbox("Draw crosshair", &DrawCursorInScreenshot);
 
             if (ImGui::Button("OK", ImVec2(120,0)) || Event.ReturnPressed)
             {
-                SaveScreenshot = true;
+                BeginSaveScreenshot = true;
                 ScreenshotFilename = Filename;
                 ImGui::CloseCurrentPopup();
             }
@@ -423,6 +457,31 @@ void vdb(char *Label, vdb_callback Callback)
         }
 
         ImGui::Render();
+
+        if (SaveScreenshot)
+        {
+            int Width = Input.WindowWidth;
+            int Height = Input.WindowHeight;
+            uint8_t *Pixels = (uint8_t*)calloc(Width*Height,3);
+
+            // Read the back buffer. Note: I set the pack alignment to 1
+            // before reading to avoid corruption.
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            glReadPixels(0, 0, Width, Height, GL_RGB, GL_UNSIGNED_BYTE, Pixels);
+            // Write result flipped vertically starting from the beginning of
+            // the last row, and moving backward.
+            uint8_t *End = Pixels + Width*Height*3 - Width*3;
+            stbi_write_png(ScreenshotFilename, Width, Height, 3, End, -Width*3);
+            free(Pixels);
+            SaveScreenshot = false;
+        }
+
+        if (BeginSaveScreenshot)
+        {
+            SaveScreenshot = true;
+            BeginSaveScreenshot = false;
+        }
+
         SDL_GL_SwapWindow(Window.SDLWindow);
 
         if (!Window.HasVsync && Input.DeltaTime < 1.0f/60.0f)

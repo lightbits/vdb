@@ -97,6 +97,35 @@ GLuint vdbMakeTexture(void *data, int width, int height,
     return result;
 }
 
+u08 *vdbLoadImage(char *filename, int *width, int *height, int force_channels)
+{
+    int channels;
+    u08 *result = stbi_load(filename, width, height, &channels, force_channels);
+    SDL_assert(result);
+    return result;
+}
+
+u08 *vdbRGBToGray(u08 *in, int w, int h)
+{
+    u08 *out = (u08*)calloc(w*h,1);
+    u08 *pixel = in;
+    for (s32 i = 0; i < w*h; i++)
+    {
+        r32 r = (r32)pixel[0];
+        r32 g = (r32)pixel[1];
+        r32 b = (r32)pixel[2];
+        r32 result_real = (r + r + b + g + g + g) / 6.0f;
+        s32 result_rounded = (s32)result_real;
+        if (result_rounded < 0) result_rounded = 0;
+        if (result_rounded > 255) result_rounded = 255;
+        u08 result = (u08)result_rounded;
+
+        out[i] = result;
+        pixel += 3;
+    }
+    return out;
+}
+
 GLuint vdbLoadTexture(char *filename,
                       GLenum mag_filter = GL_LINEAR,
                       GLenum min_filter = GL_LINEAR,
@@ -105,7 +134,7 @@ GLuint vdbLoadTexture(char *filename,
                       GLenum internal_format = GL_RGBA)
 {
     int width, height, channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
+    u08 *data = stbi_load(filename, &width, &height, &channels, 4);
     SDL_assert(data);
 
     GLuint result = vdbMakeTexture(data, width, height,

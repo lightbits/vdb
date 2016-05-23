@@ -154,6 +154,7 @@ bool ImGui_ImplSdl_CreateDeviceObjects()
     style.GrabRounding = 2.0f;
     io.IniFilename = "./.build/imgui.ini";
     io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    io.MouseDrawCursor = true;
     #endif
 
     // Build texture atlas
