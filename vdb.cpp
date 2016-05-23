@@ -298,8 +298,8 @@ void vdb(char *Label, vdb_callback Callback)
     bool MainMenuActive = false;
     bool Running = true;
     bool SaveScreenshot = false;
-    static bool DrawCursorInScreenshot = true;
-    static bool DrawGuiInScreenshot = true;
+    static bool DrawCursorInScreenshot = false;
+    static bool DrawGuiInScreenshot = false;
     int ScreenshotCursorX = 0;
     int ScreenshotCursorY = 0;
     char *ScreenshotFilename = 0;
