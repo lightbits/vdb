@@ -47,8 +47,8 @@ struct vdb_event
 {
     bool StepOver;
     bool StepOnce;
-    bool TakeNote;
     bool TakeScreenshot;
+    bool TakeScreenshotNoDialog;
     bool ReturnPressed;
     bool WindowSizeChanged;
     bool Exit;
@@ -157,8 +157,8 @@ void vdb_processMessages(vdb_input *Input,
     InterestingEvents->Exit = false;
     InterestingEvents->StepOnce = false;
     InterestingEvents->StepOver = false;
-    InterestingEvents->TakeNote = false;
     InterestingEvents->TakeScreenshot = false;
+    InterestingEvents->TakeScreenshotNoDialog = false;
     InterestingEvents->ReturnPressed = false;
 
     SDL_Event Event;
@@ -192,8 +192,6 @@ void vdb_processMessages(vdb_input *Input,
                     InterestingEvents->StepOver = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_F10)
                     InterestingEvents->StepOnce = true;
-                if (Event.key.keysym.scancode == SDL_SCANCODE_F12)
-                    InterestingEvents->TakeNote = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_PRINTSCREEN)
                     InterestingEvents->TakeScreenshot = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_RETURN)
@@ -293,18 +291,25 @@ void vdb(char *Label, vdb_callback Callback)
 
     uint64_t StartTick = vdb_getTicks();
     uint64_t LastTick = StartTick;
-    float MainGuiAlpha = 1.0f;
     float MainMenuAlpha = 0.7f;
     bool MainMenuActive = false;
     bool Running = true;
-    bool SaveScreenshot = false;
-    static bool DrawCursorInScreenshot = false;
-    static bool DrawGuiInScreenshot = false;
-    int ScreenshotCursorX = 0;
-    int ScreenshotCursorY = 0;
-    char *ScreenshotFilename = 0;
+
+    bool        SaveScreenshot = false;
+    static bool ScreenshotDrawCursor = false;
+    static bool ScreenshotDrawGui = false;
+    int         ScreenshotCursorX = 0;
+    int         ScreenshotCursorY = 0;
+    char       *ScreenshotFilename = 0;
+
     vdb_input Input = {0};
     vdb_event Event = {0};
+
+    Input.ScreenshotDrawCursor = &ScreenshotDrawCursor;
+    Input.ScreenshotDrawGui = &ScreenshotDrawGui;
+    Input.ScreenshotFilename = &ScreenshotFilename;
+    Input.TakeScreenshotNoDialog = &Event.TakeScreenshotNoDialog;
+
     VDB_FIRST_LOOP_ITERATION = true;
     while (Running)
     {
@@ -321,22 +326,22 @@ void vdb(char *Label, vdb_callback Callback)
         Input.Mouse.Y_NDC = -1.0f + 2.0f * Input.Mouse.Y / Input.WindowHeight;
 
         glViewport(0, 0, Input.WindowWidth, Input.WindowHeight);
-        ImGui_ImplSdl_NewFrame(Window.SDLWindow);
 
         if (SaveScreenshot)
         {
-            ImGui::GetIO().MouseDrawCursor = false;
-            if (!DrawGuiInScreenshot)
+            if (!ScreenshotDrawGui)
             {
-                MainGuiAlpha = 0.0f;
+                // Setting this instead of MainGuiAlpha because unnamed windows partially remain even though their alpha is zero
+                ImGui::GetStyle().Alpha = 0.0f;
             }
+            ImGui::GetIO().MouseDrawCursor = false;
         }
         else
         {
+            ImGui::GetStyle().Alpha = 1.0f;
             ImGui::GetIO().MouseDrawCursor = true;
-            MainGuiAlpha = 1.0f;
         }
-        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, MainGuiAlpha);
+        ImGui_ImplSdl_NewFrame(Window.SDLWindow);
 
         // Pre-callback state initialization
         {
@@ -360,8 +365,8 @@ void vdb(char *Label, vdb_callback Callback)
 
             vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
         }
+
         Callback(Input);
-        ImGui::PopStyleVar();
 
         if (Input.Mouse.Y < 30 || MainMenuActive)
             MainMenuAlpha = 0.7f;
@@ -401,7 +406,7 @@ void vdb(char *Label, vdb_callback Callback)
         }
         ImGui::PopStyleVar();
 
-        if (SaveScreenshot && DrawCursorInScreenshot)
+        if (SaveScreenshot && ScreenshotDrawCursor)
         {
             glDisable(GL_LINE_SMOOTH);
             glLineWidth(1.0f);
@@ -428,6 +433,12 @@ void vdb(char *Label, vdb_callback Callback)
             ScreenshotCursorX = Input.Mouse.X;
             ScreenshotCursorY = Input.Mouse.Y;
         }
+        if (Event.TakeScreenshotNoDialog)
+        {
+            BeginSaveScreenshot = true;
+            ScreenshotCursorX = Input.Mouse.X;
+            ScreenshotCursorY = Input.Mouse.Y;
+        }
         if (ImGui::BeginPopupModal("Save screenshot as...",
             NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
@@ -439,8 +450,8 @@ void vdb(char *Label, vdb_callback Callback)
             ImGui::InputText("Filename", Filename, sizeof(Filename), ImGuiInputTextFlags_AutoSelectAll);
             ImGui::Separator();
 
-            ImGui::Checkbox("Draw GUI", &DrawGuiInScreenshot);
-            ImGui::Checkbox("Draw crosshair", &DrawCursorInScreenshot);
+            ImGui::Checkbox("Draw GUI", &ScreenshotDrawGui);
+            ImGui::Checkbox("Draw crosshair", &ScreenshotDrawCursor);
 
             if (ImGui::Button("OK", ImVec2(120,0)) || Event.ReturnPressed)
             {
@@ -460,6 +471,8 @@ void vdb(char *Label, vdb_callback Callback)
 
         if (SaveScreenshot)
         {
+            SDL_assert(ScreenshotFilename);
+
             int Width = Input.WindowWidth;
             int Height = Input.WindowHeight;
             uint8_t *Pixels = (uint8_t*)calloc(Width*Height,3);

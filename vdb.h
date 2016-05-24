@@ -35,6 +35,11 @@ struct vdb_input
     int WindowHeight;
     r32 DeltaTime;
     r32 ElapsedTime;
+
+    bool *TakeScreenshotNoDialog;
+    char **ScreenshotFilename;
+    bool *ScreenshotDrawGui;
+    bool *ScreenshotDrawCursor;
 };
 
 typedef std::function<void (vdb_input Input) > vdb_callback;
