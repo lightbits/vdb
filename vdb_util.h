@@ -89,6 +89,7 @@ GLuint vdbMakeTexture(void *data, int width, int height,
                  data_format,
                  data_type,
                  data);
+    // glGenerateMipmap(GL_TEXTURE_2D); // todo
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
@@ -191,7 +192,10 @@ void vdbImage(void *data, int width, int height,
 void _vdbTakeScreenshot(vdb_input input, char *filename,
                         bool gui, bool cursor)
 {
-    *input.ScreenshotFilename = filename;
+    static char buf_filename[1024];
+    strcpy(buf_filename, filename); // this is dumb
+
+    *input.ScreenshotFilename = buf_filename;
     *input.ScreenshotDrawGui = gui;
     *input.ScreenshotDrawCursor = cursor;
     *input.TakeScreenshotNoDialog = true;
