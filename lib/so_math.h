@@ -1,58 +1,42 @@
-/* so_new_math - v1.01
-
-Changelog
-=========
-4. january 2016
-    smoothstep for new math
-
-11. december 2015
-    Fixed sign convention on rotation matrices.
-    Now all follow the right-hand rule (positive angle means
-    counter-clockwise rotation about the respective axis.).
-
-6. december 2015
-    Readded m_sign
-
-26. november 2015
-    Moved to new template'd library
-    http://www.reedbeta.com/blog/2013/12/28/on-vector-math-libraries/
-    I agree on a lot of the points. I do not like templates in general,
-    but for this one case (math) it does make life somewhat better.
-
-5. october 2015
-    cross, sign
-
-24. september 2015
-    smoothstep
-
-29. august 2015
-    rename lerpf to mixf
-    added vector mixf
-    clamp and map
-    scale(x, y, z)
-
-21. august 2015
-    scale
-    lerpf
-
-15. august 2015
-    Added perspective matrix projection
-    Fixed some math bugs
-
-22. july 2015
-    Added orthographic matrix projection.
-*/
+// so_math.h - ver 10
+// + Vector, matrix math.
+// + Linear algebra.
+// + GLSL like functions
+// + Euclidean transformations.
+// + Conversions between Euler angles, quaternions and matrices
+// + Representations of SE(3) and SO(3)
+// + Conversions between SO(3) and so(3)
+// + Conversions between SE(3) and se(3)
+//
+// :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//   3/6/16: Circle-circle intersection test: m_is_circle_circle
+//
+//   4/1/16: m_smoothstep
+//
+// 11/12/15: Fixed sign convention on the rotation matrices in
+//           mat_rotate_*. They now follow the right-hand rule:
+//           Positive angle means counter-clockwise rotation
+//           about the respective axis.
+//
+//  6/12/15: m_sign
+//
+// 26/11/15: Made it a template library after reading
+//           http://www.reedbeta.com/blog/2013/12/28/on-vector-math-libraries/
+//           I agree on a lot of the points. I do however not
+//           like templates in general, due to poor compiler
+//           error messages. Kind of unsure if this was a good
+//           idea or not. I don't really use vectors or matrices
+//           or dimension greater than 4x4; but I do sometimes
+//           use matrices of odd dimensions.
+//
+// Some earlier entries have been omitted.
 
 #ifndef SO_MATH_HEADER_INCLUDE
 #define SO_MATH_HEADER_INCLUDE
 #include "math.h"
 
-#ifndef PI
-#define PI 3.14159265359
-#endif
-#ifndef TWO_PI
+#define PI     3.14159265359
 #define TWO_PI 6.28318530718
-#endif
 
 template <typename T, int n>
 struct Vector
@@ -527,6 +511,15 @@ Vector<T, r> operator *(Matrix<T, r, c> m, Vector<T, c> x)
     return result;
 }
 
+mat3 m_outer_product(vec3 a, vec3 b)
+{
+    mat3 result;
+    result.a11 = a.x*b.x; result.a12 = a.x*b.y; result.a13 = a.x*b.z;
+    result.a21 = a.y*b.x; result.a22 = a.y*b.y; result.a23 = a.y*b.z;
+    result.a31 = a.z*b.x; result.a32 = a.z*b.y; result.a33 = a.z*b.z;
+    return result;
+}
+
 // Because I like readable error messages when there is a
 // dimension mismatch in the most common operations.
 vec2 operator *(mat2 m, vec2 b) { return m.a1*b.x + m.a2*b.y; }
@@ -787,6 +780,110 @@ Matrix<float,4,3> m_quat_mul_matrix(quat q)
     return result;
 }
 
+///////////////// SO(3)/SE(3) maps /////////////////
+// Define w to be a rotation axis, and t to be an
+// angle about this axis. Then wt is angular twist.
+// so3_exp(wt): Returns the rotation matrix describing
+//              a rotation about w for t radians.
+// so3_log(R):  Returns the angular twist vector
+//              describing the rotation matrix R.
+//
+// Define v to be a linear velocity. Then (w, v)
+// is an element of the se(3) Lie algebra, also
+// called a twist vector, x.
+//
+// se3_exp(x): The matrix H such that
+//               DH/Dt = x H
+//             evaluated at t=1.
+// se3_log(H): The vector x such that the solution
+//             of DJ/Dt = x J at t=1 is H.
+
+mat3 so3_exp(vec3 wt)
+{
+    r32 t = m_length(wt);
+    if (t < 0.01f)
+    {
+        return m_id3() + m_skew(wt);
+    }
+    else
+    {
+        mat3 W = m_skew(wt/t);
+        return m_id3() + sin(t)*W + (1.0f-cos(t))*W*W;
+    }
+}
+
+// https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Log_map_from_SO.283.29_to_so.283.29
+vec3 so3_log(mat3 R)
+{
+    r32 tr = R.a11+R.a22+R.a33;
+    r32 theta = acos((tr-1.0f)/2.0f);
+    if (theta < 0.01f)
+    {
+        // For small angles
+        // R = I + theta K = I + W
+        vec3 w;
+        w.x = R.a32;
+        w.y = R.a13;
+        w.z = R.a21;
+        return w;
+    }
+    else
+    {
+        vec3 k;
+        r32 s = sin(theta);
+        k.x = (R.a32-R.a23)/(2.0f*s);
+        k.y = (R.a13-R.a31)/(2.0f*s);
+        k.z = (R.a21-R.a12)/(2.0f*s);
+        vec3 w = k*theta;
+        return w;
+    }
+}
+
+// Motilal Agrawal.
+// A Lie Algebraic Approach for Consistent Pose Registration for General Euclidean Motion.
+// Proceedings of the 2006 IEEE/RSJ International Conference on Intelligent Robots and Systems
+void se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
+{
+    mat3 R;
+    vec3 T;
+    se3_decompose(SE3, &R, &T);
+    vec3 w = so3_log(R);
+
+    r32 t = m_length(w);
+    if (t < 0.01f)
+    {
+        *out_v = T;
+    }
+    else
+    {
+        mat3 W = m_skew(w);
+        r32 s = sin(t);
+        r32 c = cos(t);
+        mat3 M = m_id3() - 0.5f*W + W*W*((2.0f*s - t*(1.0f+c))/(2.0f*t*t*s));
+        *out_v = M*T;
+    }
+
+    *out_w = w;
+}
+
+mat4 se3_exp(vec3 w, vec3 v)
+{
+    mat3 R = so3_exp(w);
+    r32 t = m_length(w);
+    vec3 T = v;
+    if (t >= 0.01f)
+    {
+        vec3 a = w / t;
+        mat3 A = m_skew(a);
+        T = v + (A*(1.0f-cos(t)) + A*A*(t-sin(t)))*(v/t);
+
+        // This is equivalent
+        // T = m_outer_product(a, a)*v + ((m_id3()-R)*m_skew(a))*(v/t);
+    }
+    mat4 result = m_se3(R, T);
+    return result;
+}
+
 mat4
 mat_scale(float s)
 {
@@ -917,6 +1014,41 @@ mat_perspective(float fov, float width, float height, float zn, float zf)
     result.a3.w = -1.0f;
     result.a4.z = 2.0f * zn * zf / (zn - zf);
     return result;
+}
+
+/////////////// Intersection tests ///////////////
+
+// CIRCLE CIRCLE INTERSECTION
+// Both x1 and x2 are set even if there was only one intersection
+// RETURN
+//  FALSE No intersection or infinitely many intersections
+//   TRUE One or two intersections
+bool
+m_is_circle_circle(vec2 a, vec2 b, r32 ra, r32 rb, vec2 *x1, vec2 *x2)
+{
+    vec2 d = b-a;
+    vec2 p = m_vec2(-d.y, d.x);
+    r32 ld = m_dot(d,d);
+    if (ld < 0.001f)
+    {
+        return false;
+    }
+    else
+    {
+        r32 t = (ra*ra-rb*rb+ld)/(2.0f*ld);
+        r32 D = ra*ra/ld - t*t;
+        if (D < 0.0f)
+        {
+            return false;
+        }
+        else
+        {
+            r32 s = sqrt(D);
+            *x1 = a + t*d + s*p;
+            *x2 = a + t*d - s*p;
+            return true;
+        }
+    }
 }
 
 #endif

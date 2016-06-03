@@ -20,8 +20,12 @@ Done
 * Screenshot and note taking
 * Quick exit
 
-Todo: Zoom
+Todo: Figure inspection mode
 ----------
+* Smooth zoom
+* Smooth scroll
+* Keyboard navigation
+
 #if 0
 static r32 width = 2.0f;
 static r32 height = 2.0f;
