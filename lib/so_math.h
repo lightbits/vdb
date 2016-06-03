@@ -798,7 +798,7 @@ Matrix<float,4,3> m_quat_mul_matrix(quat q)
 // se3_log(H): The vector x such that the solution
 //             of DJ/Dt = x J at t=1 is H.
 
-mat3 so3_exp(vec3 wt)
+mat3 m_so3_exp(vec3 wt)
 {
     r32 t = m_length(wt);
     if (t < 0.01f)
@@ -813,7 +813,7 @@ mat3 so3_exp(vec3 wt)
 }
 
 // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Log_map_from_SO.283.29_to_so.283.29
-vec3 so3_log(mat3 R)
+vec3 m_so3_log(mat3 R)
 {
     r32 tr = R.a11+R.a22+R.a33;
     r32 theta = acos((tr-1.0f)/2.0f);
@@ -842,12 +842,12 @@ vec3 so3_log(mat3 R)
 // Motilal Agrawal.
 // A Lie Algebraic Approach for Consistent Pose Registration for General Euclidean Motion.
 // Proceedings of the 2006 IEEE/RSJ International Conference on Intelligent Robots and Systems
-void se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
+void m_se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
 {
     mat3 R;
     vec3 T;
-    se3_decompose(SE3, &R, &T);
-    vec3 w = so3_log(R);
+    m_se3_decompose(SE3, &R, &T);
+    vec3 w = m_so3_log(R);
 
     r32 t = m_length(w);
     if (t < 0.01f)
@@ -868,7 +868,7 @@ void se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
 
 mat4 se3_exp(vec3 w, vec3 v)
 {
-    mat3 R = so3_exp(w);
+    mat3 R = m_so3_exp(w);
     r32 t = m_length(w);
     vec3 T = v;
     if (t >= 0.01f)
