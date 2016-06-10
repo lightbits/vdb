@@ -434,6 +434,14 @@ tvec operator *(tvec a, tvec b)
 }
 
 vec_template
+tvec &operator *=(tvec &a, tvec b)
+{
+    for (int i = 0; i < n; i++)
+        a.data[i] *= b.data[i];
+    return a;
+}
+
+vec_template
 tvec operator /(tvec a, tvec b)
 {
     tvec result = {};
