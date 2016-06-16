@@ -308,6 +308,12 @@ Matrix<float, r, c> operator *(Matrix<float, r, c> a, float s)
     return result;
 }
 
+template <int r, int c>
+Matrix<double, r, c> operator *(double s, Matrix<double, r, c> a) { return a*s; }
+
+template <int r, int c>
+Matrix<float, r, c> operator *(float s, Matrix<float, r, c> a) { return a*s; }
+
 template <typename T, int r, int c>
 Matrix<T, r, c> operator -(Matrix<T, r, c> a)
 {
