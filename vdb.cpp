@@ -300,6 +300,8 @@ void vdb(char *Label, vdb_callback Callback)
     bool MainMenuActive = false;
     bool Running = true;
 
+    bool ImGuiCursor = ImGui::GetIO().MouseDrawCursor;
+
     bool        SaveScreenshot = false;
     static bool ScreenshotDrawCursor = false;
     static bool ScreenshotDrawGui = false;
@@ -344,7 +346,8 @@ void vdb(char *Label, vdb_callback Callback)
         else
         {
             ImGui::GetStyle().Alpha = 1.0f;
-            ImGui::GetIO().MouseDrawCursor = true;
+            if (ImGuiCursor)
+                ImGui::GetIO().MouseDrawCursor = true;
         }
         ImGui_ImplSdl_NewFrame(Window.SDLWindow);
 
