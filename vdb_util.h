@@ -4,6 +4,7 @@ void vdbClear(float r, float g, float b, float a)
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+#ifndef VDB_NO_MATH
 void vdbView3D(mat4 model, mat4 view, mat4 projection)
 {
     mat4 pvm = projection * view * model;
@@ -11,6 +12,7 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
     glLoadIdentity();
     glLoadMatrixf(pvm.data);
 }
+#endif
 
 void vdbOrtho(float left, float right, float bottom, float top)
 {
@@ -44,6 +46,28 @@ void vdbAlphaBlend()
 void vdbNoBlend()
 {
     glDisable(GL_BLEND);
+}
+
+void vdbColorRamp(float t, float *r, float *g, float *b)
+{
+    float A1 = 0.54f;
+    float A2 = 0.55f;
+    float A3 = 0.56f;
+    float B1 = 0.5f;
+    float B2 = 0.5f;
+    float B3 = 0.7f;
+    float C1 = 0.5f;
+    float C2 = 0.5f;
+    float C3 = 0.5f;
+    float D1 = 0.7f;
+    float D2 = 0.8f;
+    float D3 = 0.88f;
+    float tp = 3.1415926f*2.0f;
+    if (t > 1.0f) t = 1.0f;
+    if (t < 0.0f) t = 0.0f;
+    *r = A1 + B1 * sin(tp * (C1 * t + D1));
+    *g = A2 + B2 * sin(tp * (C2 * t + D2));
+    *b = A3 + B3 * sin(tp * (C3 * t + D3));
 }
 
 void vdbColorRamp(float t)

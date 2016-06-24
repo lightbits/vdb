@@ -46,7 +46,7 @@ typedef std::function<void (vdb_input Input) > vdb_callback;
 void vdb(char *Label, vdb_callback Callback);
 
 #ifdef VDB_MY_CONFIG
-#define VDBBS(Label) vdb(Label, [&](vdb_input Input) { using namespace ImGui;
+#define VDBBS(Label) vdbs(Label, [&](vdb_input Input) { using namespace ImGui;
 #define VDBB(Label) vdb(Label, [&](vdb_input Input) { using namespace ImGui;
 #define VDBE() });
 #define VDB_SETTINGS_FILENAME "./.build/vdb.ini"

@@ -9,7 +9,10 @@
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
 #include "lib/imgui/imgui_impl_sdl.cpp"
+
+#ifndef VDB_NO_MATH
 #include "lib/so_math.h"
+#endif
 
 #ifndef VDB_NO_STB_IMAGE_WRITE
 #ifdef STB_IMAGE_WRITE_IMPLEMENTATION
@@ -253,6 +256,8 @@ float vdb_getElapsedSeconds(uint64_t Begin, uint64_t End)
     static u64 TickBegin_##__LINE__ = 0; \
     if (Trigger) TickBegin_##__LINE__ = vdb_getTicks(); \
     if (vdb_getElapsedSeconds(TickBegin_##__LINE__, vdb_getTicks()) < Duration) \
+
+void vdbs(char *Label, vdb_callback Callback) { }
 
 void vdb(char *Label, vdb_callback Callback)
 {
