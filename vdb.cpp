@@ -330,7 +330,7 @@ void vdb(char *Label, vdb_callback Callback)
         SDL_GetWindowSize(Window.SDLWindow, &Input.WindowWidth, &Input.WindowHeight);
         SDL_GetMouseState(&Input.Mouse.X, &Input.Mouse.Y);
         Input.Mouse.X_NDC = -1.0f + 2.0f * Input.Mouse.X / Input.WindowWidth;
-        Input.Mouse.Y_NDC = -1.0f + 2.0f * Input.Mouse.Y / Input.WindowHeight;
+        Input.Mouse.Y_NDC = -1.0f + 2.0f * (Input.WindowHeight-1-Input.Mouse.Y) / Input.WindowHeight;
 
         glViewport(0, 0, Input.WindowWidth, Input.WindowHeight);
 

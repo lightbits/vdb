@@ -20,7 +20,7 @@ struct vdb_input
         int X;
         int Y;
 
-        // Cursor location in [-1, 1] coordinates relative to upper-left corner
+        // Cursor location in [-1, 1] coordinates relative to lower-left corner
         r32 X_NDC;
         r32 Y_NDC;
 
