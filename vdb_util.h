@@ -12,6 +12,9 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
     glLoadIdentity();
     glLoadMatrixf(pvm.data);
 }
+
+void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
+void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
 #endif
 
 void vdbOrtho(float left, float right, float bottom, float top)

@@ -1,4 +1,4 @@
-// so_math.h - ver 10
+// so_math.h - ver 11
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  29/6/16: Added ability to disable PI, TWO_PI define.
+//
 //   3/6/16: Circle-circle intersection test: m_is_circle_circle
 //
 //   4/1/16: m_smoothstep
@@ -35,8 +37,10 @@
 #define SO_MATH_HEADER_INCLUDE
 #include "math.h"
 
+#ifndef VDB_NO_PI
 #define PI     3.14159265359
 #define TWO_PI 6.28318530718
+#endif
 
 template <typename T, int n>
 struct Vector
