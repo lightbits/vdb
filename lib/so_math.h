@@ -1,4 +1,4 @@
-// so_math.h - ver 11
+// so_math.h - ver 12
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,10 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//   1/7/16: m_solvesdp: Solve Sx=b where S is symmetric positive definite
+//           m_cholesky: Decompose a symmetric positive definite matrix
+//                       S=U'U, where U is upper-triangular
+//
 //  29/6/16: Added ability to disable PI, TWO_PI define.
 //
 //   3/6/16: Circle-circle intersection test: m_is_circle_circle
@@ -676,6 +680,109 @@ mat4 m_se3_inverse(mat4 m)
     return m_se3(R, r);
 }
 
+int m_cholesky(float *S, int n, float *b, float *U, float *y)
+/*
+Decompose the matrix S into S = U^t U, where U is upper triangular.
+S must be symmetric positive definite.
+
+Since this operation is often performed in conjunction with solving
+the matrix equation Sx = b, you can specify vectors b and y satisfying
+
+    Sx = U^t Ux = U^t y = b
+
+and therefore
+
+    Ux = y
+    y = U^-t b
+
+With y, you can easily solve for x by successively solving for the
+unknown components of x, starting from the bottom row.
+
+The function returns 0 if S is non-positive definite, and 1 with
+successful completion.
+
+Arguments:
+
+S (input) nxn matrix to decompose
+b (input) nx1 right-hand-side of the equation Sx = b
+U (output) nxn upper triangular Cholesky decomposition matrix
+y (output) nx1 solution of U^t y = b
+*/
+{
+    int i, j, k;
+
+    for (i=0; i<n; i++)
+    {
+        U[i*n+i] = S[i*n+i];
+        for (k=0; k<i; k++)
+            U[i*n+i] -= U[i*n+k]*U[i*n+k];
+
+        if (U[i*n+i] <= 0) {
+            return 0; // Matrix was not symmetric-positive-definite
+                      // Maybe consider a damped inverse?
+        }
+
+        U[i*n+i] = sqrt(U[i*n+i]);
+
+        // This portion multiplies the extra matrix by C^-t
+        y[i] = b[i];
+        for (k=0; k<i; k++)
+        {
+            y[i] -= y[k]*U[i*n+k];
+        }
+        y[i] /= U[i*n+i];
+
+        for (j=i+1; j<n; j++)
+        {
+            U[j*n+i] = S[j*n+i];
+            for (k=0; k<i; k++)
+                U[j*n+i] -= U[i*n+k]*U[j*n+k];
+            U[j*n+i] /= U[i*n+i];
+        }
+    }
+    return 1;
+}
+
+void m_solveut(r32 *U, r32 *x, r32 *y, int n)
+// Solves Ux = y for x where U is upper triangular.
+// U (input) nxn upper triangular matrix (1d column-order)
+// y (input) nx1 vector of known right-hand-side values
+// x (output) nx1 vector of unknowns
+// n (input)
+{
+    for (int i = n-1; i >= 0; i--)
+    {
+        r32 r = 0.0f;
+        for (int j = n-1; j > i; j--)
+        {
+            r += U[j*n+i] * x[j];
+        }
+        x[i] = (y[i] - r) / U[i*n+i];
+    }
+}
+
+template <int n>
+int m_solvespd(Matrix<float, n, n> S, Vector<float, n> b, Vector<float, n> *x)
+// Solves S x = b where S is symmetric positive definite.
+// S (input) nxn symmetric positive definite matrix (1d column-order)
+// b (input) nx1 right hand side
+// x (output) nx1 solution
+// Returns 1 with result on success
+//         0 if S was not symmetric positive definite
+{
+    Matrix<float, n, n> U;
+    Vector<float, n> y;
+    if (m_cholesky(S.data, n, b.data, U.data, y.data) == 1)
+    {
+        m_solveut(U.data, x->data, y.data, n);
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 ///////////////// Unit quaternions /////////////////
 // Quaternions are represented as a vec4, with the
 // xyz components representing the imaginary part
@@ -1032,6 +1139,13 @@ mat_perspective(float fov, float width, float height, float zn, float zf)
     result.a3.w = -1.0f;
     result.a4.z = 2.0f * zn * zf / (zn - zf);
     return result;
+}
+
+vec2 m_project_pinhole(float fx, float fy, vec3 p_camera)
+{
+    r32 u = -fx*p_camera.x / p_camera.z;
+    r32 v = -fy*p_camera.y / p_camera.z;
+    return m_vec2(u, v);
 }
 
 /////////////// Intersection tests ///////////////
