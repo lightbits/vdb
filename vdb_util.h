@@ -17,6 +17,9 @@ void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
 void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
 #endif
 
+void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
+void glLines(r32 width) { glLineWidth(width); glBegin(GL_LINES); }
+
 void vdbOrtho(float left, float right, float bottom, float top)
 {
     glMatrixMode(GL_MODELVIEW);
