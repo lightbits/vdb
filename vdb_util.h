@@ -15,6 +15,74 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
 
 void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
 void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
+
+vec2 vdbProjectFisheyePoint(r32 f, vec3 p)
+{
+    p = m_normalize(p);
+    r32 theta = acos(-p.z);
+    r32 r = f*theta;
+    r32 l = sqrt(p.x*p.x+p.y*p.y);
+    r32 x, y;
+    if (l < 0.01f)
+    {
+        x = r*p.x;
+        y = r*p.y;
+    }
+    else
+    {
+        x = r*p.x/l;
+        y = r*p.y/l;
+    }
+    return m_vec2(x, y);
+}
+
+void vdbDrawLineFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2, s32 n = 64)
+{
+    p1 = R*(p1-T);
+    p2 = R*(p2-T);
+    for (s32 i = 0; i < n; i++)
+    {
+        r32 t1 = i / (r32)n;
+        r32 t2 = (i+1) / (r32)n;
+        vec3 l1 = p1 + (p2-p1)*t1;
+        vec3 l2 = p1 + (p2-p1)*t2;
+        vec2 l1c = vdbProjectFisheyePoint(f, l1);
+        vec2 l2c = vdbProjectFisheyePoint(f, l2);
+        glVertex2f(l1c.x+u0, l1c.y+v0);
+        glVertex2f(l2c.x+u0, l2c.y+v0);
+    }
+}
+
+void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, vec3 p2)
+// p1, p2: In camera space
+// u0, v0: Image center
+// zn, zf: Near and far clip planes
+// T: p^w_{c/w}
+// R: R^c_w
+{
+    p1 = R*(p1 - T);
+    p2 = R*(p2 - T);
+    r32 z1 = p1.z;
+    r32 z2 = p2.z;
+    vec3 clip1 = p1;
+    vec3 clip2 = p2;
+    if (-z1 < zn)
+    {
+        r32 t = (-zn - z2) / (z1 - z2);
+        clip1 = p2 + (p1 - p2)*t;
+    }
+    if (-z2 < zn)
+    {
+        r32 t = (-zn - z1) / (z2 - z1);
+        clip2 = p1 + (p2 - p1)*t;
+    }
+    r32 u1 = -f*clip1.x/clip1.z + u0;
+    r32 v1 = -f*clip1.y/clip1.z + v0;
+    r32 u2 = -f*clip2.x/clip2.z + u0;
+    r32 v2 = -f*clip2.y/clip2.z + v0;
+    glVertex2f(u1, v1);
+    glVertex2f(u2, v2);
+}
 #endif
 
 void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
