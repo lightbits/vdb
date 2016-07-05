@@ -41,7 +41,7 @@
 #define SO_MATH_HEADER_INCLUDE
 #include "math.h"
 
-#ifndef VDB_NO_PI
+#ifndef SO_MATH_NO_PI
 #define PI     3.14159265359
 #define TWO_PI 6.28318530718
 #endif

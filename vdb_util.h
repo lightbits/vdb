@@ -1,3 +1,10 @@
+#define COLOR_WHITE  0.75f, 0.7f, 0.65f, 1.0f
+#define COLOR_BLACK  0.0f, 0.0f, 0.0f, 1.0f
+#define COLOR_RED    1.0f, 0.2f, 0.1f, 1.0f
+#define COLOR_GREEN  0.1f, 1.0f, 0.2f, 1.0f
+#define COLOR_BLUE   0.1f, 0.2f, 1.0f, 1.0f
+#define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
+
 void vdbClear(float r, float g, float b, float a)
 {
     glClearColor(r, g, b, a);
@@ -54,7 +61,7 @@ void vdbDrawLineFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2,
 }
 
 void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, vec3 p2)
-// p1, p2: In camera space
+// p1, p2: In world space
 // u0, v0: Image center
 // zn, zf: Near and far clip planes
 // T: p^w_{c/w}
