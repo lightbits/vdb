@@ -1,4 +1,4 @@
-// so_math.h - ver 12
+// so_math.h - ver 13
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,7 +9,7 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
-//   1/7/16: m_solvesdp: Solve Sx=b where S is symmetric positive definite
+//   1/7/16: m_solvespd: Solve Sx=b where S is symmetric positive definite
 //           m_cholesky: Decompose a symmetric positive definite matrix
 //                       S=U'U, where U is upper-triangular
 //
@@ -991,7 +991,7 @@ void m_se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
     *out_w = w;
 }
 
-mat4 se3_exp(vec3 w, vec3 v)
+mat4 m_se3_exp(vec3 w, vec3 v)
 {
     mat3 R = m_so3_exp(w);
     r32 t = m_length(w);
