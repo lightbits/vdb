@@ -32,8 +32,8 @@ vec2 vdbProjectFisheyePoint(r32 f, vec3 p)
     r32 x, y;
     if (l < 0.01f)
     {
-        x = r*p.x;
-        y = r*p.y;
+        x = 0.0f;
+        y = 0.0f;
     }
     else
     {
