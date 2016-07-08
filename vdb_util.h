@@ -30,7 +30,7 @@ vec2 vdbProjectFisheyePoint(r32 f, vec3 p)
     r32 r = f*theta;
     r32 l = sqrt(p.x*p.x+p.y*p.y);
     r32 x, y;
-    if (l < 0.01f)
+    if (l < 0.001f)
     {
         x = 0.0f;
         y = 0.0f;
