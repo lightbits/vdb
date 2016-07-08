@@ -1,4 +1,4 @@
-// so_math.h - ver 15
+// so_math.h - ver 16
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -1277,10 +1277,10 @@ mat_perspective(float fov, float width, float height, float zn, float zf)
     return result;
 }
 
-vec2 m_project_pinhole(float fx, float fy, vec3 p_camera)
+vec2 m_project_pinhole(float fx, float fy, float u0, float v0, vec3 p_camera)
 {
-    r32 u = -fx*p_camera.x / p_camera.z;
-    r32 v = -fy*p_camera.y / p_camera.z;
+    r32 u = -fx*p_camera.x / p_camera.z + u0;
+    r32 v = -fy*p_camera.y / p_camera.z + v0;
     return m_vec2(u, v);
 }
 
