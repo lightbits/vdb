@@ -1,4 +1,4 @@
-// so_math.h - ver 13
+// so_math.h - ver 15
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,10 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//   8/7/16: m_so3_to_ypr: Rotation matrix to euler angles (YPR)
+//
+//   7/7/16: m_quat_to_ypr: Quaternion to euler angles (YPR)
+//
 //   1/7/16: m_solvespd: Solve Sx=b where S is symmetric positive definite
 //           m_cholesky: Decompose a symmetric positive definite matrix
 //                       S=U'U, where U is upper-triangular
@@ -40,6 +44,9 @@
 #ifndef SO_MATH_HEADER_INCLUDE
 #define SO_MATH_HEADER_INCLUDE
 #include "math.h"
+
+#define SO_PI     3.14159265359
+#define SO_TWO_PI 6.28318530718
 
 #ifndef SO_MATH_NO_PI
 #define PI     3.14159265359
@@ -783,6 +790,61 @@ int m_solvespd(Matrix<float, n, n> S, Vector<float, n> b, Vector<float, n> *x)
     }
 }
 
+bool m_so3_to_ypr(mat3 R, r32 *yaw, r32 *pitch, r32 *roll)
+// Outputs the Euler angles (roll, pitch, yaw) that parametrize
+// the zyx rotation matrix R = Rz(yaw)Ry(pitch)Rx(roll).
+//
+// RETURN VALUE
+//   FALSE : If pitch is sufficently close to +-pi/2
+//           (where "sufficiently close" is defined below)
+//           If the quaternion is sufficently far from unit length
+//    TRUE : Otherwise
+//
+// NOTES
+// The factorization returned is not unique. If the pitch is close to +-pi/2,
+// we choose an arbitrary factorization. Otherwise, there are two solutions
+// involving two values of pitch. We always choose the one closest to zero.
+//
+// REFERENCES
+// [1] Computing Euler angles from a rotation matrix, Slabaugh
+//     http://www.staff.city.ac.uk/~sbbh653/publications/euler.pdf
+{
+    float R11 = R.a11;
+    float R21 = R.a21;
+    float R31 = R.a31;
+    float R32 = R.a32;
+    float R33 = R.a33;
+
+    // The remaining procedure follows the paper [1] assuming
+    // that we want the solution for pitch closest to zero.
+
+    // R31 = sin(pitch). So we can compare R31 with a threshold
+    // to determine if the pitch angle is close to pi/2. If angles
+    // greater than X are to be considered "close to pi/2", then
+    // the threshold is sin(X)
+    if (R31 >= 0.9998f) // Pitch is 1 degree or less close to +pi/2
+    {
+        *yaw = 0.0f;
+        *pitch = -SO_PI / 2.0f;
+        *roll = atan2(R32, R33);
+        return false;
+    }
+    else if (R31 <= -0.9998f) // Pitch is 1 degree or less close to -pi/2
+    {
+        *yaw = 0.0f;
+        *pitch = SO_PI / 2.0f;
+        *roll = atan2(R32, R33);
+        return false;
+    }
+    else
+    {
+        *yaw = atan2(R21, R11);
+        *pitch = -asin(R31);
+        *roll = atan2(R32, R33);
+        return true;
+    }
+}
+
 ///////////////// Unit quaternions /////////////////
 // Quaternions are represented as a vec4, with the
 // xyz components representing the imaginary part
@@ -872,6 +934,80 @@ mat3 m_quat_to_so3(quat q)
     mat3 e_skew = m_skew(q.xyz);
     mat3 result = m_id3() + 2.0f*q.w*e_skew + 2.0f*e_skew*e_skew;
     return result;
+}
+
+bool m_quat_to_ypr(float qx, float qy, float qz, float qw,
+                   float *yaw, float *pitch, float *roll)
+// Outputs the Euler angles (roll, pitch, yaw) that parametrize
+// the zyx rotation matrix R = Rz(yaw)Ry(pitch)Rx(roll), where
+// R is the rotation matrix form of q = (qx, qy, qz, qw).
+//
+// RETURN VALUE
+//   FALSE : If pitch is sufficently close to +-pi/2
+//           (where "sufficiently close" is defined below)
+//           If the quaternion is sufficently far from unit length
+//    TRUE : Otherwise
+//
+// NOTES
+// The factorization returned is not unique. If the pitch is close to +-pi/2,
+// we choose an arbitrary factorization. Otherwise, there are two solutions
+// involving two values of pitch. We always choose the one closest to zero.
+//
+// REFERENCES
+// [1] Computing Euler angles from a rotation matrix, Slabaugh
+//     http://www.staff.city.ac.uk/~sbbh653/publications/euler.pdf
+{
+    // First: Convert quaternion to rotation matrix
+    // We only care about a handful of the elements,
+    // so we only compute those. We also orthogonalize
+    // the matrix by normalizing the elements in the
+    // process.
+    //     R11 R12 R13
+    // R = R21 R22 R23
+    //     R31 R32 R33
+    float d = qx*qx+qy*qy+qz*qz+qw*qw;
+    if (d <= 0.00001f)
+    {
+        // Unit quaternions should be close to unit length.
+        // If the length is this small, something has gone
+        // wrong.
+        return false;
+    }
+    float s   = 2.0f / d;
+    float R11 = 1.0f - (qy*qy + qz*qz)*s;
+    float R21 =        (qx*qy + qz*qw)*s;
+    float R31 =        (qx*qz - qy*qw)*s;
+    float R32 =        (qy*qz + qx*qw)*s;
+    float R33 = 1.0f - (qx*qx + qy*qy)*s;
+
+    // The remaining procedure follows the paper [1] assuming
+    // that we want the solution for pitch closest to zero.
+
+    // R31 = sin(pitch). So we can compare R31 with a threshold
+    // to determine if the pitch angle is close to pi/2. If angles
+    // greater than X are to be considered "close to pi/2", then
+    // the threshold is sin(X)
+    if (R31 >= 0.9998f) // Pitch is 1 degree or less close to +pi/2
+    {
+        *yaw = 0.0f;
+        *pitch = -SO_PI / 2.0f;
+        *roll = atan2(R32, R33);
+        return false;
+    }
+    else if (R31 <= -0.9998f) // Pitch is 1 degree or less close to -pi/2
+    {
+        *yaw = 0.0f;
+        *pitch = SO_PI / 2.0f;
+        *roll = atan2(R32, R33);
+        return false;
+    }
+    else
+    {
+        *yaw = atan2(R21, R11);
+        *pitch = -asin(R31);
+        *roll = atan2(R32, R33);
+        return true;
+    }
 }
 
 // return: The quaternion product q MUL r
