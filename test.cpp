@@ -16,6 +16,59 @@
 
 int main(int argc, char **argv)
 {
+    VDBB("3D");
+    {
+        mat4 projection = mat_perspective(PI/4.0f, Input.WindowWidth, Input.WindowHeight, 0.01f, 20.0f);
+        mat4 view;
+        {
+            vec3 p = m_vec3(1.0f, -3.0f, 1.0f);
+            mat3 R = m_mat3(mat_rotate_z(0.2f)*mat_rotate_y(0.0f)*mat_rotate_x(PI/2.0f-0.3f));
+            view = m_se3_inverse(m_se3(R, p));
+        }
+        glEnable(GL_DEPTH_TEST);
+        glDepthRange(0.0f, 1.0f);
+        glDepthFunc(GL_LEQUAL);
+        glClearColor(COLOR_UNITY);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        vdbView3D(m_id4(), view, projection);
+        glLines(2.0f);
+        glColor4f(COLOR_CREAMY);
+        vdbGridXY(-2.0f, +2.0f, -2.0f, +2.0f, 20);
+        glEnd();
+
+        mat3 R = m_mat3(mat_rotate_z(0.3f)*mat_rotate_y(0.5f)*mat_rotate_x(0.3f));
+        vec3 p = m_vec3(0.5f, -0.5f, 0.5f);
+
+        vdbView3D(m_se3(R, p)*mat_scale(0.5f), view, projection);
+        glLines(4.0f);
+        glColor4f(COLOR_RED);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(1.0f, 0.0f, 0.0f);
+        glColor4f(COLOR_GREEN);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 1.0f, 0.0f);
+        glColor4f(COLOR_BLUE);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 1.0f);
+        glEnd();
+
+        vdbView3D(mat_translate(0.0f, 0.0f, -0.5f), view, projection);
+        glLines(4.0f);
+        glColor4f(COLOR_RED);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(1.0f, 0.0f, 0.0f);
+        glColor4f(COLOR_GREEN);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 1.0f, 0.0f);
+        glColor4f(COLOR_BLUE);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 1.0f);
+        glEnd();
+    }
+    VDBE();
+
     vdb("test 1", [](vdb_input Input)
     {
         glClearColor(0.3f, 0.35f, 0.4f, 1.0f);

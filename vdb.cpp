@@ -371,6 +371,9 @@ void vdb(char *Label, vdb_callback Callback)
             // as opposed to 4-byte aligned or something.
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+
             vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
         }
 

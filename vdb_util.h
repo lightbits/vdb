@@ -1,9 +1,11 @@
 #define COLOR_WHITE  0.75f, 0.7f, 0.65f, 1.0f
 #define COLOR_BLACK  0.0f, 0.0f, 0.0f, 1.0f
+#define COLOR_UNITY  0.15f, 0.13f, 0.1f, 1.0f
 #define COLOR_RED    1.0f, 0.2f, 0.1f, 1.0f
 #define COLOR_GREEN  0.1f, 1.0f, 0.2f, 1.0f
 #define COLOR_BLUE   0.1f, 0.2f, 1.0f, 1.0f
 #define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
+#define COLOR_CREAMY 0.8f, 0.7f, 0.51f, 1.0f
 
 void vdbClear(float r, float g, float b, float a)
 {
@@ -92,8 +94,20 @@ void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, 
 }
 #endif
 
-void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
-void glLines(r32 width) { glLineWidth(width); glBegin(GL_LINES); }
+void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
+{
+    for (int i = 0; i <= steps; i++)
+    {
+        glVertex3f(x_min, y_min + (y_max-y_min)*i/steps, 0.0f);
+        glVertex3f(x_max, y_min + (y_max-y_min)*i/steps, 0.0f);
+
+        glVertex3f(x_min + (x_max-x_min)*i/steps, y_min, 0.0f);
+        glVertex3f(x_min + (x_max-x_min)*i/steps, y_max, 0.0f);
+    }
+}
+
+void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
+void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 
 void vdbOrtho(float left, float right, float bottom, float top)
 {
@@ -110,6 +124,22 @@ void vdbOrtho(float left, float right, float bottom, float top)
         Bx,   By,   0.0f, 1.0f
     };
     glLoadMatrixf(modelview);
+}
+
+void vdbFlippedY(bool enabled)
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    if (enabled)
+    {
+        float projection[] = {
+            1.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, -1.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 1.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 1.0f
+        };
+        glLoadMatrixf(projection);
+    }
 }
 
 void vdbAdditiveBlend()
