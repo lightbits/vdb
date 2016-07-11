@@ -273,6 +273,15 @@ void vdbs(const char *Label, vdb_callback Callback) { }
 
 void vdb(const char *Label, vdb_callback Callback)
 {
+    struct watch_window
+    {
+        const char *Label;
+        bool Skip;
+    };
+
+    static watch_window WatchWindows[1024];
+    static int WatchWindowCount = 0;
+
     static const char *PrevLabel = 0;
     static bool Initialized = false;
     static bool StepOver = false;
@@ -282,6 +291,34 @@ void vdb(const char *Label, vdb_callback Callback)
         Window = vdb_openWindow();
         ImGui_ImplSdl_Init(Window.SDLWindow);
         Initialized = true;
+        WatchWindowCount = 0;
+    }
+
+    // Add new watch window entry if this was a new one
+    // If it wasn't new, check if the user wants to skip it
+    {
+        int Index = 0;
+        bool Added = false;
+        while (Index < WatchWindowCount)
+        {
+            if (WatchWindows[Index].Label == Label)
+            {
+                Added = true;
+                break;
+            }
+            Index++;
+        }
+        if (!Added && WatchWindowCount < 1024)
+        {
+            Index = WatchWindowCount;
+            WatchWindows[Index].Label = Label;
+            WatchWindows[Index].Skip = false;
+            WatchWindowCount++;
+        }
+        if (WatchWindows[Index].Skip)
+        {
+            StepOver = true;
+        }
     }
 
     // @ maybe store the callback addresses?
@@ -369,7 +406,10 @@ void vdb(const char *Label, vdb_callback Callback)
         // Pre-callback state initialization
         {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClearDepth(1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glDisable(GL_DEPTH_TEST);
 
             glEnable(GL_POINT_SMOOTH);
             glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
@@ -425,6 +465,15 @@ void vdb(const char *Label, vdb_callback Callback)
                     Event.StepOver = true;
                 if (ImGui::MenuItem("Screenshot [PrtScreen]"))
                     Event.TakeScreenshot = true;
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Watches"))
+            {
+                MainMenuActive = true;
+                for (int i = 0; i < WatchWindowCount; i++)
+                {
+                    ImGui::Checkbox(WatchWindows[i].Label, &WatchWindows[i].Skip);
+                }
                 ImGui::EndMenu();
             }
 
