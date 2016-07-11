@@ -14,17 +14,63 @@
 // No clue: See if this page helps. https://wiki.libsdl.org/Installation
 #include "vdb.cpp"
 
+mat4 vdb_camera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
+{
+    static r32 radius = 1.0f;
+    static r32 htheta = PI/2.0f-0.3f;
+    static r32 vtheta = 0.3f;
+    static r32 Rradius = radius;
+    static r32 Rhtheta = htheta;
+    static r32 Rvtheta = vtheta;
+
+    r32 dt = Input.DeltaTime;
+    if (KEYDOWN(LSHIFT))
+    {
+        if (KEYPRESSED(Z))
+            Rradius /= 2.0f;
+        if (KEYPRESSED(X))
+            Rradius *= 2.0f;
+        if (KEYPRESSED(LEFT))
+            Rhtheta -= PI / 4.0f;
+        if (KEYPRESSED(RIGHT))
+            Rhtheta += PI / 4.0f;
+        if (KEYPRESSED(UP))
+            Rvtheta -= PI / 4.0f;
+        if (KEYPRESSED(DOWN))
+            Rvtheta += PI / 4.0f;
+    }
+    else
+    {
+        if (KEYDOWN(Z))
+            Rradius -= dt;
+        if (KEYDOWN(X))
+            Rradius += dt;
+        if (KEYDOWN(LEFT))
+            Rhtheta -= dt;
+        if (KEYDOWN(RIGHT))
+            Rhtheta += dt;
+        if (KEYDOWN(UP))
+            Rvtheta -= dt;
+        if (KEYDOWN(DOWN))
+            Rvtheta += dt;
+    }
+
+    radius += 10.0f * (Rradius - radius) * dt;
+    htheta += 10.0f * (Rhtheta - htheta) * dt;
+    vtheta += 10.0f * (Rvtheta - vtheta) * dt;
+
+    mat3 R = m_mat3(mat_rotate_z(htheta)*mat_rotate_x(vtheta));
+    vec3 p = focus + R.a3 * radius;
+    mat4 c_to_w = m_se3(R, p);
+    return m_se3_inverse(c_to_w);
+}
+
 int main(int argc, char **argv)
 {
     VDBB("3D");
     {
         mat4 projection = mat_perspective(PI/4.0f, Input.WindowWidth, Input.WindowHeight, 0.01f, 20.0f);
-        mat4 view;
-        {
-            vec3 p = m_vec3(1.0f, -3.0f, 1.0f);
-            mat3 R = m_mat3(mat_rotate_z(0.2f)*mat_rotate_y(0.0f)*mat_rotate_x(PI/2.0f-0.3f));
-            view = m_se3_inverse(m_se3(R, p));
-        }
+        mat4 view = vdb_camera3D(Input);
         glEnable(GL_DEPTH_TEST);
         glDepthRange(0.0f, 1.0f);
         glDepthFunc(GL_LEQUAL);
@@ -54,8 +100,9 @@ int main(int argc, char **argv)
         glVertex3f(0.0f, 0.0f, 1.0f);
         glEnd();
 
-        vdbView3D(mat_translate(0.0f, 0.0f, -0.5f), view, projection);
+        vdbView3D(m_id4(), view, projection);
         glLines(4.0f);
+
         glColor4f(COLOR_RED);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glVertex3f(1.0f, 0.0f, 0.0f);
@@ -65,6 +112,10 @@ int main(int argc, char **argv)
         glColor4f(COLOR_BLUE);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glVertex3f(0.0f, 0.0f, 1.0f);
+
+        glColor4f(COLOR_WHITE);
+        glLine3f(p, p - 0.6f*R.a3);
+        glLine3f(p, p - m_dot(0.6f*R.a3,m_vec3(0.0f, 0.0f, 1.0f))*m_vec3(0.0f, 0.0f, 1.0f));
         glEnd();
     }
     VDBE();

@@ -24,6 +24,8 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
 
 void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
 void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
+void glVertex3f(vec3 p) { glVertex3f(p.x, p.y, p.z); }
+void glLine3f(vec3 a, vec3 b) { glVertex3f(a); glVertex3f(b); }
 
 vec2 vdbProjectFisheyePoint(r32 f, vec3 p)
 {

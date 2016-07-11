@@ -31,6 +31,13 @@ struct vdb_input
         } Left, Middle, Right;
     } Mouse;
 
+    struct key
+    {
+        bool Down;     //  IsDown
+        bool Pressed;  // !WasDown &&  IsDown
+        bool Released; //  WasDown && !IsDown
+    } *Keys; // May be accessed by an SDL_SCANCODE_*** value
+
     int WindowWidth;
     int WindowHeight;
     r32 DeltaTime;
@@ -43,7 +50,7 @@ struct vdb_input
 };
 
 typedef std::function<void (vdb_input Input) > vdb_callback;
-void vdb(char *Label, vdb_callback Callback);
+void vdb(const char *Label, vdb_callback Callback);
 
 #ifdef VDB_MY_CONFIG
 #define VDBBS(Label) vdbs(Label, [&](vdb_input Input) { using namespace ImGui;
@@ -52,4 +59,7 @@ void vdb(char *Label, vdb_callback Callback);
 #define VDB_SETTINGS_FILENAME "./.build/vdb.ini"
 #define MOUSEX Input.Mouse.X_NDC
 #define MOUSEY Input.Mouse.Y_NDC
+#define KEYDOWN(KEY) Input.Keys[SDL_SCANCODE_##KEY].Down
+#define KEYPRESSED(KEY) Input.Keys[SDL_SCANCODE_##KEY].Pressed
+#define KEYRELEASED(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
 #endif

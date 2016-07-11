@@ -164,6 +164,12 @@ void vdb_processMessages(vdb_input *Input,
     InterestingEvents->TakeScreenshotNoDialog = false;
     InterestingEvents->ReturnPressed = false;
 
+    for (int Scancode = 0; Scancode < SDL_NUM_SCANCODES; Scancode++)
+    {
+        Input->Keys[Scancode].Released = false;
+        Input->Keys[Scancode].Pressed = false;
+    }
+
     SDL_Event Event;
     while (SDL_PollEvent(&Event))
     {
@@ -187,10 +193,16 @@ void vdb_processMessages(vdb_input *Input,
             {
                 if (Event.key.keysym.sym == SDLK_ESCAPE)
                     InterestingEvents->Exit = true;
+                if (!Input->Keys[Event.key.keysym.scancode].Down)
+                    Input->Keys[Event.key.keysym.scancode].Pressed = true;
+                Input->Keys[Event.key.keysym.scancode].Down = true;
             } break;
 
             case SDL_KEYUP:
             {
+                if (Input->Keys[Event.key.keysym.scancode].Down)
+                    Input->Keys[Event.key.keysym.scancode].Released = true;
+                Input->Keys[Event.key.keysym.scancode].Down = false;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_F5)
                     InterestingEvents->StepOver = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_F10)
@@ -257,11 +269,11 @@ float vdb_getElapsedSeconds(uint64_t Begin, uint64_t End)
     if (Trigger) TickBegin_##__LINE__ = vdb_getTicks(); \
     if (vdb_getElapsedSeconds(TickBegin_##__LINE__, vdb_getTicks()) < Duration) \
 
-void vdbs(char *Label, vdb_callback Callback) { }
+void vdbs(const char *Label, vdb_callback Callback) { }
 
-void vdb(char *Label, vdb_callback Callback)
+void vdb(const char *Label, vdb_callback Callback)
 {
-    static char *PrevLabel = 0;
+    static const char *PrevLabel = 0;
     static bool Initialized = false;
     static bool StepOver = false;
     static vdb_window Window = {0};
@@ -311,6 +323,9 @@ void vdb(char *Label, vdb_callback Callback)
 
     vdb_input Input = {0};
     vdb_event Event = {0};
+
+    static vdb_input::key KeyStates[SDL_NUM_SCANCODES];
+    Input.Keys = KeyStates;
 
     Input.ScreenshotDrawCursor = &ScreenshotDrawCursor;
     Input.ScreenshotDrawGui = &ScreenshotDrawGui;
