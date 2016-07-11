@@ -14,63 +14,25 @@
 // No clue: See if this page helps. https://wiki.libsdl.org/Installation
 #include "vdb.cpp"
 
-mat4 vdb_camera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
-{
-    static r32 radius = 1.0f;
-    static r32 htheta = PI/2.0f-0.3f;
-    static r32 vtheta = 0.3f;
-    static r32 Rradius = radius;
-    static r32 Rhtheta = htheta;
-    static r32 Rvtheta = vtheta;
-
-    r32 dt = Input.DeltaTime;
-    if (KEYDOWN(LSHIFT))
-    {
-        if (KEYPRESSED(Z))
-            Rradius /= 2.0f;
-        if (KEYPRESSED(X))
-            Rradius *= 2.0f;
-        if (KEYPRESSED(LEFT))
-            Rhtheta -= PI / 4.0f;
-        if (KEYPRESSED(RIGHT))
-            Rhtheta += PI / 4.0f;
-        if (KEYPRESSED(UP))
-            Rvtheta -= PI / 4.0f;
-        if (KEYPRESSED(DOWN))
-            Rvtheta += PI / 4.0f;
-    }
-    else
-    {
-        if (KEYDOWN(Z))
-            Rradius -= dt;
-        if (KEYDOWN(X))
-            Rradius += dt;
-        if (KEYDOWN(LEFT))
-            Rhtheta -= dt;
-        if (KEYDOWN(RIGHT))
-            Rhtheta += dt;
-        if (KEYDOWN(UP))
-            Rvtheta -= dt;
-        if (KEYDOWN(DOWN))
-            Rvtheta += dt;
-    }
-
-    radius += 10.0f * (Rradius - radius) * dt;
-    htheta += 10.0f * (Rhtheta - htheta) * dt;
-    vtheta += 10.0f * (Rvtheta - vtheta) * dt;
-
-    mat3 R = m_mat3(mat_rotate_z(htheta)*mat_rotate_x(vtheta));
-    vec3 p = focus + R.a3 * radius;
-    mat4 c_to_w = m_se3(R, p);
-    return m_se3_inverse(c_to_w);
-}
-
 int main(int argc, char **argv)
 {
-    VDBB("3D");
+    vdb("test 1", [](vdb_input Input)
+    {
+        glClearColor(0.3f, 0.35f, 0.4f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBegin(GL_TRIANGLES);
+        glVertex2f(-0.5f, -0.5f); glColor4f(1.0f, 0.5f, 0.5f, 1.0f);
+        glVertex2f(+0.5f, -0.5f); glColor4f(0.5f, 1.0f, 0.5f, 1.0f);
+        glVertex2f(+0.0f, +0.5f); glColor4f(0.5f, 0.5f, 1.0f, 1.0f);
+        glEnd();
+
+        ImGui::ShowTestWindow();
+    });
+
+    vdb("test 3D", [](vdb_input Input)
     {
         mat4 projection = mat_perspective(PI/4.0f, Input.WindowWidth, Input.WindowHeight, 0.01f, 20.0f);
-        mat4 view = vdb_camera3D(Input);
+        mat4 view = vdbCamera3D(Input);
         glEnable(GL_DEPTH_TEST);
         glDepthRange(0.0f, 1.0f);
         glDepthFunc(GL_LEQUAL);
@@ -117,68 +79,10 @@ int main(int argc, char **argv)
         glLine3f(p, p - 0.6f*R.a3);
         glLine3f(p, p - m_dot(0.6f*R.a3,m_vec3(0.0f, 0.0f, 1.0f))*m_vec3(0.0f, 0.0f, 1.0f));
         glEnd();
-    }
-    VDBE();
 
-    vdb("test 1", [](vdb_input Input)
-    {
-        glClearColor(0.3f, 0.35f, 0.4f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f); glColor4f(1.0f, 0.5f, 0.5f, 1.0f);
-        glVertex2f(+0.5f, -0.5f); glColor4f(0.5f, 1.0f, 0.5f, 1.0f);
-        glVertex2f(+0.0f, +0.5f); glColor4f(0.5f, 0.5f, 1.0f, 1.0f);
-        glEnd();
-
-        ImGui::ShowTestWindow();
-    });
-
-    vdb("test 3D", [](vdb_input Input)
-    {
-        static float rotate_x = 0.0f;
-        static float rotate_y = 0.0f;
-        static float rotate_z = 0.0f;
-        static float translate_x = 0.0f;
-        static float translate_y = 0.0f;
-        static float translate_z = -2.0f;
-        float fov = PI / 4.0f;
-        float z_near = 0.1f;
-        float z_far = 10.0f;
-        mat4 projection = mat_perspective(fov, Input.WindowWidth, Input.WindowHeight, z_near, z_far);
-        mat4 model = mat_scale(1.0f);
-        mat4 view = mat_rotate_x(rotate_x) *
-                    mat_rotate_y(rotate_y) *
-                    mat_rotate_z(rotate_z) *
-                    mat_translate(translate_x, translate_y, translate_z);
-
-        glClearColor(0.3f, 0.35f, 0.4f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-        vdbView3D(model, view, projection);
-
-        glLineWidth(4.0f);
-        glBegin(GL_LINES);
-        for (int i = 0; i <= 20; i++)
-        {
-            float a = -2.0f + 4.0f*i/20.0f;
-            glColor4f(0.8f, 0.7f, 0.51f, 1.0f);
-            glVertex3f(-2.0f, a, 0.0f);
-            glVertex3f(+2.0f, a, 0.0f);
-
-            glVertex3f(a, -2.0f, 0.0f);
-            glVertex3f(a, +2.0f, 0.0f);
-        }
-
-        glColor4f(1.0f, 0.2f, 0.1f, 1.0f);
-        glVertex3f(-0.5f, 0.5f, 0.5f);
-        glVertex3f(+0.5f, 0.5f, 0.5f);
-        glEnd();
-
-        ImGui::SliderAngle("Rotate X", &rotate_x);
-        ImGui::SliderAngle("Rotate Y", &rotate_y);
-        ImGui::SliderAngle("Rotate Z", &rotate_z);
-        ImGui::SliderFloat("Translate X", &translate_x, -1.0f, +1.0f);
-        ImGui::SliderFloat("Translate Y", &translate_y, -1.0f, +1.0f);
-        ImGui::SliderFloat("Translate Z", &translate_z, -1.0f, +1.0f);
+        ImGui::Begin("Information!");
+        ImGui::Text("Camera controls:\nArrow keys to rotate, z and x to zoom.\nHold shift for speedy movement.");
+        ImGui::End();
     });
 
     const int width = 129;

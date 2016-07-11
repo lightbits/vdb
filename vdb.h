@@ -52,14 +52,15 @@ struct vdb_input
 typedef std::function<void (vdb_input Input) > vdb_callback;
 void vdb(const char *Label, vdb_callback Callback);
 
-#ifdef VDB_MY_CONFIG
 #define VDBBS(Label) vdbs(Label, [&](vdb_input Input) { using namespace ImGui;
 #define VDBB(Label) vdb(Label, [&](vdb_input Input) { using namespace ImGui;
 #define VDBE() });
+#define vdbKeyDown(KEY) Input.Keys[SDL_SCANCODE_##KEY].Down
+#define vdbKeyPressed(KEY) Input.Keys[SDL_SCANCODE_##KEY].Pressed
+#define vdbKeyReleased(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
+
+#ifdef VDB_MY_CONFIG
 #define VDB_SETTINGS_FILENAME "./.build/vdb.ini"
 #define MOUSEX Input.Mouse.X_NDC
 #define MOUSEY Input.Mouse.Y_NDC
-#define KEYDOWN(KEY) Input.Keys[SDL_SCANCODE_##KEY].Down
-#define KEYPRESSED(KEY) Input.Keys[SDL_SCANCODE_##KEY].Pressed
-#define KEYRELEASED(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
 #endif

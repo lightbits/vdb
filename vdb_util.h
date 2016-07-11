@@ -7,7 +7,7 @@
 #define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
 #define COLOR_CREAMY 0.8f, 0.7f, 0.51f, 1.0f
 
-void vdbClear(float r, float g, float b, float a)
+void vdbClear(r32 r, r32 g, r32 b, r32 a)
 {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -20,6 +20,57 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glLoadMatrixf(pvm.data);
+}
+
+mat4 vdbCamera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
+{
+    static r32 radius = 1.0f;
+    static r32 htheta = PI/2.0f-0.3f;
+    static r32 vtheta = 0.3f;
+    static r32 Rradius = radius;
+    static r32 Rhtheta = htheta;
+    static r32 Rvtheta = vtheta;
+
+    r32 dt = Input.DeltaTime;
+    if (vdbKeyDown(LSHIFT))
+    {
+        if (vdbKeyPressed(Z))
+            Rradius /= 2.0f;
+        if (vdbKeyPressed(X))
+            Rradius *= 2.0f;
+        if (vdbKeyPressed(LEFT))
+            Rhtheta -= PI / 4.0f;
+        if (vdbKeyPressed(RIGHT))
+            Rhtheta += PI / 4.0f;
+        if (vdbKeyPressed(UP))
+            Rvtheta -= PI / 4.0f;
+        if (vdbKeyPressed(DOWN))
+            Rvtheta += PI / 4.0f;
+    }
+    else
+    {
+        if (vdbKeyDown(Z))
+            Rradius -= dt;
+        if (vdbKeyDown(X))
+            Rradius += dt;
+        if (vdbKeyDown(LEFT))
+            Rhtheta -= dt;
+        if (vdbKeyDown(RIGHT))
+            Rhtheta += dt;
+        if (vdbKeyDown(UP))
+            Rvtheta -= dt;
+        if (vdbKeyDown(DOWN))
+            Rvtheta += dt;
+    }
+
+    radius += 10.0f * (Rradius - radius) * dt;
+    htheta += 10.0f * (Rhtheta - htheta) * dt;
+    vtheta += 10.0f * (Rvtheta - vtheta) * dt;
+
+    mat3 R = m_mat3(mat_rotate_z(htheta)*mat_rotate_x(vtheta));
+    vec3 p = focus + R.a3 * radius;
+    mat4 c_to_w = m_se3(R, p);
+    return m_se3_inverse(c_to_w);
 }
 
 void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
@@ -96,7 +147,7 @@ void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, 
 }
 #endif
 
-void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
+void vdbGridXY(r32 x_min, r32 x_max, r32 y_min, r32 y_max, int steps)
 {
     for (int i = 0; i <= steps; i++)
     {
@@ -108,18 +159,18 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
     }
 }
 
-void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
-void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
+void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
+void glLines(r32 width) { glLineWidth(width); glBegin(GL_LINES); }
 
-void vdbOrtho(float left, float right, float bottom, float top)
+void vdbOrtho(r32 left, r32 right, r32 bottom, r32 top)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float Ax = 2.0f / (right-left);
-    float Bx = -1.0f - Ax*left;
-    float Ay = 2.0f / (top-bottom);
-    float By = -1.0f - Ay*bottom;
-    float modelview[] = {
+    r32 Ax = 2.0f / (right-left);
+    r32 Bx = -1.0f - Ax*left;
+    r32 Ay = 2.0f / (top-bottom);
+    r32 By = -1.0f - Ay*bottom;
+    r32 modelview[] = {
         Ax,   0.0f, 0.0f, 0.0f,
         0.0f, Ay,   0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
@@ -134,7 +185,7 @@ void vdbFlippedY(bool enabled)
     glLoadIdentity();
     if (enabled)
     {
-        float projection[] = {
+        r32 projection[] = {
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 1.0f, 0.0f,
@@ -161,21 +212,21 @@ void vdbNoBlend()
     glDisable(GL_BLEND);
 }
 
-void vdbColorRamp(float t, float *r, float *g, float *b)
+void vdbColorRamp(r32 t, r32 *r, r32 *g, r32 *b)
 {
-    float A1 = 0.54f;
-    float A2 = 0.55f;
-    float A3 = 0.56f;
-    float B1 = 0.5f;
-    float B2 = 0.5f;
-    float B3 = 0.7f;
-    float C1 = 0.5f;
-    float C2 = 0.5f;
-    float C3 = 0.5f;
-    float D1 = 0.7f;
-    float D2 = 0.8f;
-    float D3 = 0.88f;
-    float tp = 3.1415926f*2.0f;
+    r32 A1 = 0.54f;
+    r32 A2 = 0.55f;
+    r32 A3 = 0.56f;
+    r32 B1 = 0.5f;
+    r32 B2 = 0.5f;
+    r32 B3 = 0.7f;
+    r32 C1 = 0.5f;
+    r32 C2 = 0.5f;
+    r32 C3 = 0.5f;
+    r32 D1 = 0.7f;
+    r32 D2 = 0.8f;
+    r32 D3 = 0.88f;
+    r32 tp = 3.1415926f*2.0f;
     if (t > 1.0f) t = 1.0f;
     if (t < 0.0f) t = 0.0f;
     *r = A1 + B1 * sin(tp * (C1 * t + D1));
@@ -183,26 +234,26 @@ void vdbColorRamp(float t, float *r, float *g, float *b)
     *b = A3 + B3 * sin(tp * (C3 * t + D3));
 }
 
-void vdbColorRamp(float t)
+void vdbColorRamp(r32 t)
 {
-    float A1 = 0.54f;
-    float A2 = 0.55f;
-    float A3 = 0.56f;
-    float B1 = 0.5f;
-    float B2 = 0.5f;
-    float B3 = 0.7f;
-    float C1 = 0.5f;
-    float C2 = 0.5f;
-    float C3 = 0.5f;
-    float D1 = 0.7f;
-    float D2 = 0.8f;
-    float D3 = 0.88f;
-    float tp = 3.1415926f*2.0f;
+    r32 A1 = 0.54f;
+    r32 A2 = 0.55f;
+    r32 A3 = 0.56f;
+    r32 B1 = 0.5f;
+    r32 B2 = 0.5f;
+    r32 B3 = 0.7f;
+    r32 C1 = 0.5f;
+    r32 C2 = 0.5f;
+    r32 C3 = 0.5f;
+    r32 D1 = 0.7f;
+    r32 D2 = 0.8f;
+    r32 D3 = 0.88f;
+    r32 tp = 3.1415926f*2.0f;
     if (t > 1.0f) t = 1.0f;
     if (t < 0.0f) t = 0.0f;
-    float r = A1 + B1 * sin(tp * (C1 * t + D1));
-    float g = A2 + B2 * sin(tp * (C2 * t + D2));
-    float b = A3 + B3 * sin(tp * (C3 * t + D3));
+    r32 r = A1 + B1 * sin(tp * (C1 * t + D1));
+    r32 g = A2 + B2 * sin(tp * (C2 * t + D2));
+    r32 b = A3 + B3 * sin(tp * (C3 * t + D3));
     glColor4f(r, g, b, 1.0f);
 }
 
