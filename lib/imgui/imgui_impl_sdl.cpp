@@ -153,7 +153,9 @@ bool ImGui_ImplSdl_CreateDeviceObjects()
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
     io.IniFilename = "./.build/imgui.ini";
+    #ifdef _WIN32
     io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    #endif
     io.MouseDrawCursor = true;
     #endif
 
