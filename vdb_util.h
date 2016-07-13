@@ -25,7 +25,7 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
 mat4 vdbCamera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
 {
     static r32 radius = 1.0f;
-    static r32 htheta = PI/2.0f-0.3f;
+    static r32 htheta = SO_PI/2.0f-0.3f;
     static r32 vtheta = 0.3f;
     static r32 Rradius = radius;
     static r32 Rhtheta = htheta;
@@ -39,13 +39,13 @@ mat4 vdbCamera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
         if (vdbKeyPressed(X))
             Rradius *= 2.0f;
         if (vdbKeyPressed(LEFT))
-            Rhtheta -= PI / 4.0f;
+            Rhtheta -= SO_PI / 4.0f;
         if (vdbKeyPressed(RIGHT))
-            Rhtheta += PI / 4.0f;
+            Rhtheta += SO_PI / 4.0f;
         if (vdbKeyPressed(UP))
-            Rvtheta -= PI / 4.0f;
+            Rvtheta -= SO_PI / 4.0f;
         if (vdbKeyPressed(DOWN))
-            Rvtheta += PI / 4.0f;
+            Rvtheta += SO_PI / 4.0f;
     }
     else
     {
