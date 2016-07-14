@@ -3,7 +3,7 @@
 #define COLOR_UNITY  0.15f, 0.13f, 0.1f, 1.0f
 #define COLOR_RED    1.0f, 0.2f, 0.1f, 1.0f
 #define COLOR_GREEN  0.1f, 1.0f, 0.2f, 1.0f
-#define COLOR_BLUE   0.1f, 0.2f, 1.0f, 1.0f
+#define COLOR_BLUE   0.15f, 0.35f, 0.85f, 1.0f
 #define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
 #define COLOR_CREAMY 0.8f, 0.7f, 0.51f, 1.0f
 
@@ -112,6 +112,19 @@ void vdbDrawLineFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2,
         vec2 l2c = vdbProjectFisheyePoint(f, l2);
         glVertex2f(l1c.x+u0, l1c.y+v0);
         glVertex2f(l2c.x+u0, l2c.y+v0);
+    }
+}
+
+void vdbDrawPointsFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2, s32 n = 64)
+{
+    p1 = R*(p1-T);
+    p2 = R*(p2-T);
+    for (s32 i = 0; i < n; i++)
+    {
+        r32 t = i / (r32)n;
+        vec3 p = p1 + (p2-p1)*t;
+        vec2 c = vdbProjectFisheyePoint(f, p);
+        glVertex2f(c.x+u0, c.y+v0);
     }
 }
 
