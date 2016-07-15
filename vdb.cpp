@@ -317,7 +317,7 @@ void vdb(const char *Label, vdb_callback Callback)
         }
         if (WatchWindows[Index].Skip)
         {
-            StepOver = true;
+            return;
         }
     }
 
