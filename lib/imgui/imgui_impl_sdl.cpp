@@ -152,7 +152,7 @@ bool ImGui_ImplSdl_CreateDeviceObjects()
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
-    io.IniFilename = "./.build/imgui.ini";
+    io.IniFilename = VDB_IMGUI_INI_FILENAME;
     #ifdef _WIN32
     io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
     #endif
