@@ -328,6 +328,26 @@ u08 *vdbRGBToGray(u08 *in, int w, int h)
     return out;
 }
 
+u08 *vdbResizeImage(u08 *in, int w, int h, int c, int rw, int rh)
+{
+    u08 *out = (u08*)malloc(rw*rh*c);
+    r32 dx = 1.0f / (r32)rw;
+    r32 dy = 1.0f / (r32)rh;
+    for (int y = 0; y < rh; y++)
+    for (int x = 0; x < rw; x++)
+    {
+        int src_x = (int)(x*dx*w);
+        int src_y = (int)(y*dy*h);
+
+        u08 *src = &in[(src_y*w+src_x)*c]; // @ bounds
+        u08 *dst = &out[(y*rw+x)*c];
+
+        for (int i = 0; i < c; i++)
+            dst[i] = src[i];
+    }
+    return out;
+}
+
 GLuint vdbLoadTexture(char *filename,
                       GLenum mag_filter = GL_LINEAR,
                       GLenum min_filter = GL_LINEAR,

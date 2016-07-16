@@ -1,4 +1,4 @@
-// so_math.h - ver 16
+// so_math.h - ver 17
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  15/7/16: m_map: Now works with y1 < y0
+//
 //   8/7/16: m_so3_to_ypr: Rotation matrix to euler angles (YPR)
 //
 //   7/7/16: m_quat_to_ypr: Quaternion to euler angles (YPR)
@@ -603,7 +605,8 @@ float m_square(float x) { return x*x; }
 // return: Linear mapping from [t0, t1] to [y0, y1]
 float m_map(float t0, float t1, float t, float y0, float y1)
 {
-    return m_clamp(y0 + (y1 - y0) * (t - t0) / (t1 - t0), y0, y1);
+    if (y0 > y1) return m_clamp(y0 + (y1 - y0) * (t - t0) / (t1 - t0), y1, y0);
+    else         return m_clamp(y0 + (y1 - y0) * (t - t0) / (t1 - t0), y0, y1);
 }
 
 // return: Linear mapping from [0, 1] to [low, high]
