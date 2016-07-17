@@ -61,6 +61,7 @@ void vdb(const char *Label, vdb_callback Callback);
 #define vdbKeyReleased(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
 #define vdbMouseX() Input.Mouse.X_NDC
 #define vdbMouseY() Input.Mouse.Y_NDC
+#define vdbAspect() ((r32)Input.WindowWidth / (r32)Input.WindowHeight)
 
 #ifdef VDB_MY_CONFIG
 #ifndef VDB_SETTINGS_FILENAME

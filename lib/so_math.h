@@ -1,4 +1,4 @@
-// so_math.h - ver 17
+// so_math.h - ver 18
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  17/7/16: m_normalize no longer defaults to using fast_inv_sqrt.
+//
 //  15/7/16: m_map: Now works with y1 < y0
 //
 //   8/7/16: m_so3_to_ypr: Rotation matrix to euler angles (YPR)
@@ -577,7 +579,7 @@ float m_fast_inv_sqrt(float x)
 template <int n>
 Vector<float, n> m_normalize(Vector<float, n> v)
 {
-    Vector<float, n> result = v * m_fast_inv_sqrt(m_dot(v, v));
+    Vector<float, n> result = v / m_length(v);
     return result;
 }
 
