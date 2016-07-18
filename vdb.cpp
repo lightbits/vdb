@@ -50,6 +50,7 @@ struct vdb_event
 {
     bool StepOver;
     bool StepOnce;
+    bool MarkSkip;
     bool TakeScreenshot;
     bool TakeScreenshotNoDialog;
     bool ReturnPressed;
@@ -159,6 +160,7 @@ void vdb_processMessages(vdb_input *Input,
     InterestingEvents->WindowSizeChanged = false;
     InterestingEvents->Exit = false;
     InterestingEvents->StepOnce = false;
+    InterestingEvents->MarkSkip = false;
     InterestingEvents->StepOver = false;
     InterestingEvents->TakeScreenshot = false;
     InterestingEvents->TakeScreenshotNoDialog = false;
@@ -207,6 +209,9 @@ void vdb_processMessages(vdb_input *Input,
                     InterestingEvents->StepOver = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_F10)
                     InterestingEvents->StepOnce = true;
+                if (Event.key.keysym.scancode == SDL_SCANCODE_F10 &&
+                    Event.key.keysym.mod & KMOD_LSHIFT)
+                    InterestingEvents->MarkSkip = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_PRINTSCREEN)
                     InterestingEvents->TakeScreenshot = true;
                 if (Event.key.keysym.scancode == SDL_SCANCODE_RETURN)
@@ -296,6 +301,7 @@ void vdb(const char *Label, vdb_callback Callback)
 
     // Add new watch window entry if this was a new one
     // If it wasn't new, check if the user wants to skip it
+    int WatchWindowIndex = 0;
     {
         int Index = 0;
         bool Added = false;
@@ -319,6 +325,7 @@ void vdb(const char *Label, vdb_callback Callback)
         {
             return;
         }
+        WatchWindowIndex = Index;
     }
 
     // @ maybe store the callback addresses?
@@ -584,6 +591,10 @@ void vdb(const char *Label, vdb_callback Callback)
 
         VDB_FIRST_LOOP_ITERATION = false;
 
+        if (Event.MarkSkip)
+        {
+            WatchWindows[WatchWindowIndex].Skip = true;
+        }
         if (Event.Exit)
         {
             break;
