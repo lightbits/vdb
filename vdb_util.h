@@ -321,7 +321,7 @@ GLuint vdbMakeTexture(void *data, int width, int height,
     return result;
 }
 
-u08 *vdbLoadImage(char *filename, int *width, int *height, int force_channels)
+u08 *vdbLoadImage(const char *filename, int *width, int *height, int force_channels)
 {
     int channels;
     u08 *result = stbi_load(filename, width, height, &channels, force_channels);
@@ -370,7 +370,7 @@ u08 *vdbResizeImage(u08 *in, int w, int h, int c, int rw, int rh)
     return out;
 }
 
-GLuint vdbLoadTexture(char *filename,
+GLuint vdbLoadTexture(const char *filename,
                       GLenum mag_filter = GL_LINEAR,
                       GLenum min_filter = GL_LINEAR,
                       GLenum wrap_s = GL_CLAMP_TO_EDGE,
