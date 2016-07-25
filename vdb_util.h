@@ -13,6 +13,20 @@ void vdbClear(r32 r, r32 g, r32 b, r32 a)
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void vdbFillCircle(r32 x, r32 y, r32 r, int n = 64)
+{
+    for (int i = 0; i < n; i++)
+    {
+        int i1 = i;
+        int i2 = i+1;
+        r32 t1 = SO_TWO_PI*i1 / (r32)n;
+        r32 t2 = SO_TWO_PI*i2 / (r32)n;
+        glVertex2f(x, y);
+        glVertex2f(x+r*cos(t1), y+r*sin(t1));
+        glVertex2f(x+r*cos(t2), y+r*sin(t2));
+    }
+}
+
 #ifndef VDB_NO_MATH
 void vdbView3D(mat4 model, mat4 view, mat4 projection)
 {

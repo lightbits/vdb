@@ -1,4 +1,4 @@
-// so_math.h - ver 18
+// so_math.h - ver 19
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  24/7/16: m_floor, m_mod
+//
 //  17/7/16: m_normalize no longer defaults to using fast_inv_sqrt.
 //
 //  15/7/16: m_map: Now works with y1 < y0
@@ -621,6 +623,27 @@ float m_smoothstep(float lo, float hi, float x)
 {
     float t = m_clamp((x - lo) / (hi - lo), 0.0f, 1.0f);
     return t * t * (3.0f - 2.0f * t);
+}
+
+float m_floor(float x)
+{
+    return floor(x);
+}
+
+float m_mod(float x, float m)
+{
+    if (x < 0.0f)
+    {
+        s32 n = (s32)(-x / m);
+        r32 r = m - (-x - n*m);
+        return r;
+    }
+    else
+    {
+        s32 n = (s32)(x / m);
+        r32 r = x - n*m;
+        return r;
+    }
 }
 
 template <typename T, int n>
