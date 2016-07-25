@@ -81,3 +81,15 @@ void vdb(const char *Label, vdb_callback Callback);
 #ifndef VDB_SETTINGS_FILENAME
 #define VDB_SETTINGS_FILENAME "./vdb.ini"
 #endif
+
+#ifndef VDB_GL_MAJOR
+#define VDB_GL_MAJOR 1
+#endif
+
+#ifndef VDB_GL_MINOR
+#define VDB_GL_MINOR 5
+#endif
+
+#ifndef VDB_MULTISAMPLES
+#define VDB_MULTISAMPLES 4
+#endif
