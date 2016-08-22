@@ -47,6 +47,8 @@ struct vdb_input
     char **ScreenshotFilename;
     bool *ScreenshotDrawGui;
     bool *ScreenshotDrawCursor;
+
+    bool *StepOnce;
 };
 
 typedef std::function<void (vdb_input Input) > vdb_callback;

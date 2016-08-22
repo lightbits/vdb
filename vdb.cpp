@@ -375,6 +375,7 @@ void vdb(const char *Label, vdb_callback Callback)
     Input.ScreenshotDrawGui = &ScreenshotDrawGui;
     Input.ScreenshotFilename = &ScreenshotFilename;
     Input.TakeScreenshotNoDialog = &Event.TakeScreenshotNoDialog;
+    Input.StepOnce = &Event.StepOnce;
 
     VDB_FIRST_LOOP_ITERATION = true;
     while (Running)

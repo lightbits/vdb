@@ -432,16 +432,27 @@ void vdbImage(void *data, int width, int height,
     vdbDrawTexture(texture);
 }
 
-void _vdbTakeScreenshot(vdb_input input, char *filename,
+bool _vdbTakeScreenshot(vdb_input input, char *filename,
                         bool gui, bool cursor)
 {
-    static char buf_filename[1024];
-    strcpy(buf_filename, filename); // this is dumb
+    static bool taking = false;
+    if (!taking)
+    {
+        taking = true;
+        static char buf_filename[1024];
+        strcpy(buf_filename, filename); // this is dumb
 
-    *input.ScreenshotFilename = buf_filename;
-    *input.ScreenshotDrawGui = gui;
-    *input.ScreenshotDrawCursor = cursor;
-    *input.TakeScreenshotNoDialog = true;
+        *input.ScreenshotFilename = buf_filename;
+        *input.ScreenshotDrawGui = gui;
+        *input.ScreenshotDrawCursor = cursor;
+        *input.TakeScreenshotNoDialog = true;
+        return false;
+    }
+    else
+    {
+        taking = false;
+        return true;
+    }
 }
 
 #define vdbTakeScreenshot(filename, gui, cursor) _vdbTakeScreenshot(Input, filename, gui, cursor)
