@@ -112,13 +112,17 @@ void vdb_saveSettings(vdb_settings Settings)
 vdb_window vdb_openWindow()
 {
     vdb_window Result = {0};
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
+        SDL_assert(false);
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, VDB_GL_MAJOR);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, VDB_GL_MINOR);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0); // @ Find out why this stopped working
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, VDB_MULTISAMPLES > 0 ? 1 : 0);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, VDB_MULTISAMPLES);
 
     vdb_settings Settings = vdb_loadSettings();
     Result.SDLWindow = SDL_CreateWindow(
@@ -132,6 +136,7 @@ vdb_window vdb_openWindow()
     SDL_assert(Result.SDLWindow);
 
     Result.GLContext = SDL_GL_CreateContext(Result.SDLWindow);
+    SDL_assert(Result.GLContext != 0);
 
     // 0 for immediate updates, 1 for updates synchronized with the
     // vertical retrace. If the system supports it, you may
