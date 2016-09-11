@@ -242,7 +242,7 @@ void vdbOrtho(r32 left,
     };
     glLoadMatrixf(modelview);
 
-    if (mouse_x_world && mouse_y_world)
+    if (mouse_x_ortho && mouse_y_ortho)
     {
         *mouse_x_ortho = left + (right-left)*(0.5f+0.5f*mouse_x_ndc);
         *mouse_y_ortho = bottom + (top-bottom)*(0.5f+0.5f*mouse_y_ndc);
