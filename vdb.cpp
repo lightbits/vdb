@@ -426,10 +426,11 @@ void vdb(const char *Label, vdb_callback Callback)
 
             glEnable(GL_POINT_SMOOTH);
             glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-            glPointSize(1.0f);
 
             glEnable(GL_LINE_SMOOTH);
             glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+
+            glPointSize(1.0f);
             glLineWidth(1.0f);
 
             glEnable(GL_BLEND);

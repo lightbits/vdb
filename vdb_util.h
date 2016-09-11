@@ -7,10 +7,30 @@
 #define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
 #define COLOR_CREAMY 0.8f, 0.7f, 0.51f, 1.0f
 
+#define vdbViewportN(x, y, w, h) _vdbViewportN(Input.WindowWidth, Input.WindowHeight, x, y, w, h)
+void _vdbViewportN(r32 window_width, r32 window_height, r32 x, r32 y, r32 w, r32 h)
+{
+    glViewport(x * window_width, y * window_height,
+               w * window_width, h * window_height);
+}
+
 void vdbClear(r32 r, r32 g, r32 b, r32 a)
 {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void vdbDrawCircle(r32 x, r32 y, r32 r, int n = 64)
+{
+    for (int i = 0; i < n; i++)
+    {
+        int i1 = i;
+        int i2 = i+1;
+        r32 t1 = 6.28318530718f*i1 / (r32)n;
+        r32 t2 = 6.28318530718f*i2 / (r32)n;
+        glVertex2f(x+r*cos(t1), y+r*sin(t1));
+        glVertex2f(x+r*cos(t2), y+r*sin(t2));
+    }
 }
 
 void vdbFillCircle(r32 x, r32 y, r32 r, int n = 64)
@@ -19,8 +39,8 @@ void vdbFillCircle(r32 x, r32 y, r32 r, int n = 64)
     {
         int i1 = i;
         int i2 = i+1;
-        r32 t1 = SO_TWO_PI*i1 / (r32)n;
-        r32 t2 = SO_TWO_PI*i2 / (r32)n;
+        r32 t1 = 6.28318530718f*i1 / (r32)n;
+        r32 t2 = 6.28318530718f*i2 / (r32)n;
         glVertex2f(x, y);
         glVertex2f(x+r*cos(t1), y+r*sin(t1));
         glVertex2f(x+r*cos(t2), y+r*sin(t2));
@@ -197,7 +217,16 @@ void vdbGridXY(r32 x_min, r32 x_max, r32 y_min, r32 y_max, int steps)
 void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
 void glLines(r32 width) { glLineWidth(width); glBegin(GL_LINES); }
 
-void vdbOrtho(r32 left, r32 right, r32 bottom, r32 top)
+void vdbOrtho(r32 left,
+              r32 right,
+              r32 bottom,
+              r32 top,
+              // optionally, you can map mouse ndc viewport coordinates
+              // into orthographic coordinates
+              r32 mouse_x_ndc = 0.0f,
+              r32 mouse_y_ndc = 0.0f,
+              r32 *mouse_x_ortho = 0,
+              r32 *mouse_y_ortho = 0)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -212,6 +241,51 @@ void vdbOrtho(r32 left, r32 right, r32 bottom, r32 top)
         Bx,   By,   0.0f, 1.0f
     };
     glLoadMatrixf(modelview);
+
+    if (mouse_x_world && mouse_y_world)
+    {
+        *mouse_x_ortho = left + (right-left)*(0.5f+0.5f*mouse_x_ndc);
+        *mouse_y_ortho = bottom + (top-bottom)*(0.5f+0.5f*mouse_y_ndc);
+    }
+}
+
+void vdbDrawRect(r32 x, r32 y, r32 w, r32 h)
+{
+    glVertex2f(x, y);
+    glVertex2f(x+w, y);
+
+    glVertex2f(x+w, y);
+    glVertex2f(x+w, y+h);
+
+    glVertex2f(x+w, y+h);
+    glVertex2f(x, y+h);
+
+    glVertex2f(x, y+h);
+    glVertex2f(x, y);
+}
+
+void vdbFillRect(r32 x, r32 y, r32 w, r32 h)
+{
+    glVertex2f(x, y);
+    glVertex2f(x+w, y);
+    glVertex2f(x+w, y+h);
+    glVertex2f(x+w, y+h);
+    glVertex2f(x, y+h);
+    glVertex2f(x, y);
+}
+
+void vdbClearFill(r32 r, r32 g, r32 b, r32 a)
+{
+    vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+    glBegin(GL_TRIANGLES);
+    glColor4f(r, g, b, a);
+    glVertex2f(-1.0f, -1.0f);
+    glVertex2f(+1.0f, -1.0f);
+    glVertex2f(+1.0f, +1.0f);
+    glVertex2f(+1.0f, +1.0f);
+    glVertex2f(-1.0f, +1.0f);
+    glVertex2f(-1.0f, -1.0f);
+    glEnd();
 }
 
 void vdbFlippedY(bool enabled)
