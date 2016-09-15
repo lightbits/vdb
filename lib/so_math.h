@@ -1,4 +1,4 @@
-// so_math.h - ver 19
+// so_math.h - ver 20
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  15/9/16: removed undefined types (s32, r32)
+//
 //  24/7/16: m_floor, m_mod
 //
 //  17/7/16: m_normalize no longer defaults to using fast_inv_sqrt.
@@ -634,14 +636,14 @@ float m_mod(float x, float m)
 {
     if (x < 0.0f)
     {
-        s32 n = (s32)(-x / m);
-        r32 r = m - (-x - n*m);
+        int n = (int)(-x / m);
+        float r = m - (-x - n*m);
         return r;
     }
     else
     {
-        s32 n = (s32)(x / m);
-        r32 r = x - n*m;
+        int n = (int)(x / m);
+        float r = x - n*m;
         return r;
     }
 }
@@ -778,7 +780,7 @@ y (output) nx1 solution of U^t y = b
     return 1;
 }
 
-void m_solveut(r32 *U, r32 *x, r32 *y, int n)
+void m_solveut(float *U, float *x, float *y, int n)
 // Solves Ux = y for x where U is upper triangular.
 // U (input) nxn upper triangular matrix (1d column-order)
 // y (input) nx1 vector of known right-hand-side values
@@ -787,7 +789,7 @@ void m_solveut(r32 *U, r32 *x, r32 *y, int n)
 {
     for (int i = n-1; i >= 0; i--)
     {
-        r32 r = 0.0f;
+        float r = 0.0f;
         for (int j = n-1; j > i; j--)
         {
             r += U[j*n+i] * x[j];
@@ -818,7 +820,7 @@ int m_solvespd(Matrix<float, n, n> S, Vector<float, n> b, Vector<float, n> *x)
     }
 }
 
-bool m_so3_to_ypr(mat3 R, r32 *yaw, r32 *pitch, r32 *roll)
+bool m_so3_to_ypr(mat3 R, float *yaw, float *pitch, float *roll)
 // Outputs the Euler angles (roll, pitch, yaw) that parametrize
 // the zyx rotation matrix R = Rz(yaw)Ry(pitch)Rx(roll).
 //
@@ -1089,7 +1091,7 @@ Matrix<float,4,3> m_quat_mul_matrix(quat q)
 
 mat3 m_so3_exp(vec3 wt)
 {
-    r32 t = m_length(wt);
+    float t = m_length(wt);
     if (t < 0.01f)
     {
         return m_id3() + m_skew(wt);
@@ -1104,8 +1106,8 @@ mat3 m_so3_exp(vec3 wt)
 // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Log_map_from_SO.283.29_to_so.283.29
 vec3 m_so3_log(mat3 R)
 {
-    r32 tr = R.a11+R.a22+R.a33;
-    r32 theta = acos((tr-1.0f)/2.0f);
+    float tr = R.a11+R.a22+R.a33;
+    float theta = acos((tr-1.0f)/2.0f);
     if (theta < 0.01f)
     {
         // For small angles
@@ -1119,7 +1121,7 @@ vec3 m_so3_log(mat3 R)
     else
     {
         vec3 k;
-        r32 s = sin(theta);
+        float s = sin(theta);
         k.x = (R.a32-R.a23)/(2.0f*s);
         k.y = (R.a13-R.a31)/(2.0f*s);
         k.z = (R.a21-R.a12)/(2.0f*s);
@@ -1138,7 +1140,7 @@ void m_se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
     m_se3_decompose(SE3, &R, &T);
     vec3 w = m_so3_log(R);
 
-    r32 t = m_length(w);
+    float t = m_length(w);
     if (t < 0.01f)
     {
         *out_v = T;
@@ -1146,8 +1148,8 @@ void m_se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
     else
     {
         mat3 W = m_skew(w);
-        r32 s = sin(t);
-        r32 c = cos(t);
+        float s = sin(t);
+        float c = cos(t);
         mat3 M = m_id3() - 0.5f*W + W*W*((2.0f*s - t*(1.0f+c))/(2.0f*t*t*s));
         *out_v = M*T;
     }
@@ -1158,7 +1160,7 @@ void m_se3_log(mat4 SE3, vec3 *out_w, vec3 *out_v)
 mat4 m_se3_exp(vec3 w, vec3 v)
 {
     mat3 R = m_so3_exp(w);
-    r32 t = m_length(w);
+    float t = m_length(w);
     vec3 T = v;
     if (t >= 0.01f)
     {
@@ -1307,8 +1309,8 @@ mat_perspective(float fov, float width, float height, float zn, float zf)
 
 vec2 m_project_pinhole(float fx, float fy, float u0, float v0, vec3 p_camera)
 {
-    r32 u = -fx*p_camera.x / p_camera.z + u0;
-    r32 v = -fy*p_camera.y / p_camera.z + v0;
+    float u = -fx*p_camera.x / p_camera.z + u0;
+    float v = -fy*p_camera.y / p_camera.z + v0;
     return m_vec2(u, v);
 }
 
@@ -1320,26 +1322,26 @@ vec2 m_project_pinhole(float fx, float fy, float u0, float v0, vec3 p_camera)
 //  FALSE No intersection or infinitely many intersections
 //   TRUE One or two intersections
 bool
-m_is_circle_circle(vec2 a, vec2 b, r32 ra, r32 rb, vec2 *x1, vec2 *x2)
+m_is_circle_circle(vec2 a, vec2 b, float ra, float rb, vec2 *x1, vec2 *x2)
 {
     vec2 d = b-a;
     vec2 p = m_vec2(-d.y, d.x);
-    r32 ld = m_dot(d,d);
+    float ld = m_dot(d,d);
     if (ld < 0.001f)
     {
         return false;
     }
     else
     {
-        r32 t = (ra*ra-rb*rb+ld)/(2.0f*ld);
-        r32 D = ra*ra/ld - t*t;
+        float t = (ra*ra-rb*rb+ld)/(2.0f*ld);
+        float D = ra*ra/ld - t*t;
         if (D < 0.0f)
         {
             return false;
         }
         else
         {
-            r32 s = sqrt(D);
+            float s = sqrt(D);
             *x1 = a + t*d + s*p;
             *x2 = a + t*d - s*p;
             return true;
