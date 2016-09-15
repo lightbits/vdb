@@ -51,9 +51,9 @@ void vdb(const char *Label, vdb_callback Callback);
 #define vdbKeyDown(KEY) Input.Keys[SDL_SCANCODE_##KEY].Down
 #define vdbKeyPressed(KEY) Input.Keys[SDL_SCANCODE_##KEY].Pressed
 #define vdbKeyReleased(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
-#define vdbMouseX Input.Mouse.X_NDC
-#define vdbMouseY Input.Mouse.Y_NDC
-#define vdbAspect (Input.WindowWidth / (float)Input.WindowHeight)
+#define vdbMouseX() Input.Mouse.X_NDC
+#define vdbMouseY() Input.Mouse.Y_NDC
+#define vdbAspect() (Input.WindowWidth / (float)Input.WindowHeight)
 
 #ifndef VDB_IMGUI_INI_FILENAME
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
