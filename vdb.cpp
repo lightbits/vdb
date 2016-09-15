@@ -1,4 +1,5 @@
 #include "vdb.h"
+#include <stdint.h>
 
 #define SDL_ASSERT_LEVEL 2
 #include <SDL.h>
@@ -69,7 +70,6 @@ struct vdb_settings
 vdb_settings vdb_loadSettings()
 {
     vdb_settings Result = {0};
-    #ifdef VDB_MY_CONFIG
     FILE *File = fopen(VDB_SETTINGS_FILENAME, "rb");
     if (File)
     {
@@ -88,25 +88,17 @@ vdb_settings vdb_loadSettings()
         Result.PositionX = SDL_WINDOWPOS_UNDEFINED;
         Result.PositionY = SDL_WINDOWPOS_UNDEFINED;
     }
-    #else
-    Result.Width = 640;
-    Result.Height = 480;
-    Result.PositionX = SDL_WINDOWPOS_UNDEFINED;
-    Result.PositionY = SDL_WINDOWPOS_UNDEFINED;
-    #endif
     return Result;
 }
 
 void vdb_saveSettings(vdb_settings Settings)
 {
-    #ifdef VDB_MY_CONFIG
     FILE *File = fopen(VDB_SETTINGS_FILENAME, "wb+");
     if (File)
     {
         fwrite((const void*)&Settings, sizeof(vdb_settings), 1, File);
         fclose(File);
     }
-    #endif
 }
 
 vdb_window vdb_openWindow()
@@ -275,7 +267,7 @@ float vdb_getElapsedSeconds(uint64_t Begin, uint64_t End)
 }
 
 #define COROUTINE(Trigger, Duration) \
-    static u64 TickBegin_##__LINE__ = 0; \
+    static uint64_t TickBegin_##__LINE__ = 0; \
     if (Trigger) TickBegin_##__LINE__ = vdb_getTicks(); \
     if (vdb_getElapsedSeconds(TickBegin_##__LINE__, vdb_getTicks()) < Duration) \
 

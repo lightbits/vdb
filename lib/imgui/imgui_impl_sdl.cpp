@@ -96,7 +96,7 @@ void ImGui_ImplSdl_RenderDrawLists(ImDrawData* draw_data)
 
 static const char* ImGui_ImplSdl_GetClipboardText()
 {
-	return SDL_GetClipboardText();
+    return SDL_GetClipboardText();
 }
 
 static void ImGui_ImplSdl_SetClipboardText(const char* text)
@@ -146,17 +146,15 @@ bool ImGui_ImplSdl_ProcessEvent(SDL_Event* event)
 
 bool ImGui_ImplSdl_CreateDeviceObjects()
 {
-    ImGuiIO& io = ImGui::GetIO();
-
-    #ifdef VDB_MY_CONFIG
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
+
+    ImGuiIO& io = ImGui::GetIO();
     io.IniFilename = VDB_IMGUI_INI_FILENAME;
-    #ifdef _WIN32
-    io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
-    #endif
-    io.MouseDrawCursor = true;
+
+    #ifdef VDB_CUSTOM_FONT
+    io.Fonts->AddFontFromFileTTF(VDB_CUSTOM_FONT);
     #endif
 
     // Build texture atlas
@@ -219,12 +217,13 @@ bool    ImGui_ImplSdl_Init(SDL_Window *window)
     io.SetClipboardTextFn = ImGui_ImplSdl_SetClipboardText;
     io.GetClipboardTextFn = ImGui_ImplSdl_GetClipboardText;
 
-#ifdef _WIN32
-	SDL_SysWMinfo wmInfo;
-	SDL_VERSION(&wmInfo.version);
-	SDL_GetWindowWMInfo(window, &wmInfo);
-    io.ImeWindowHandle = wmInfo.info.win.window;
-#endif
+    // To input using Microsoft IME, give ImGui the hwnd of your application
+// #ifdef _WIN32
+//  SDL_SysWMinfo wmInfo;
+//  SDL_VERSION(&wmInfo.version);
+//  SDL_GetWindowWMInfo(window, &wmInfo);
+//     io.ImeWindowHandle = wmInfo.info.win.window;
+// #endif
 
     return true;
 }
@@ -244,12 +243,12 @@ void ImGui_ImplSdl_NewFrame(SDL_Window *window)
 
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
-	SDL_GetWindowSize(window, &w, &h);
+    SDL_GetWindowSize(window, &w, &h);
     io.DisplaySize = ImVec2((float)w, (float)h);
 
     // Setup time step
-	Uint32	time = SDL_GetTicks();
-	double current_time = time / 1000.0;
+    Uint32  time = SDL_GetTicks();
+    double current_time = time / 1000.0;
     io.DeltaTime = imgui_Time > 0.0 ? (float)(current_time - imgui_Time) : (float)(1.0f/60.0f);
     imgui_Time = current_time;
 
@@ -258,13 +257,13 @@ void ImGui_ImplSdl_NewFrame(SDL_Window *window)
     int mx, my;
     Uint32 mouseMask = SDL_GetMouseState(&mx, &my);
     if (SDL_GetWindowFlags(window) & SDL_WINDOW_MOUSE_FOCUS)
-    	io.MousePos = ImVec2((float)mx, (float)my);   // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
+        io.MousePos = ImVec2((float)mx, (float)my);   // Mouse position, in pixels (set to -1,-1 if no mouse / on another screen, etc.)
     else
-    	io.MousePos = ImVec2(-1,-1);
+        io.MousePos = ImVec2(-1,-1);
 
-	io.MouseDown[0] = imgui_MousePressed[0] || (mouseMask & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;		// If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
-	io.MouseDown[1] = imgui_MousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
-	io.MouseDown[2] = imgui_MousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
+    io.MouseDown[0] = imgui_MousePressed[0] || (mouseMask & SDL_BUTTON(SDL_BUTTON_LEFT)) != 0;      // If a mouse press event came, always pass it as "mouse held this frame", so we don't miss click-release events that are shorter than 1 frame.
+    io.MouseDown[1] = imgui_MousePressed[1] || (mouseMask & SDL_BUTTON(SDL_BUTTON_RIGHT)) != 0;
+    io.MouseDown[2] = imgui_MousePressed[2] || (mouseMask & SDL_BUTTON(SDL_BUTTON_MIDDLE)) != 0;
     imgui_MousePressed[0] = imgui_MousePressed[1] = imgui_MousePressed[2] = false;
 
     io.MouseWheel = imgui_MouseWheel;

@@ -1,49 +1,40 @@
-#define COLOR_WHITE  0.75f, 0.7f, 0.65f, 1.0f
-#define COLOR_BLACK  0.0f, 0.0f, 0.0f, 1.0f
-#define COLOR_UNITY  0.15f, 0.13f, 0.1f, 1.0f
-#define COLOR_RED    1.0f, 0.2f, 0.1f, 1.0f
-#define COLOR_GREEN  0.1f, 1.0f, 0.2f, 1.0f
-#define COLOR_BLUE   0.15f, 0.35f, 0.85f, 1.0f
-#define COLOR_YELLOW 1.0f, 1.0f, 0.2f, 1.0f
-#define COLOR_CREAMY 0.8f, 0.7f, 0.51f, 1.0f
-
 #define vdbViewportN(x, y, w, h) _vdbViewportN(Input.WindowWidth, Input.WindowHeight, x, y, w, h)
-void _vdbViewportN(r32 window_width, r32 window_height, r32 x, r32 y, r32 w, r32 h)
+void _vdbViewportN(float window_width, float window_height, float x, float y, float w, float h)
 {
     glViewport(x * window_width, y * window_height,
                w * window_width, h * window_height);
 }
 
-void vdbClear(r32 r, r32 g, r32 b, r32 a)
+void vdbClear(float r, float g, float b, float a)
 {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void vdbDrawCircle(r32 x, r32 y, r32 r, int n = 64)
+void vdbDrawCircle(float x, float y, float r, int n = 64)
 {
     for (int i = 0; i < n; i++)
     {
         int i1 = i;
         int i2 = i+1;
-        r32 t1 = 6.28318530718f*i1 / (r32)n;
-        r32 t2 = 6.28318530718f*i2 / (r32)n;
-        glVertex2f(x+r*cos(t1), y+r*sin(t1));
-        glVertex2f(x+r*cos(t2), y+r*sin(t2));
+        float t1 = 6.28318530718f*i1 / (float)n;
+        float t2 = 6.28318530718f*i2 / (float)n;
+        glVertex2f(x+r*cosf(t1), y+r*sinf(t1));
+        glVertex2f(x+r*cosf(t2), y+r*sinf(t2));
     }
 }
 
-void vdbFillCircle(r32 x, r32 y, r32 r, int n = 64)
+void vdbFillCircle(float x, float y, float r, int n = 64)
 {
     for (int i = 0; i < n; i++)
     {
         int i1 = i;
         int i2 = i+1;
-        r32 t1 = 6.28318530718f*i1 / (r32)n;
-        r32 t2 = 6.28318530718f*i2 / (r32)n;
+        float t1 = 6.28318530718f*i1 / (float)n;
+        float t2 = 6.28318530718f*i2 / (float)n;
         glVertex2f(x, y);
-        glVertex2f(x+r*cos(t1), y+r*sin(t1));
-        glVertex2f(x+r*cos(t2), y+r*sin(t2));
+        glVertex2f(x+r*cosf(t1), y+r*sinf(t1));
+        glVertex2f(x+r*cosf(t2), y+r*sinf(t2));
     }
 }
 
@@ -58,14 +49,14 @@ void vdbView3D(mat4 model, mat4 view, mat4 projection)
 
 mat4 vdbCamera3D(vdb_input Input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
 {
-    static r32 radius = 1.0f;
-    static r32 htheta = SO_PI/2.0f-0.3f;
-    static r32 vtheta = 0.3f;
-    static r32 Rradius = radius;
-    static r32 Rhtheta = htheta;
-    static r32 Rvtheta = vtheta;
+    static float radius = 1.0f;
+    static float htheta = SO_PI/2.0f-0.3f;
+    static float vtheta = 0.3f;
+    static float Rradius = radius;
+    static float Rhtheta = htheta;
+    static float Rvtheta = vtheta;
 
-    r32 dt = Input.DeltaTime;
+    float dt = Input.DeltaTime;
     if (vdbKeyDown(LSHIFT))
     {
         if (vdbKeyPressed(Z))
@@ -112,13 +103,13 @@ void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
 void glVertex3f(vec3 p) { glVertex3f(p.x, p.y, p.z); }
 void glLine3f(vec3 a, vec3 b) { glVertex3f(a); glVertex3f(b); }
 
-vec2 vdbProjectFisheyePoint(r32 f, vec3 p, r32 u0, r32 v0)
+vec2 vdbProjectFisheyePoint(float f, vec3 p, float u0, float v0)
 // Output y is 0 at top of screen at height at bottom of screen
 {
-    r32 l = sqrt(p.x*p.x+p.y*p.y);
-    r32 t = atan(-l/p.z);
-    r32 r = f*t;
-    r32 du, dv;
+    float l = sqrtf(p.x*p.x+p.y*p.y);
+    float t = atanf(-l/p.z);
+    float r = f*t;
+    float du, dv;
     if (t < 0.001f)
     {
         du = 0.0f;
@@ -129,21 +120,21 @@ vec2 vdbProjectFisheyePoint(r32 f, vec3 p, r32 u0, r32 v0)
         du = r*p.x/l;
         dv = r*p.y/l;
     }
-    r32 u = u0 + du;
-    r32 v = v0 - dv;
+    float u = u0 + du;
+    float v = v0 - dv;
     vec2 result = { u, v };
     return result;
 }
 
-void vdbDrawLineFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2, s32 n = 64)
+void vdbDrawLineFisheye(mat3 R, vec3 T, float f, float u0, float v0, vec3 p1, vec3 p2, int n = 64)
 // Output y is 0 at top of screen at height at bottom of screen
 {
     p1 = R*(p1-T);
     p2 = R*(p2-T);
-    for (s32 i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        r32 t1 = i / (r32)n;
-        r32 t2 = (i+1) / (r32)n;
+        float t1 = i / (float)n;
+        float t2 = (i+1) / (float)n;
         vec3 l1 = p1 + (p2-p1)*t1;
         vec3 l2 = p1 + (p2-p1)*t2;
         if (l1.z > 0.0f || l2.z > 0.0f)
@@ -155,21 +146,21 @@ void vdbDrawLineFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2,
     }
 }
 
-void vdbDrawPointsFisheye(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, vec3 p1, vec3 p2, s32 n = 64)
+void vdbDrawPointsFisheye(mat3 R, vec3 T, float f, float u0, float v0, vec3 p1, vec3 p2, int n = 64)
 // Output y is 0 at top of screen at height at bottom of screen
 {
     p1 = R*(p1-T);
     p2 = R*(p2-T);
-    for (s32 i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        r32 t = i / (r32)n;
+        float t = i / (float)n;
         vec3 p = p1 + (p2-p1)*t;
         vec2 c = vdbProjectFisheyePoint(f, p, u0, v0);
         glVertex2f(c.x, c.y);
     }
 }
 
-void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, vec3 p2)
+void vdbDrawLinePinhole(mat3 R, vec3 T, float f, float u0, float v0, float zn, vec3 p1, vec3 p2)
 // p1, p2: In world space
 // u0, v0: Image center
 // zn, zf: Near and far clip planes
@@ -179,30 +170,30 @@ void vdbDrawLinePinhole(mat3 R, vec3 T, r32 f, r32 u0, r32 v0, r32 zn, vec3 p1, 
 {
     p1 = R*(p1 - T);
     p2 = R*(p2 - T);
-    r32 z1 = p1.z;
-    r32 z2 = p2.z;
+    float z1 = p1.z;
+    float z2 = p2.z;
     vec3 clip1 = p1;
     vec3 clip2 = p2;
     if (-z1 < zn)
     {
-        r32 t = (-zn - z2) / (z1 - z2);
+        float t = (-zn - z2) / (z1 - z2);
         clip1 = p2 + (p1 - p2)*t;
     }
     if (-z2 < zn)
     {
-        r32 t = (-zn - z1) / (z2 - z1);
+        float t = (-zn - z1) / (z2 - z1);
         clip2 = p1 + (p2 - p1)*t;
     }
-    r32 u1 = -f*clip1.x/clip1.z + u0;
-    r32 v1 = +f*clip1.y/clip1.z + v0;
-    r32 u2 = -f*clip2.x/clip2.z + u0;
-    r32 v2 = +f*clip2.y/clip2.z + v0;
+    float u1 = -f*clip1.x/clip1.z + u0;
+    float v1 = +f*clip1.y/clip1.z + v0;
+    float u2 = -f*clip2.x/clip2.z + u0;
+    float v2 = +f*clip2.y/clip2.z + v0;
     glVertex2f(u1, v1);
     glVertex2f(u2, v2);
 }
 #endif
 
-void vdbGridXY(r32 x_min, r32 x_max, r32 y_min, r32 y_max, int steps)
+void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
 {
     for (int i = 0; i <= steps; i++)
     {
@@ -214,27 +205,27 @@ void vdbGridXY(r32 x_min, r32 x_max, r32 y_min, r32 y_max, int steps)
     }
 }
 
-void glPoints(r32 size) { glPointSize(size); glBegin(GL_POINTS); }
-void glLines(r32 width) { glLineWidth(width); glBegin(GL_LINES); }
+void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
+void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 
-void vdbOrtho(r32 left,
-              r32 right,
-              r32 bottom,
-              r32 top,
+void vdbOrtho(float left,
+              float right,
+              float bottom,
+              float top,
               // optionally, you can map mouse ndc viewport coordinates
               // into orthographic coordinates
-              r32 mouse_x_ndc = 0.0f,
-              r32 mouse_y_ndc = 0.0f,
-              r32 *mouse_x_ortho = 0,
-              r32 *mouse_y_ortho = 0)
+              float mouse_x_ndc = 0.0f,
+              float mouse_y_ndc = 0.0f,
+              float *mouse_x_ortho = 0,
+              float *mouse_y_ortho = 0)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    r32 Ax = 2.0f / (right-left);
-    r32 Bx = -1.0f - Ax*left;
-    r32 Ay = 2.0f / (top-bottom);
-    r32 By = -1.0f - Ay*bottom;
-    r32 modelview[] = {
+    float Ax = 2.0f / (right-left);
+    float Bx = -1.0f - Ax*left;
+    float Ay = 2.0f / (top-bottom);
+    float By = -1.0f - Ay*bottom;
+    float modelview[] = {
         Ax,   0.0f, 0.0f, 0.0f,
         0.0f, Ay,   0.0f, 0.0f,
         0.0f, 0.0f, 1.0f, 0.0f,
@@ -249,7 +240,7 @@ void vdbOrtho(r32 left,
     }
 }
 
-void vdbDrawRect(r32 x, r32 y, r32 w, r32 h)
+void vdbDrawRect(float x, float y, float w, float h)
 {
     glVertex2f(x, y);
     glVertex2f(x+w, y);
@@ -264,7 +255,7 @@ void vdbDrawRect(r32 x, r32 y, r32 w, r32 h)
     glVertex2f(x, y);
 }
 
-void vdbFillRect(r32 x, r32 y, r32 w, r32 h)
+void vdbFillRect(float x, float y, float w, float h)
 {
     glVertex2f(x, y);
     glVertex2f(x+w, y);
@@ -274,7 +265,7 @@ void vdbFillRect(r32 x, r32 y, r32 w, r32 h)
     glVertex2f(x, y);
 }
 
-void vdbClearFill(r32 r, r32 g, r32 b, r32 a)
+void vdbClearFill(float r, float g, float b, float a)
 {
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
     glBegin(GL_TRIANGLES);
@@ -294,7 +285,7 @@ void vdbFlippedY(bool enabled)
     glLoadIdentity();
     if (enabled)
     {
-        r32 projection[] = {
+        float projection[] = {
             1.0f, 0.0f, 0.0f, 0.0f,
             0.0f, -1.0f, 0.0f, 0.0f,
             0.0f, 0.0f, 1.0f, 0.0f,
@@ -321,48 +312,48 @@ void vdbNoBlend()
     glDisable(GL_BLEND);
 }
 
-void vdbColorRamp(r32 t, r32 *r, r32 *g, r32 *b)
+void vdbColorRamp(float t, float *r, float *g, float *b)
 {
-    r32 A1 = 0.54f;
-    r32 A2 = 0.55f;
-    r32 A3 = 0.56f;
-    r32 B1 = 0.5f;
-    r32 B2 = 0.5f;
-    r32 B3 = 0.7f;
-    r32 C1 = 0.5f;
-    r32 C2 = 0.5f;
-    r32 C3 = 0.5f;
-    r32 D1 = 0.7f;
-    r32 D2 = 0.8f;
-    r32 D3 = 0.88f;
-    r32 tp = 3.1415926f*2.0f;
+    float A1 = 0.54f;
+    float A2 = 0.55f;
+    float A3 = 0.56f;
+    float B1 = 0.5f;
+    float B2 = 0.5f;
+    float B3 = 0.7f;
+    float C1 = 0.5f;
+    float C2 = 0.5f;
+    float C3 = 0.5f;
+    float D1 = 0.7f;
+    float D2 = 0.8f;
+    float D3 = 0.88f;
+    float tp = 3.1415926f*2.0f;
     if (t > 1.0f) t = 1.0f;
     if (t < 0.0f) t = 0.0f;
-    *r = A1 + B1 * sin(tp * (C1 * t + D1));
-    *g = A2 + B2 * sin(tp * (C2 * t + D2));
-    *b = A3 + B3 * sin(tp * (C3 * t + D3));
+    *r = A1 + B1 * sinf(tp * (C1 * t + D1));
+    *g = A2 + B2 * sinf(tp * (C2 * t + D2));
+    *b = A3 + B3 * sinf(tp * (C3 * t + D3));
 }
 
-void vdbColorRamp(r32 t)
+void vdbColorRamp(float t)
 {
-    r32 A1 = 0.54f;
-    r32 A2 = 0.55f;
-    r32 A3 = 0.56f;
-    r32 B1 = 0.5f;
-    r32 B2 = 0.5f;
-    r32 B3 = 0.7f;
-    r32 C1 = 0.5f;
-    r32 C2 = 0.5f;
-    r32 C3 = 0.5f;
-    r32 D1 = 0.7f;
-    r32 D2 = 0.8f;
-    r32 D3 = 0.88f;
-    r32 tp = 3.1415926f*2.0f;
+    float A1 = 0.54f;
+    float A2 = 0.55f;
+    float A3 = 0.56f;
+    float B1 = 0.5f;
+    float B2 = 0.5f;
+    float B3 = 0.7f;
+    float C1 = 0.5f;
+    float C2 = 0.5f;
+    float C3 = 0.5f;
+    float D1 = 0.7f;
+    float D2 = 0.8f;
+    float D3 = 0.88f;
+    float tp = 3.1415926f*2.0f;
     if (t > 1.0f) t = 1.0f;
     if (t < 0.0f) t = 0.0f;
-    r32 r = A1 + B1 * sin(tp * (C1 * t + D1));
-    r32 g = A2 + B2 * sin(tp * (C2 * t + D2));
-    r32 b = A3 + B3 * sin(tp * (C3 * t + D3));
+    float r = A1 + B1 * sinf(tp * (C1 * t + D1));
+    float g = A2 + B2 * sinf(tp * (C2 * t + D2));
+    float b = A3 + B3 * sinf(tp * (C3 * t + D3));
     glColor4f(r, g, b, 1.0f);
 }
 
@@ -395,28 +386,28 @@ GLuint vdbMakeTexture(void *data, int width, int height,
     return result;
 }
 
-u08 *vdbLoadImage(const char *filename, int *width, int *height, int force_channels)
+unsigned char *vdbLoadImage(const char *filename, int *width, int *height, int force_channels)
 {
     int channels;
-    u08 *result = stbi_load(filename, width, height, &channels, force_channels);
+    unsigned char *result = stbi_load(filename, width, height, &channels, force_channels);
     SDL_assert(result);
     return result;
 }
 
-u08 *vdbRGBToGray(u08 *in, int w, int h)
+unsigned char *vdbRGBToGray(unsigned char *in, int w, int h)
 {
-    u08 *out = (u08*)calloc(w*h,1);
-    u08 *pixel = in;
-    for (s32 i = 0; i < w*h; i++)
+    unsigned char *out = (unsigned char*)calloc(w*h,1);
+    unsigned char *pixel = in;
+    for (int i = 0; i < w*h; i++)
     {
-        r32 r = (r32)pixel[0];
-        r32 g = (r32)pixel[1];
-        r32 b = (r32)pixel[2];
-        r32 result_real = (r + r + b + g + g + g) / 6.0f;
-        s32 result_rounded = (s32)result_real;
+        float r = (float)pixel[0];
+        float g = (float)pixel[1];
+        float b = (float)pixel[2];
+        float result_real = (r + r + b + g + g + g) / 6.0f;
+        int result_rounded = (int)result_real;
         if (result_rounded < 0) result_rounded = 0;
         if (result_rounded > 255) result_rounded = 255;
-        u08 result = (u08)result_rounded;
+        unsigned char result = (unsigned char)result_rounded;
 
         out[i] = result;
         pixel += 3;
@@ -424,19 +415,19 @@ u08 *vdbRGBToGray(u08 *in, int w, int h)
     return out;
 }
 
-u08 *vdbResizeImage(u08 *in, int w, int h, int c, int rw, int rh)
+unsigned char *vdbResizeImage(unsigned char *in, int w, int h, int c, int rw, int rh)
 {
-    u08 *out = (u08*)malloc(rw*rh*c);
-    r32 dx = 1.0f / (r32)rw;
-    r32 dy = 1.0f / (r32)rh;
+    unsigned char *out = (unsigned char*)malloc(rw*rh*c);
+    float dx = 1.0f / (float)rw;
+    float dy = 1.0f / (float)rh;
     for (int y = 0; y < rh; y++)
     for (int x = 0; x < rw; x++)
     {
         int src_x = (int)(x*dx*w);
         int src_y = (int)(y*dy*h);
 
-        u08 *src = &in[(src_y*w+src_x)*c]; // @ bounds
-        u08 *dst = &out[(y*rw+x)*c];
+        unsigned char *src = &in[(src_y*w+src_x)*c]; // @ bounds
+        unsigned char *dst = &out[(y*rw+x)*c];
 
         for (int i = 0; i < c; i++)
             dst[i] = src[i];
@@ -452,7 +443,7 @@ GLuint vdbLoadTexture(const char *filename,
                       GLenum internal_format = GL_RGBA)
 {
     int width, height, channels;
-    u08 *data = stbi_load(filename, &width, &height, &channels, 4);
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
     SDL_assert(data);
 
     GLuint result = vdbMakeTexture(data, width, height,
@@ -465,14 +456,14 @@ GLuint vdbLoadTexture(const char *filename,
     return result;
 }
 
-void vdbDrawTexture(GLuint texture)
+void vdbDrawTexture(GLuint texture, float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 1.0f)
 {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, texture);
     glBegin(GL_TRIANGLES);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    glColor4f(r, g, b, a);
     glTexCoord2f(0.0f, 0.0f); glVertex2f(-1.0f, -1.0f);
     glTexCoord2f(1.0f, 0.0f); glVertex2f(+1.0f, -1.0f);
     glTexCoord2f(1.0f, 1.0f); glVertex2f(+1.0f, +1.0f);

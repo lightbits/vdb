@@ -3,7 +3,7 @@
 //
 // WINDOWS
 //   2) In your command line or batch script or whatever
-//        cl test.cpp -MD -I"C:/path/to/sdl/include" /link -LIBPATH:"C:/path/to/sdl/lib/x86" SDL2.lib SDL2main.lib opengl32.lib
+//        cl test.cpp -MD -I"C:/path/to/sdl/include" /link -LIBPATH:"C:/path/to/sdl/lib/x86" -subsystem:console SDL2.lib SDL2main.lib opengl32.lib
 //   3) Make sure SDL2.dll is in the executable directory
 //
 // LINUX
@@ -16,7 +16,15 @@
 
 int main(int argc, char **argv)
 {
-    vdb("test 1", [](vdb_input Input)
+    vdb("step once", [](vdb_input Input)
+    {
+        ImGui::Begin("Information##1");
+        ImGui::Text("The program has now stopped, and is running the content inside the brackets at 60 fps.");
+        ImGui::Text("Press F10 to continue, or move your mouse to the top and click Debugger->Step once.");
+        ImGui::End();
+    });
+
+    vdb("test gui", [](vdb_input Input)
     {
         glClearColor(0.3f, 0.35f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -26,62 +34,17 @@ int main(int argc, char **argv)
         glVertex2f(+0.0f, +0.5f); glColor4f(0.5f, 0.5f, 1.0f, 1.0f);
         glEnd();
 
-        ImGui::ShowTestWindow();
+        ImGui::Begin("Information##2");
+        ImGui::Text("Inside the loop you can draw stuff with OpenGL.");
+        ImGui::End();
     });
 
-    vdb("test 3D", [](vdb_input Input)
+    vdb("test gui", [](vdb_input Input)
     {
-        mat4 projection = mat_perspective(PI/4.0f, Input.WindowWidth, Input.WindowHeight, 0.01f, 20.0f);
-        mat4 view = vdbCamera3D(Input);
-        glEnable(GL_DEPTH_TEST);
-        glDepthRange(0.0f, 1.0f);
-        glDepthFunc(GL_LEQUAL);
-        glClearColor(COLOR_UNITY);
-        glClearDepth(1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        ImGui::ShowTestWindow();
 
-        vdbView3D(m_id4(), view, projection);
-        glLines(2.0f);
-        glColor4f(COLOR_CREAMY);
-        vdbGridXY(-2.0f, +2.0f, -2.0f, +2.0f, 20);
-        glEnd();
-
-        mat3 R = m_mat3(mat_rotate_z(0.3f)*mat_rotate_y(0.5f)*mat_rotate_x(0.3f));
-        vec3 p = m_vec3(0.5f, -0.5f, 0.5f);
-
-        vdbView3D(m_se3(R, p)*mat_scale(0.5f), view, projection);
-        glLines(4.0f);
-        glColor4f(COLOR_RED);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(1.0f, 0.0f, 0.0f);
-        glColor4f(COLOR_GREEN);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 1.0f, 0.0f);
-        glColor4f(COLOR_BLUE);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 1.0f);
-        glEnd();
-
-        vdbView3D(m_id4(), view, projection);
-        glLines(4.0f);
-
-        glColor4f(COLOR_RED);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(1.0f, 0.0f, 0.0f);
-        glColor4f(COLOR_GREEN);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 1.0f, 0.0f);
-        glColor4f(COLOR_BLUE);
-        glVertex3f(0.0f, 0.0f, 0.0f);
-        glVertex3f(0.0f, 0.0f, 1.0f);
-
-        glColor4f(COLOR_WHITE);
-        glLine3f(p, p - 0.6f*R.a3);
-        glLine3f(p, p - m_dot(0.6f*R.a3,m_vec3(0.0f, 0.0f, 1.0f))*m_vec3(0.0f, 0.0f, 1.0f));
-        glEnd();
-
-        ImGui::Begin("Information!");
-        ImGui::Text("Camera controls:\nArrow keys to rotate, z and x to zoom.\nHold shift for speedy movement.");
+        ImGui::Begin("Information##3");
+        ImGui::Text("vdb includes ImGui (https://github.com/ocornut/imgui/), a fantastic GUI library.");
         ImGui::End();
     });
 
@@ -101,7 +64,7 @@ int main(int argc, char **argv)
         data[(x+y*width)*3+2] = b;
     }
 
-    // test step once
+    // draw the texture!
 
     GLuint texture = 0;
     vdb("test 2", [&](vdb_input Input)
@@ -110,9 +73,13 @@ int main(int argc, char **argv)
         glClear(GL_COLOR_BUFFER_BIT);
         vdbOrtho(-1.0f, +1.0f, +1.0f, -1.0f);
         vdbImage(data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
+
+        ImGui::Begin("Information##4");
+        ImGui::Text("This shows that you can access variables outside the loop scope.\nIn this case, we are drawing a texture we generated ourselves, directly to the window.");
+        ImGui::End();
     });
 
-    // test step over
+    // breakpoints in a loop
 
     for (int x = 0; x < 10; x++)
     {
@@ -139,13 +106,75 @@ int main(int argc, char **argv)
             float a = 1.0f;
             glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
+
+            ImGui::Begin("Information##5");
+            ImGui::Text("Loop iteration: %d", x);
+            ImGui::Text("This illustrates breaking in a loop. You can step over the loop\nby pressing F5.");
+            ImGui::End();
         });
     }
 
-    vdb("test 4", [](vdb_input Input)
+    vdb("test bananacakes", [](vdb_input Input)
     {
-        glClearColor(0.8f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // some colors
+        #define BLACK  0.15f, 0.13f, 0.10f, 1.0f
+        #define RED    1.00f, 0.20f, 0.10f, 1.0f
+        #define GREEN  0.10f, 1.00f, 0.20f, 1.0f
+        #define BLUE   0.15f, 0.35f, 0.85f, 1.0f
+        #define WHITE  0.80f, 0.70f, 0.51f, 1.0f
+
+        mat4 projection = mat_perspective(PI/4.0f, Input.WindowWidth, Input.WindowHeight, 0.01f, 20.0f);
+        mat4 view = vdbCamera3D(Input);
+        glEnable(GL_DEPTH_TEST);
+        glDepthRange(0.0f, 1.0f);
+        glDepthFunc(GL_LEQUAL);
+        glClearColor(BLACK);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        vdbView3D(m_id4(), view, projection);
+        glLines(2.0f);
+        glColor4f(WHITE);
+        vdbGridXY(-2.0f, +2.0f, -2.0f, +2.0f, 20);
+        glEnd();
+
+        mat3 R = m_mat3(mat_rotate_z(0.3f)*mat_rotate_y(0.5f)*mat_rotate_x(0.3f));
+        vec3 p = m_vec3(0.5f, -0.5f, 0.5f);
+
+        vdbView3D(m_se3(R, p)*mat_scale(0.5f), view, projection);
+        glLines(4.0f);
+        glColor4f(RED);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(1.0f, 0.0f, 0.0f);
+        glColor4f(GREEN);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 1.0f, 0.0f);
+        glColor4f(BLUE);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 1.0f);
+        glEnd();
+
+        vdbView3D(m_id4(), view, projection);
+        glLines(4.0f);
+
+        glColor4f(RED);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(1.0f, 0.0f, 0.0f);
+        glColor4f(GREEN);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 1.0f, 0.0f);
+        glColor4f(BLUE);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 1.0f);
+
+        glColor4f(WHITE);
+        glLine3f(p, p - 0.6f*R.a3);
+        glLine3f(p, p - m_dot(0.6f*R.a3,m_vec3(0.0f, 0.0f, 1.0f))*m_vec3(0.0f, 0.0f, 1.0f));
+        glEnd();
+
+        ImGui::Begin("Let's go full bananacakes!");
+        ImGui::Text("Camera controls:\nArrow keys to rotate, z and x to zoom.\nHold shift for speedy movement.");
+        ImGui::End();
     });
 
     return 0;

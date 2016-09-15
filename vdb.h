@@ -1,16 +1,6 @@
 #pragma once
 #include <functional>
-#include <stdint.h>
 #include "lib/imgui/imgui.h"
-typedef float    r32;
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t  u08;
-typedef int64_t  s64;
-typedef int32_t  s32;
-typedef int16_t  s16;
-typedef int8_t   s08;
 
 struct vdb_input
 {
@@ -21,8 +11,8 @@ struct vdb_input
         int Y;
 
         // Cursor location in [-1, 1] coordinates relative to lower-left corner
-        r32 X_NDC;
-        r32 Y_NDC;
+        float X_NDC;
+        float Y_NDC;
 
         struct button
         {
@@ -40,8 +30,8 @@ struct vdb_input
 
     int WindowWidth;
     int WindowHeight;
-    r32 DeltaTime;
-    r32 ElapsedTime;
+    float DeltaTime;
+    float ElapsedTime;
 
     bool *TakeScreenshotNoDialog;
     char **ScreenshotFilename;
@@ -61,20 +51,9 @@ void vdb(const char *Label, vdb_callback Callback);
 #define vdbKeyDown(KEY) Input.Keys[SDL_SCANCODE_##KEY].Down
 #define vdbKeyPressed(KEY) Input.Keys[SDL_SCANCODE_##KEY].Pressed
 #define vdbKeyReleased(KEY) Input.Keys[SDL_SCANCODE_##KEY].Released
-#define vdbMouseX() Input.Mouse.X_NDC
-#define vdbMouseY() Input.Mouse.Y_NDC
-#define vdbAspect() ((r32)Input.WindowWidth / (r32)Input.WindowHeight)
-
-#ifdef VDB_MY_CONFIG
-#ifndef VDB_SETTINGS_FILENAME
-#define VDB_SETTINGS_FILENAME "./.build/vdb.ini"
-#endif
-#ifndef VDB_IMGUI_INI_FILENAME
-#define VDB_IMGUI_INI_FILENAME "./.build/imgui.ini"
-#endif
-#define MOUSEX Input.Mouse.X_NDC
-#define MOUSEY Input.Mouse.Y_NDC
-#endif
+#define vdbMouseX Input.Mouse.X_NDC
+#define vdbMouseY Input.Mouse.Y_NDC
+#define vdbAspect (Input.WindowWidth / (float)Input.WindowHeight)
 
 #ifndef VDB_IMGUI_INI_FILENAME
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
