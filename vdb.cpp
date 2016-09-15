@@ -353,6 +353,10 @@ void vdb(const char *Label, vdb_callback Callback)
     bool MainMenuActive = false;
     bool Running = true;
 
+    #ifdef VDB_IMGUI_CURSOR
+    ImGui::GetIO().MouseDrawCursor = true;
+    #endif
+
     bool ImGuiCursor = ImGui::GetIO().MouseDrawCursor;
 
     bool        SaveScreenshot = false;
@@ -397,8 +401,15 @@ void vdb(const char *Label, vdb_callback Callback)
             {
                 // Setting this instead of MainGuiAlpha because unnamed windows partially remain even though their alpha is zero
                 ImGui::GetStyle().Alpha = 0.0f;
+                ImGui::GetIO().MouseDrawCursor = false;
             }
-            ImGui::GetIO().MouseDrawCursor = false;
+            else
+            {
+                if (!ScreenshotDrawCursor)
+                {
+                    ImGui::GetIO().MouseDrawCursor = false;
+                }
+            }
         }
         else
         {
@@ -487,7 +498,7 @@ void vdb(const char *Label, vdb_callback Callback)
         }
         ImGui::PopStyleVar();
 
-        if (SaveScreenshot && ScreenshotDrawCursor)
+        if (SaveScreenshot && ScreenshotDrawCursor && !ScreenshotDrawGui)
         {
             glDisable(GL_LINE_SMOOTH);
             glLineWidth(1.0f);
