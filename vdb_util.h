@@ -102,6 +102,7 @@ void glVertex2f(vec2 p) { glVertex2f(p.x, p.y); }
 void glLine2f(vec2 a, vec2 b) { glVertex2f(a); glVertex2f(b); }
 void glVertex3f(vec3 p) { glVertex3f(p.x, p.y, p.z); }
 void glLine3f(vec3 a, vec3 b) { glVertex3f(a); glVertex3f(b); }
+void glTexCoord2f(vec2 texel) { glTexCoord2f(texel.x, texel.y); }
 
 vec2 vdbProjectFisheyePoint(float f, vec3 p, float u0, float v0)
 // Output y is 0 at top of screen at height at bottom of screen
