@@ -1,10 +1,13 @@
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
-#define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f
+#define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/Roboto-Bold.ttf", 18.0f
+#define SO_NOISE_IMPLEMENTATION
 #include "lib/imgui/imgui_draw.cpp"
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
 #include "lib/so_platform.h"
+#include "lib/so_math.h"
+#include "lib/so_noise.h"
 #define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
 #define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
 
@@ -52,6 +55,12 @@ void vdbNDCToWindow(float x, float y, float *wx, float *wy)
 {
     *wx = (0.5f + 0.5f*x)*vdb__globals.window_w;
     *wy = (0.5f - 0.5f*y)*vdb__globals.window_h;
+}
+
+void vdbWindowToNDC(float x, float y, float *nx, float *ny)
+{
+    *nx = -1.0f + 2.0f * x / vdb__globals.window_w;
+    *ny = +1.0f - 2.0f * y / vdb__globals.window_h;
 }
 
 void vdbViewport(int x, int y, int w, int h)
@@ -106,7 +115,7 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     static float y1_ndc = -0.2f;
     static float x2_ndc = +0.2f;
     static float y2_ndc = +0.2f;
-    const float grab_radius = 8.0f;
+    const float grab_radius = 16.0f;
     static float *grabbed_x = 0;
     static float *grabbed_y = 0;
 
@@ -158,7 +167,8 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     char text[256];
     float distance_px = sqrtf((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
     float distance_ndc = sqrtf((x2_ndc-x1_ndc)*(x2_ndc-x1_ndc) + (y2_ndc-y1_ndc)*(y2_ndc-y1_ndc));
-    sprintf(text, "%.2f px\n%.2f ndc\n%.2f units", distance_px, distance_ndc, 2.0f);
+    sprintf(text, "%.2f px", distance_px);
+    // sprintf(text, "%.2f px\n%.2f ndc\n%.2f units", distance_px, distance_ndc, 2.0f);
 
     SetNextWindowPos(ImVec2(x_left-padding, y_top-padding));
     SetNextWindowSize(ImVec2(x_right-x_left+2.0f*padding, y_bottom-y_top+2.0f*padding));
@@ -167,34 +177,17 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     ImDrawList *dl = GetWindowDrawList();
 
     // draw target circles
-    {
-        float outer_radius = 12.0f;
-        float inner_radius = 6.0f;
-        if (grabbed_x == &x1_ndc)
-            dl->AddCircleFilled(ImVec2(x1, y1), outer_radius, 0xff1100ff, 32);
-        else
-            dl->AddCircleFilled(ImVec2(x1, y1), outer_radius, 0x33ffffff, 32);
-        if (grabbed_x == &x2_ndc)
-            dl->AddCircleFilled(ImVec2(x2, y2), outer_radius, 0xff1100ff, 32);
-        else
-            dl->AddCircleFilled(ImVec2(x2, y2), outer_radius, 0x33ffffff, 32);
-        dl->AddCircle(ImVec2(x1, y1), inner_radius, 0xffffffff, 32);
-        dl->AddCircle(ImVec2(x2, y2), inner_radius, 0xffffffff, 32);
-    }
-
-    // draw target crosses
-    {
-        float w = 3.0f;
-        dl->AddLine(ImVec2(x1-w, y1), ImVec2(x1+w, y1), 0xffffffff, 1.0f);
-        dl->AddLine(ImVec2(x1, y1-w), ImVec2(x1, y1+w), 0xffffffff, 1.0f);
-        dl->AddLine(ImVec2(x2-w, y2), ImVec2(x2+w, y2), 0xffffffff, 1.0f);
-        dl->AddLine(ImVec2(x2, y2-w), ImVec2(x2, y2+w), 0xffffffff, 1.0f);
-    }
+    const float handle_radius = 5.0f;
+    dl->AddCircleFilled(ImVec2(x1, y1+1), handle_radius, 0x99000000, 32);
+    dl->AddCircleFilled(ImVec2(x1, y1), handle_radius, 0xffffffff, 32);
+    dl->AddCircleFilled(ImVec2(x2, y2+1), handle_radius, 0x99000000, 32);
+    dl->AddCircleFilled(ImVec2(x2, y2), handle_radius, 0xffffffff, 32);
 
     // draw connecting line
     dl->AddLine(ImVec2(x1, y1), ImVec2(x2, y2), 0xffffffff, 1.0f);
 
     // draw distance text
+    dl->AddText(ImVec2((x1+x2)*0.5f+1.0f, (y1+y2)*0.5f+1.0f), 0xbb000000, text);
     dl->AddText(ImVec2((x1+x2)*0.5f, (y1+y2)*0.5f), 0xffffffff, text);
     End();
     PopStyleColor();
@@ -260,12 +253,18 @@ void vdb_postamble(so_input input, vdb_state *state)
     {
         if (osd_timer > 0.0f)
             osd_timer -= input.dt;
-        else if (osd_mode == osd_mode_opening)
-            osd_mode = osd_mode_opened;
-        else if (osd_mode == osd_mode_closing)
-            osd_mode = osd_mode_closed;
 
-        float t;
+        if (osd_timer <= 0.0f)
+        {
+            if (osd_mode == osd_mode_opening)
+                osd_mode = osd_mode_opened;
+            else if (osd_mode == osd_mode_closing)
+                osd_mode = osd_mode_closed;
+        }
+
+        float t = 0.0f;
+        if (osd_mode == osd_mode_closed)
+            t = 0.0f;
         if (osd_mode == osd_mode_opening)
             t = 1.0f - osd_timer / osd_timer_interval;
         if (osd_mode == osd_mode_closing)
@@ -273,19 +272,19 @@ void vdb_postamble(so_input input, vdb_state *state)
         if (osd_mode == osd_mode_opened)
             t = 1.0f;
 
-        float a = sinf(t*3.1415926f/2.0f);
+        float a = powf(t, 0.13f);
         float w = 0.35f;
-        float x1 = -1.0f;
-        float x2 = -1.0f + 2.0f*a*w;
-        float y1 = -1.0f;
-        float y2 = +1.0f;
 
-        SetNextWindowPos(ImVec2(-(1.0f-a)*w*input.width, 0));
-        SetNextWindowSize(ImVec2(w*input.width, input.height));
-        PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        PushStyleVar(ImGuiStyleVar_FrameRounding, 5.0f);
+        SetNextWindowPos(ImVec2(-w*input.width + (w*input.width+10.0f)*a, 10.0f));
+        SetNextWindowSize(ImVec2(w*input.width, input.height-20.0f));
+        PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f);
+        PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
         PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.1f));
+        PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+        PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
+        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.1f));
+        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
+        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 0.0f));
         Begin("##vdb_osd", 0,
                      ImGuiWindowFlags_NoTitleBar |
                      ImGuiWindowFlags_NoResize |
@@ -336,6 +335,10 @@ void vdb_postamble(so_input input, vdb_state *state)
 
         End();
         PopStyleColor();
+        PopStyleColor();
+        PopStyleColor();
+        PopStyleColor();
+        PopStyleColor();
         PopStyleVar();
         PopStyleVar();
         PopStyleVar();
@@ -376,22 +379,75 @@ int main()
 
     VDBB("my label");
     {
-        glBegin(GL_LINES);
-        glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-        for (int i = 0; i < 256; i++)
+        // glBegin(GL_LINES);
+        // for (int i = 0; i < 256; i++)
+        // {
+        //     float t1 = 2.0f*3.1415f*(i+0)/256.0f;
+        //     float t2 = 2.0f*3.1415f*(i+1)/256.0f;
+        //     float r1 = cos(8.0f*t1) + 0.1f*sin(input.t);
+        //     float r2 = cos(8.0f*t2) + 0.1f*sin(input.t);
+        //     float x1 = r1*cos(t1 + 0.1f*input.t);
+        //     float y1 = r1*sin(t1 + 0.1f*input.t);
+        //     float x2 = r2*cos(t2 + 0.1f*input.t);
+        //     float y2 = r2*sin(t2 + 0.1f*input.t);
+        //     glVertex2f(x1, y1);
+        //     glVertex2f(x2, y2);
+        // }
+        // glEnd();
+
+        glBegin(GL_TRIANGLES);
         {
-            float t1 = 2.0f*3.1415f*(i+0)/256.0f;
-            float t2 = 2.0f*3.1415f*(i+1)/256.0f;
-            float r1 = cos(8.0f*t1) + 0.1f*sin(input.t);
-            float r2 = cos(8.0f*t2) + 0.1f*sin(input.t);
-            float x1 = r1*cos(t1 + 0.1f*input.t);
-            float y1 = r1*sin(t1 + 0.1f*input.t);
-            float x2 = r2*cos(t2 + 0.1f*input.t);
-            float y2 = r2*sin(t2 + 0.1f*input.t);
-            glVertex2f(x1, y1);
-            glVertex2f(x2, y2);
+            int nx = (int)(input.width/64.0f);
+            int ny = (int)(input.height/64.0f);
+            vdb_for(yi, 0, ny+1)
+            vdb_for(xi, 0, nx+1)
+            {
+                float xt = (float)xi/nx;
+                float yt = (float)yi/ny;
+                float xn = -1.0f + 2.0f*xt;
+                float yn = -1.0f + 2.0f*yt;
+                float dx = 2.0f/nx;
+                float dy = 2.0f/ny;
+                glColor4f(0.2f+0.8f*xt, 0.3f+0.7f*yt, 0.5f+0.5f*sinf(0.3f*input.t), 1.0f);
+                glVertex2f(xn, yn);
+                glVertex2f(xn+dx, yn);
+                glVertex2f(xn+dx, yn+dy);
+                glVertex2f(xn+dx, yn+dy);
+                glVertex2f(xn, yn+dy);
+                glVertex2f(xn, yn);
+            }
         }
         glEnd();
+
+        glPointSize(2.0f);
+        glBegin(GL_POINTS);
+        {
+            mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
+            int n = 16;
+            vdb_for(zi, 0, n+1)
+            vdb_for(yi, 0, n+1)
+            vdb_for(xi, 0, n+1)
+            {
+                float xt = (float)xi/n;
+                float yt = (float)yi/n;
+                float zt = (float)zi/n;
+                int it = xi*n*n+yi*n+zi;
+                float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
+                pm += m_vec3(offx, offy, offz);
+                vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
+                float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
+                vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
+                float xn = -1.0f + 2.0f*uv.x/input.width;
+                float yn = -1.0f + 2.0f*uv.y/input.height;
+                glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
+                glVertex2f(xn, yn);
+            }
+        }
+        glEnd();
+
         // vdb_pushView
         // vdb_steerableView2D()
         // vdb_view2D()
@@ -413,25 +469,4 @@ int main()
         // End();
     }
     VDBE();
-
-    // so_openWindow("vdb", 640, 480, -1, -1, 1, 5, 0, 32, 8, 24, 0);
-    // so_imgui_init();
-    // so_input input = {0};
-    // while (so_loopWindow(&input))
-    // {
-    //     so_imgui_processEvents(input);
-
-    //     glViewport(0, 0, input.width, input.height);
-    //     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    //     glClear(GL_COLOR_BUFFER_BIT);
-
-    //     ImGui::NewFrame();
-
-    //     // user code here
-
-    //     ImGui::Render();
-    //     so_swapBuffers();
-    // }
-    // so_imgui_shutdown();
-    // so_closeWindow();
 }
