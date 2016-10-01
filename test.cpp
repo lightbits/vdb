@@ -8,9 +8,13 @@
 //
 // LINUX
 //   2) In your command line or batch script or whatever
-//        g++ test.cpp -o test -lGL `sdl2-config --cflags --libs`
+//        g++ test.cpp -std=c++11 -o test -lGL `sdl2-config --cflags --libs`
 //
 // OSX
+//   2) In your command line or batch script or whatever
+//        g++ test.cpp -std=c++11 -o test -framework OpenGL `sdl2-config --cflags —libs`
+//
+// If you have problems:
 // No clue: See if this page helps. https://wiki.libsdl.org/Installation
 #include "vdb.cpp"
 
