@@ -1,4 +1,4 @@
-// so_math.h - ver 20
+// so_math.h - ver 21
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  1/10/16: fixed m_ortho
+//
 //  15/9/16: removed undefined types (s32, r32)
 //
 //  24/7/16: m_floor, m_mod
@@ -1272,6 +1274,8 @@ mat_ortho(float left, float right, float bottom, float top)
     mat4 result = m_id4();
     result.a1.x = 2.0f / (right - left);
     result.a2.y = 2.0f / (top - bottom);
+    result.a4.x = (left+right)/(left-right);
+    result.a4.y = (bottom+top)/(bottom-top);
     return result;
 }
 

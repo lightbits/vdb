@@ -10,6 +10,9 @@
 #include "lib/so_noise.h"
 #define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
 #define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
+#define vdbKeyDown(KEY) input.keys[SO_KEY_##KEY].down
+#define vdbKeyPressed(KEY) input.keys[SO_KEY_##KEY].pressed
+#define vdbKeyReleased(KEY) input.keys[SO_KEY_##KEY].released
 
 /*
 Press esc (or tab): Open VDB overlay.
@@ -49,6 +52,17 @@ static struct vdb_globals
 
     int window_w;
     int window_h;
+
+    mat4 pvm;
+
+    int map_index;
+    int map_closest_index;
+    float map_closest_distance;
+    float map_closest_x;
+    float map_closest_y;
+    float map_closest_z;
+
+    so_input_mouse mouse;
 } vdb__globals;
 
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
@@ -61,6 +75,155 @@ void vdbWindowToNDC(float x, float y, float *nx, float *ny)
 {
     *nx = -1.0f + 2.0f * x / vdb__globals.window_w;
     *ny = +1.0f - 2.0f * y / vdb__globals.window_h;
+}
+
+void vdbModelToNDC(float x, float y, float z, float w, float *x_ndc, float *y_ndc)
+{
+    vec4 model = { x, y, z, w };
+    vec4 clip = vdb__globals.pvm * model;
+    *x_ndc = clip.x / clip.w;
+    *y_ndc = clip.y / clip.w;
+}
+
+void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y_win)
+{
+    float x_ndc, y_ndc;
+    vdbModelToNDC(x, y, z, w, &x_ndc, &y_ndc);
+    vdbNDCToWindow(x_ndc, y_ndc, x_win, y_win);
+}
+
+void vdbView(mat4 projection, mat4 view, mat4 model)
+{
+    mat4 pvm = projection * view * model;
+    vdb__globals.pvm = pvm;
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glLoadMatrixf(pvm.data);
+}
+
+mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
+{
+    static float radius = 1.0f;
+    static float htheta = SO_PI/2.0f-0.3f;
+    static float vtheta = 0.3f;
+    static float Rradius = radius;
+    static float Rhtheta = htheta;
+    static float Rvtheta = vtheta;
+
+    float dt = input.dt;
+    if (vdbKeyDown(SHIFT))
+    {
+        if (vdbKeyPressed(Z))
+            Rradius /= 2.0f;
+        if (vdbKeyPressed(X))
+            Rradius *= 2.0f;
+        if (vdbKeyPressed(LEFT))
+            Rhtheta -= SO_PI / 4.0f;
+        if (vdbKeyPressed(RIGHT))
+            Rhtheta += SO_PI / 4.0f;
+        if (vdbKeyPressed(UP))
+            Rvtheta -= SO_PI / 4.0f;
+        if (vdbKeyPressed(DOWN))
+            Rvtheta += SO_PI / 4.0f;
+    }
+    else
+    {
+        if (vdbKeyDown(Z))
+            Rradius -= dt;
+        if (vdbKeyDown(X))
+            Rradius += dt;
+        if (vdbKeyDown(LEFT))
+            Rhtheta -= dt;
+        if (vdbKeyDown(RIGHT))
+            Rhtheta += dt;
+        if (vdbKeyDown(UP))
+            Rvtheta -= dt;
+        if (vdbKeyDown(DOWN))
+            Rvtheta += dt;
+    }
+
+    radius += 10.0f * (Rradius - radius) * dt;
+    htheta += 10.0f * (Rhtheta - htheta) * dt;
+    vtheta += 10.0f * (Rvtheta - vtheta) * dt;
+
+    mat3 R = m_mat3(mat_rotate_z(htheta)*mat_rotate_x(vtheta));
+    vec3 p = focus + R.a3 * radius;
+    mat4 c_to_w = m_se3(R, p);
+    return m_se3_inverse(c_to_w);
+}
+
+void vdbOrtho(float left, float right, float bottom, float top)
+{
+    float ax = 2.0f/(right-left);
+    float ay = 2.0f/(top-bottom);
+    float bx = (left+right)/(left-right);
+    float by = (bottom+top)/(bottom-top);
+    mat4 projection = {
+        ax, 0.0f, 0.0f, 0.0f,
+        0.0f, ay, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        bx, by, 0.0f, 1.0f
+    };
+    mat4 view = m_id4();
+    mat4 model = m_id4();
+    vdbView(projection, view, model);
+}
+
+void vdbBeginMap()
+{
+    float w = vdb__globals.window_w;
+    float h = vdb__globals.window_h;
+    vdb__globals.map_closest_distance = w*w + h*h;
+    vdb__globals.map_index = 0;
+}
+
+void vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
+{
+    // todo: find closest in z
+
+    vec4 model = { x, y, z, w };
+    vec4 clip = vdb__globals.pvm * model;
+    float x_ndc = clip.x / clip.w; // todo: verify?
+    float y_ndc = clip.y / clip.w; // todo: verify?
+    // float z_ndc = clip.z / clip.w; // todo: verify?
+    float x_win = (0.5f+0.5f*x_ndc)*vdb__globals.window_w;
+    float y_win = (0.5f-0.5f*y_ndc)*vdb__globals.window_h;
+
+    float dx = x_win - vdb__globals.mouse.x;
+    float dy = y_win - vdb__globals.mouse.y;
+
+    float distance = dx*dx + dy*dy;
+
+    if (distance < vdb__globals.map_closest_distance)
+    {
+        vdb__globals.map_closest_index = vdb__globals.map_index;
+        vdb__globals.map_closest_x = x;
+        vdb__globals.map_closest_y = y;
+        vdb__globals.map_closest_distance = distance;
+    }
+
+    vdb__globals.map_index++;
+}
+
+void vdbUnmap(int *i, float *x, float *y, float *z=0)
+{
+    *i = vdb__globals.map_closest_index;
+    *x = vdb__globals.map_closest_x;
+    *y = vdb__globals.map_closest_y;
+    // if (z)
+        // vdb__globals.map_closest_z;
+}
+
+void vdbFillCircle(float x, float y, float r, int n = 16)
+{
+    for (int ti = 0; ti < n; ti++)
+    {
+        float t1 = 2.0f*3.1415926f*(ti+0)/n;
+        float t2 = 2.0f*3.1415926f*(ti+1)/n;
+        glVertex2f(x, y);
+        glVertex2f(x+r*cosf(t1), y+r*sinf(t1));
+        glVertex2f(x+r*cosf(t2), y+r*sinf(t2));
+    }
 }
 
 void vdbViewport(int x, int y, int w, int h)
@@ -95,6 +258,7 @@ void vdb_preamble(so_input input, vdb_state *state)
 {
     vdb__globals.window_w = input.width;
     vdb__globals.window_h = input.height;
+    vdb__globals.mouse = input.mouse;
 
     so_imgui_processEvents(input);
 
@@ -349,6 +513,10 @@ void vdb_postamble(so_input input, vdb_state *state)
 
     Render();
     so_swapBuffers();
+
+    GLenum error = glGetError();
+    if (error != GL_NO_ERROR)
+        assert(false);
 }
 
 #define VDBB(LABEL) vdb_state vdb_##__LINE__##_state = vdb_init(LABEL);     \
@@ -379,22 +547,10 @@ int main()
 
     VDBB("my label");
     {
-        // glBegin(GL_LINES);
-        // for (int i = 0; i < 256; i++)
-        // {
-        //     float t1 = 2.0f*3.1415f*(i+0)/256.0f;
-        //     float t2 = 2.0f*3.1415f*(i+1)/256.0f;
-        //     float r1 = cos(8.0f*t1) + 0.1f*sin(input.t);
-        //     float r2 = cos(8.0f*t2) + 0.1f*sin(input.t);
-        //     float x1 = r1*cos(t1 + 0.1f*input.t);
-        //     float y1 = r1*sin(t1 + 0.1f*input.t);
-        //     float x2 = r2*cos(t2 + 0.1f*input.t);
-        //     float y2 = r2*sin(t2 + 0.1f*input.t);
-        //     glVertex2f(x1, y1);
-        //     glVertex2f(x2, y2);
-        // }
-        // glEnd();
-
+        // vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+        vdbView(mat_perspective(SO_PI/4.0f, input.width, input.height, 0.01f, 10.0f),
+                vdbCamera3D(input), m_id4());
+        vdbBeginMap();
         glBegin(GL_TRIANGLES);
         {
             int nx = (int)(input.width/64.0f);
@@ -415,38 +571,91 @@ int main()
                 glVertex2f(xn+dx, yn+dy);
                 glVertex2f(xn, yn+dy);
                 glVertex2f(xn, yn);
+
+                vdbMap(xn+1.0f/nx, yn+1.0f/ny);
             }
         }
         glEnd();
 
-        glPointSize(2.0f);
-        glBegin(GL_POINTS);
+        // vdbOrtho(0.0f, 20.0f, 0.0f, 20.0f);
+        // vdbBeginMap();
+        // glPointSize(4.0f);
+        // glBegin(GL_POINTS);
+        // {
+        //     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        //     vdb_for(y, 0, 20)
+        //     vdb_for(x, 0, 20)
+        //     {
+        //         glVertex2f(x+0.5f, y+0.5f);
+        //         vdbMap(x+0.5f, y+0.5f);
+        //     }
+        // }
+        // glEnd();
+
+        // todo: Click on point -> select
+        // #define vdbUnmapRangeBegin ->
+        // for (int it = 0; it < vdb__globals.map_selected_count; it++)
+        // {
+        //     int i = vdb__globals.map_selected_i[it];
+        //     float x = vdb__globals.map_selected_x[it];
+        //     float y = vdb__globals.map_selected_y[it];
+        //     ImGui::Begin(...) tooltip
+        // #define vdbUnmapRangeEnd ->
+        //     ImGui::End()
+        // }
+
+        // usage:
+        // vdbUnmapRangeBegin
+        // {
+        //     Text("%d. %.2f %.2f\ncount: %d\nerror: %.2f", i, x, y, things[i].count, things[i].error);
+        // }
+        // vdbUnmapRangeEnd
+
         {
-            mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
-            int n = 16;
-            vdb_for(zi, 0, n+1)
-            vdb_for(yi, 0, n+1)
-            vdb_for(xi, 0, n+1)
-            {
-                float xt = (float)xi/n;
-                float yt = (float)yi/n;
-                float zt = (float)zi/n;
-                int it = xi*n*n+yi*n+zi;
-                float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-                float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-                float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-                vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
-                pm += m_vec3(offx, offy, offz);
-                vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
-                float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
-                vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
-                float xn = -1.0f + 2.0f*uv.x/input.width;
-                float yn = -1.0f + 2.0f*uv.y/input.height;
-                glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
-                glVertex2f(xn, yn);
-            }
+            int i;
+            float x_src, y_src;
+            vdbUnmap(&i, &x_src, &y_src);
+            SetTooltip("%d: %.2f %.2f", i, x_src, y_src);
+
+            float x_win, y_win;
+            vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
+            vdbOrtho(0.0f, input.width, input.height, 0.0f);
+            glBegin(GL_TRIANGLES);
+            glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
+            vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+            vdbFillCircle(x_win, y_win, 5.0f);
+            glEnd();
         }
-        glEnd();
+
+        // glPointSize(2.0f);
+        // glBegin(GL_POINTS);
+        // {
+        //     mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
+        //     int n = 16;
+        //     vdb_for(zi, 0, n+1)
+        //     vdb_for(yi, 0, n+1)
+        //     vdb_for(xi, 0, n+1)
+        //     {
+        //         float xt = (float)xi/n;
+        //         float yt = (float)yi/n;
+        //         float zt = (float)zi/n;
+        //         int it = xi*n*n+yi*n+zi;
+        //         float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+        //         float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+        //         float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+        //         vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
+        //         pm += m_vec3(offx, offy, offz);
+        //         vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
+        //         float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
+        //         vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
+        //         float xn = -1.0f + 2.0f*uv.x/input.width;
+        //         float yn = -1.0f + 2.0f*uv.y/input.height;
+        //         glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
+        //         glVertex2f(xn, yn);
+        //     }
+        // }
+        // glEnd();
 
         // vdb_pushView
         // vdb_steerableView2D()
