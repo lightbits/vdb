@@ -933,8 +933,11 @@ void so_imgui_init()
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
-    // io.IniFilename = ...
+    #ifdef SO_PLATFORM_IMGUI_FONT
+    io.Fonts->AddFontFromFileTTF(SO_PLATFORM_IMGUI_FONT);
     // io.Fonts->AddFontFromFileTTF("C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f);
+    #endif
+    // io.IniFilename = ...
 
     // Build texture atlas
     unsigned char* pixels;
