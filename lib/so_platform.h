@@ -469,7 +469,7 @@ void so_setWindowPos(int x, int y, int w, int h, bool topmost)
     if (topmost)
         SetWindowPos(so_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE);
     else
-        SetWindowPos(so_hwnd, HWND_TOP, x, y, w, h, SWP_NOREPOSITION);
+        SetWindowPos(so_hwnd, HWND_TOP, x, y, w, h, SWP_NOMOVE);
 }
 
 void so_openWindow(
