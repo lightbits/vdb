@@ -2,6 +2,8 @@
 #define SO_PLATFORM_IMGUI
 #define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/Roboto-Bold.ttf", 18.0f
 #define SO_NOISE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "lib/stb_image_write.h"
 #include "lib/imgui/imgui_draw.cpp"
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
@@ -226,6 +228,17 @@ void vdbFillCircle(float x, float y, float r, int n = 16)
     }
 }
 
+void vdbDrawCircle(float x, float y, float r, int n = 16)
+{
+    for (int ti = 0; ti < n; ti++)
+    {
+        float t1 = 2.0f*3.1415926f*(ti+0)/n;
+        float t2 = 2.0f*3.1415926f*(ti+1)/n;
+        glVertex2f(x+r*cosf(t1), y+r*sinf(t1));
+        glVertex2f(x+r*cosf(t2), y+r*sinf(t2));
+    }
+}
+
 void vdbViewport(int x, int y, int w, int h)
 {
     vdb__globals.viewport_x = x;
@@ -245,7 +258,7 @@ vdb_state vdb_init(const char *label)
     static bool have_window = false;
     if (!have_window)
     {
-        so_openWindow("vdb", 640, 480, -1, -1, 1, 5, 0, 32, 8, 24, 0);
+        so_openWindow("vdb", 640, 480, -1, -1, 1, 5, 4, 32, 8, 24, 0);
         so_imgui_init();
     }
 
@@ -270,6 +283,39 @@ void vdb_preamble(so_input input, vdb_state *state)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     ImGui::NewFrame();
+}
+
+void vdb_osd_push_tool_style()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+}
+
+void vdb_osd_pop_tool_style()
+{
+    ImGui::PopStyleVar(3);
+    ImGui::PopStyleColor(20);
 }
 
 void vdb_osd_ruler_tool(so_input input, vdb_state *state)
@@ -326,13 +372,11 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     float x_right = (x1 > x2) ? x1 : x2;
     float y_bottom = (y1 > y2) ? y1 : y2;
     float y_top = (y1 < y2) ? y1 : y2;
-    float padding = 64.0f;
+    float padding = 128.0f;
 
     char text[256];
     float distance_px = sqrtf((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
-    float distance_ndc = sqrtf((x2_ndc-x1_ndc)*(x2_ndc-x1_ndc) + (y2_ndc-y1_ndc)*(y2_ndc-y1_ndc));
     sprintf(text, "%.2f px", distance_px);
-    // sprintf(text, "%.2f px\n%.2f ndc\n%.2f units", distance_px, distance_ndc, 2.0f);
 
     SetNextWindowPos(ImVec2(x_left-padding, y_top-padding));
     SetNextWindowSize(ImVec2(x_right-x_left+2.0f*padding, y_bottom-y_top+2.0f*padding));
@@ -369,9 +413,140 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     // PopStyleColor();
 }
 
+void vdb_osd_video_tool(bool *open_video_tool, so_input input, vdb_state *state)
+{
+    using namespace ImGui;
+    static char format[1024];
+
+    const int record_mode_gif = 0;
+    const int record_mode_img = 1;
+    static int record_mode = record_mode_img;
+
+    static bool record_region = false;
+    static int region_left = 0;
+    static int region_right = input.width;
+    static int region_bottom = 0;
+    static int region_top = input.height;
+
+    static int frame_limit = 0;
+    static bool recording = false;
+    static int frame_index = 0;
+    static unsigned long long current_bytes = 0;
+
+    vdb_osd_push_tool_style();
+    if (current_bytes > 0)
+    {
+        float megabytes = current_bytes / (1024.0f*1024.0f);
+        char title[256];
+        sprintf(title, "Record video (%d frames, %.2f mb)###Record video", frame_index, megabytes);
+        Begin(title, open_video_tool);
+    }
+    else
+    {
+        Begin("Record video###Record video", open_video_tool);
+    }
+
+    InputText("Format", format, sizeof(format));
+    RadioButton("Animated GIF", &record_mode, record_mode_gif);
+    RadioButton("Image sequence", &record_mode, record_mode_img);
+    // if (record_mode == record_mode_gif)
+        // InputInt("Frame delay", )
+    Separator();
+    InputInt("Frames", &frame_limit);
+    Separator();
+    Checkbox("Record region", &record_region);
+    if (record_region)
+    {
+        SliderInt("left##record_region", &region_left, 0, input.width);
+        SliderInt("right##record_region", &region_right, 0, input.width);
+        SliderInt("bottom##record_region", &region_bottom, 0, input.height);
+        SliderInt("top##record_region", &region_top, 0, input.height);
+    }
+    Separator();
+    if (recording && Button("Stop##recording"))
+    {
+        recording = false;
+    }
+    else if (!recording && Button("Start##recording"))
+    {
+        frame_index = 0;
+        current_bytes = 0;
+        recording = true;
+    }
+    SameLine();
+
+    if (recording)
+    {
+        int x, y, w, h;
+        if (record_region)
+        {
+            x = region_left;
+            y = region_bottom;
+            w = region_right-region_left;
+            h = region_top-region_bottom;
+        }
+        else
+        {
+            x = 0;
+            y = 0;
+            w = input.width;
+            h = input.height;
+        }
+
+        // Specify the start of each pixel row in memory to be 1-byte aligned
+        // as opposed to 4-byte aligned or something.
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadBuffer(GL_BACK);
+
+        unsigned char *data = (unsigned char*)malloc(w*h*3);
+        glReadPixels(x, y, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        char filename[1024];
+        // sprintf(filename, format, frame_index);
+        sprintf(filename, "C:/Temp/out_data_3aug_2/video%04d.png", frame_index);
+        int bytes = stbi_write_png(filename, w, h, 3, data+w*(h-1)*3, -w*3);
+        if (bytes == 0)
+        {
+            TextColored(ImVec4(1.0f, 0.3f, 0.1f, 1.0f), "Failed to write file %s\n", filename);
+        }
+        current_bytes += bytes;
+        frame_index++;
+        free(data);
+
+        if (frame_limit > 0 && frame_index >= frame_limit)
+        {
+            recording = false;
+        }
+
+    }
+
+    End();
+    vdb_osd_pop_tool_style();
+
+    if (record_region)
+    {
+        vdbOrtho(0.0f, input.width, 0.0f, input.height);
+        glLineWidth(2.0f);
+        glBegin(GL_LINE_LOOP);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
+        glVertex2f(region_left+1.0f, region_bottom-1.0f);
+        glVertex2f(region_right+1.0f, region_bottom-1.0f);
+        glVertex2f(region_right+1.0f, region_top-1.0f);
+        glVertex2f(region_left+1.0f, region_top-1.0f);
+        glVertex2f(region_left+1.0f, region_bottom-1.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glVertex2f(region_left, region_bottom);
+        glVertex2f(region_right, region_bottom);
+        glVertex2f(region_right, region_top);
+        glVertex2f(region_left, region_top);
+        glVertex2f(region_left, region_bottom);
+        glEnd();
+    }
+}
+
 void vdb_postamble(so_input input, vdb_state *state)
 {
-    // todo: vdbView(-1, +1, -1, +1)
+    vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
     using namespace ImGui;
 
@@ -383,8 +558,9 @@ void vdb_postamble(so_input input, vdb_state *state)
     const int osd_mode_closing = 3;
     static int osd_mode = 0;
     static bool osd_show_ruler_tool = false;
+    static bool open_video_tool = false;
 
-    if (input.keys[SO_KEY_TAB].pressed)
+    if (input.keys[SO_KEY_ESCAPE].pressed)
     {
         if (osd_mode == osd_mode_closed)
         {
@@ -481,19 +657,34 @@ void vdb_postamble(so_input input, vdb_state *state)
             {
                 osd_show_ruler_tool = true;
             }
-            if (osd_show_ruler_tool)
+            if (Button("Set window size"))
             {
-                SameLine();
-                PushItemWidth(-1.0f);
-                static int item = 1;
-                ImGui::Combo("combo", &item, "Pixels\0NDC\0View\0World\0\0");
+                ImGui::OpenPopup("Set window size##popup");
             }
+            vdb_osd_push_tool_style();
+            if (BeginPopupModal("Set window size##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
+                static int width = input.width;
+                static int height = input.height;
+                static bool topmost = false;
+                InputInt("Width", &width);
+                InputInt("Height", &height);
+                Separator();
+                Checkbox("Topmost", &topmost);
 
+                if (Button("OK", ImVec2(120,0)))
+                {
+                    so_setWindowPos(0, 0, width, height, topmost);
+                    CloseCurrentPopup();
+                }
+                SameLine();
+                if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+                EndPopup();
             }
+            vdb_osd_pop_tool_style();
             if (Button("Record video"))
             {
-
+                open_video_tool = true;
             }
         }
 
@@ -510,6 +701,9 @@ void vdb_postamble(so_input input, vdb_state *state)
 
     if (osd_show_ruler_tool)
         vdb_osd_ruler_tool(input, state);
+
+    if (open_video_tool)
+        vdb_osd_video_tool(&open_video_tool, input, state);
 
     Render();
     so_swapBuffers();
@@ -547,7 +741,6 @@ int main()
 
     VDBB("my label");
     {
-        // vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
         vdbView(mat_perspective(SO_PI/4.0f, input.width, input.height, 0.01f, 10.0f),
                 vdbCamera3D(input), m_id4());
         vdbBeginMap();
@@ -652,7 +845,7 @@ int main()
         //         float xn = -1.0f + 2.0f*uv.x/input.width;
         //         float yn = -1.0f + 2.0f*uv.y/input.height;
         //         glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
-        //         glVertex2f(xn, yn);
+        //         glVertex3f(pm.x, pm.y, pm.z);
         //     }
         // }
         // glEnd();

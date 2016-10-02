@@ -998,7 +998,7 @@ STBIWDEF int stbi_write_png(char const *filename, int x, int y, int comp, const 
    fwrite(png, 1, len, f);
    fclose(f);
    STBIW_FREE(png);
-   return 1;
+   return len;
 }
 #endif
 

@@ -463,6 +463,15 @@ HWND so__createWindow(HINSTANCE instance, WNDCLASSW wndclass, const char *title,
     return wnd;
 }
 
+void so_setWindowPos(int x, int y, int w, int h, bool topmost)
+{
+    // SWP_NOSIZE
+    if (topmost)
+        SetWindowPos(so_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE);
+    else
+        SetWindowPos(so_hwnd, HWND_TOP, x, y, w, h, SWP_NOREPOSITION);
+}
+
 void so_openWindow(
     const char *title,
     int width,
