@@ -65,6 +65,11 @@ static struct vdb_globals
     float map_closest_z;
 
     so_input_mouse mouse;
+
+    bool step_once;
+    bool step_over;
+    bool step_skip;
+    bool break_loop;
 } vdb__globals;
 
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
@@ -248,26 +253,38 @@ void vdbViewport(int x, int y, int w, int h)
     glViewport(x, y, w, h);
 }
 
-struct vdb_state
+void vdb_init(const char *label)
 {
-    const char *label;
-};
+    struct window
+    {
+        const char *label;
+        bool hidden;
+    };
+    static window windows[1024];
+    static int window_count = 0;
 
-vdb_state vdb_init(const char *label)
-{
+    static const char *prev_label = 0;
     static bool have_window = false;
     if (!have_window)
     {
         so_openWindow("vdb", 640, 480, -1, -1, 1, 5, 4, 32, 8, 24, 0);
         so_imgui_init();
+        have_window = true;
     }
 
-    vdb_state result = {0};
-    result.label = label;
-    return result;
+    vdb__globals.break_loop = false;
+    vdb__globals.step_once = false;
+
+    if (prev_label == label) // is same visualization
+    {
+        if (vdb__globals.step_over)
+            vdb__globals.break_loop = true;
+    }
+
+    prev_label = label;
 }
 
-void vdb_preamble(so_input input, vdb_state *state)
+void vdb_preamble(so_input input)
 {
     vdb__globals.window_w = input.width;
     vdb__globals.window_h = input.height;
@@ -295,7 +312,7 @@ void vdb_osd_push_tool_style()
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
     ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
@@ -318,7 +335,7 @@ void vdb_osd_pop_tool_style()
     ImGui::PopStyleColor(20);
 }
 
-void vdb_osd_ruler_tool(so_input input, vdb_state *state)
+void vdb_osd_ruler_tool(so_input input)
 {
     using namespace ImGui;
     static float x1_ndc = -0.2f;
@@ -413,7 +430,7 @@ void vdb_osd_ruler_tool(so_input input, vdb_state *state)
     // PopStyleColor();
 }
 
-void vdb_osd_video_tool(bool *open_video_tool, so_input input, vdb_state *state)
+void vdb_osd_video_tool(bool *open_video_tool, so_input input)
 {
     using namespace ImGui;
     static char format[1024];
@@ -545,7 +562,7 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input, vdb_state *state)
     }
 }
 
-void vdb_postamble(so_input input, vdb_state *state)
+void vdb_postamble(so_input input)
 {
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
@@ -634,18 +651,9 @@ void vdb_postamble(so_input input, vdb_state *state)
 
         // flow control
         {
-            if (Button("Step once"))
-            {
-
-            }
-            if (Button("Step over"))
-            {
-
-            }
-            if (Button("Skip"))
-            {
-
-            }
+            if (Button("Step once")) vdb__globals.step_once = true;
+            if (Button("Step over")) vdb__globals.step_over = true;
+            if (Button("Step and skip")) vdb__globals.step_skip = true;
             if (Button("Take screenshot"))
             {
                 ImGui::OpenPopup("Take screenshot##popup");
@@ -722,10 +730,10 @@ void vdb_postamble(so_input input, vdb_state *state)
     }
 
     if (osd_show_ruler_tool)
-        vdb_osd_ruler_tool(input, state);
+        vdb_osd_ruler_tool(input);
 
     if (open_video_tool)
-        vdb_osd_video_tool(&open_video_tool, input, state);
+        vdb_osd_video_tool(&open_video_tool, input);
 
     Render();
     so_swapBuffers();
@@ -733,16 +741,39 @@ void vdb_postamble(so_input input, vdb_state *state)
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
         assert(false);
+
+    if (input.keys[SO_KEY_F10].pressed)
+    {
+        if (input.keys[SO_KEY_SHIFT].down)
+            vdb__globals.step_skip = true;
+        else
+            vdb__globals.step_once = true;
+    }
+    if (input.keys[SO_KEY_F5].pressed) vdb__globals.step_over = true;
+
+    if (vdb__globals.step_once)
+    {
+        vdb__globals.break_loop = true;
+    }
+    if (vdb__globals.step_skip)
+    {
+        vdb__globals.break_loop = true;
+    }
+    if (vdb__globals.step_over)
+    {
+        vdb__globals.break_loop = true;
+    }
 }
 
-#define VDBB(LABEL) vdb_state vdb_##__LINE__##_state = vdb_init(LABEL);     \
-                    so_input vdb_##__LINE__##_input = {0};                  \
-                    while (so_loopWindow(&vdb_##__LINE__##_input)) {        \
-                    using namespace ImGui;                                  \
-                    vdb_preamble(vdb_##__LINE__##_input, &vdb_##__LINE__##_state); \
-                    so_input input = vdb_##__LINE__##_input;
+#define VDBB(LABEL) { vdb_init(LABEL);                  \
+                    so_input vdb_input = {0};           \
+                    while (so_loopWindow(&vdb_input)) { \
+                    if (vdb__globals.break_loop) break; \
+                    using namespace ImGui;              \
+                    vdb_preamble(vdb_input);            \
+                    so_input input = vdb_input;
 
-#define VDBE()      vdb_postamble(vdb_##__LINE__##_input, &vdb_##__LINE__##_state); }
+#define VDBE()      vdb_postamble(vdb_input); } }
 
 int main()
 {
@@ -792,40 +823,6 @@ int main()
         }
         glEnd();
 
-        // vdbOrtho(0.0f, 20.0f, 0.0f, 20.0f);
-        // vdbBeginMap();
-        // glPointSize(4.0f);
-        // glBegin(GL_POINTS);
-        // {
-        //     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        //     vdb_for(y, 0, 20)
-        //     vdb_for(x, 0, 20)
-        //     {
-        //         glVertex2f(x+0.5f, y+0.5f);
-        //         vdbMap(x+0.5f, y+0.5f);
-        //     }
-        // }
-        // glEnd();
-
-        // todo: Click on point -> select
-        // #define vdbUnmapRangeBegin ->
-        // for (int it = 0; it < vdb__globals.map_selected_count; it++)
-        // {
-        //     int i = vdb__globals.map_selected_i[it];
-        //     float x = vdb__globals.map_selected_x[it];
-        //     float y = vdb__globals.map_selected_y[it];
-        //     ImGui::Begin(...) tooltip
-        // #define vdbUnmapRangeEnd ->
-        //     ImGui::End()
-        // }
-
-        // usage:
-        // vdbUnmapRangeBegin
-        // {
-        //     Text("%d. %.2f %.2f\ncount: %d\nerror: %.2f", i, x, y, things[i].count, things[i].error);
-        // }
-        // vdbUnmapRangeEnd
-
         {
             int i;
             float x_src, y_src;
@@ -842,35 +839,6 @@ int main()
             vdbFillCircle(x_win, y_win, 5.0f);
             glEnd();
         }
-
-        // glPointSize(2.0f);
-        // glBegin(GL_POINTS);
-        // {
-        //     mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
-        //     int n = 16;
-        //     vdb_for(zi, 0, n+1)
-        //     vdb_for(yi, 0, n+1)
-        //     vdb_for(xi, 0, n+1)
-        //     {
-        //         float xt = (float)xi/n;
-        //         float yt = (float)yi/n;
-        //         float zt = (float)zi/n;
-        //         int it = xi*n*n+yi*n+zi;
-        //         float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-        //         float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-        //         float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-        //         vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
-        //         pm += m_vec3(offx, offy, offz);
-        //         vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
-        //         float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
-        //         vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
-        //         float xn = -1.0f + 2.0f*uv.x/input.width;
-        //         float yn = -1.0f + 2.0f*uv.y/input.height;
-        //         glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
-        //         glVertex3f(pm.x, pm.y, pm.z);
-        //     }
-        // }
-        // glEnd();
 
         // vdb_pushView
         // vdb_steerableView2D()
@@ -891,6 +859,40 @@ int main()
         // Begin("Test");
         // ShowTestWindow();
         // End();
+    }
+    VDBE();
+
+    VDBB("Ho");
+    {
+        vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+        glPointSize(2.0f);
+        glBegin(GL_POINTS);
+        {
+            mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
+            int n = 16;
+            vdb_for(zi, 0, n+1)
+            vdb_for(yi, 0, n+1)
+            vdb_for(xi, 0, n+1)
+            {
+                float xt = (float)xi/n;
+                float yt = (float)yi/n;
+                float zt = (float)zi/n;
+                int it = xi*n*n+yi*n+zi;
+                float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
+                pm += m_vec3(offx, offy, offz);
+                vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
+                float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
+                vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
+                float xn = -1.0f + 2.0f*uv.x/input.width;
+                float yn = -1.0f + 2.0f*uv.y/input.height;
+                glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
+                glVertex2f(xn, yn);
+            }
+        }
+        glEnd();
     }
     VDBE();
 }
