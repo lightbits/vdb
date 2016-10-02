@@ -461,6 +461,7 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input, vdb_state *state)
         SliderInt("right##record_region", &region_right, 0, input.width);
         SliderInt("bottom##record_region", &region_bottom, 0, input.height);
         SliderInt("top##record_region", &region_top, 0, input.height);
+        Text("%d x %d", region_right-region_left, region_top-region_bottom);
     }
     Separator();
     if (recording && Button("Stop##recording"))
@@ -647,8 +648,29 @@ void vdb_postamble(so_input input, vdb_state *state)
             }
             if (Button("Take screenshot"))
             {
-
+                ImGui::OpenPopup("Take screenshot##popup");
             }
+            vdb_osd_push_tool_style();
+            if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                static char filename[1024];
+                InputText("Filename", filename, sizeof(filename));
+
+                if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
+                {
+                    unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
+                    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+                    glReadBuffer(GL_BACK);
+                    glReadPixels(0, 0, input.width, input.height, GL_RGB, GL_UNSIGNED_BYTE, data);
+                    stbi_write_png(filename, input.width, input.height, 3, data+input.width*(input.height-1)*3, -input.width*3);
+                    free(data);
+                    CloseCurrentPopup();
+                }
+                SameLine();
+                if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+                EndPopup();
+            }
+            vdb_osd_pop_tool_style();
             if (osd_show_ruler_tool && Button("Hide ruler"))
             {
                 osd_show_ruler_tool = false;
@@ -672,7 +694,7 @@ void vdb_postamble(so_input input, vdb_state *state)
                 Separator();
                 Checkbox("Topmost", &topmost);
 
-                if (Button("OK", ImVec2(120,0)))
+                if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
                 {
                     so_setWindowPos(0, 0, width, height, topmost);
                     CloseCurrentPopup();
