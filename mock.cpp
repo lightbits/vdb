@@ -4,6 +4,7 @@
 #define SO_NOISE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "lib/stb_image_write.h"
+#include "lib/jo_gif.cpp"
 #include "lib/imgui/imgui_draw.cpp"
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
@@ -70,6 +71,7 @@ static struct vdb_globals
     bool step_over;
     bool step_skip;
     bool break_loop;
+    bool stopped;
 } vdb__globals;
 
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
@@ -280,6 +282,10 @@ void vdb_init(const char *label)
         if (vdb__globals.step_over)
             vdb__globals.break_loop = true;
     }
+    else
+    {
+        vdb__globals.step_over = false;
+    }
 
     prev_label = label;
 }
@@ -307,32 +313,32 @@ void vdb_osd_push_tool_style()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+    // ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    // ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+    // ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
+    // ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+    // ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
+    // ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+    // ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
 }
 
 void vdb_osd_pop_tool_style()
 {
     ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor(20);
+    ImGui::PopStyleColor(1);
 }
 
 void vdb_osd_ruler_tool(so_input input)
@@ -450,6 +456,9 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
     static int frame_index = 0;
     static unsigned long long current_bytes = 0;
 
+    static jo_gif_t record_gif;
+    static int gif_frame_delay = 16;
+
     vdb_osd_push_tool_style();
     if (current_bytes > 0)
     {
@@ -463,11 +472,11 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
         Begin("Record video###Record video", open_video_tool);
     }
 
-    InputText("Format", format, sizeof(format));
+    InputText("Filename", format, sizeof(format));
     RadioButton("Animated GIF", &record_mode, record_mode_gif);
     RadioButton("Image sequence", &record_mode, record_mode_img);
-    // if (record_mode == record_mode_gif)
-        // InputInt("Frame delay", )
+    if (record_mode == record_mode_gif)
+        InputInt("Frame delay (ms)", &gif_frame_delay);
     Separator();
     InputInt("Frames", &frame_limit);
     Separator();
@@ -483,10 +492,19 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
     Separator();
     if (recording && Button("Stop##recording"))
     {
+        if (record_mode == record_mode_gif)
+            jo_gif_end(&record_gif);
         recording = false;
     }
     else if (!recording && Button("Start##recording"))
     {
+        if (record_mode == record_mode_gif)
+        {
+            if (record_region)
+                record_gif = jo_gif_start(format, (short)(region_right-region_left), (short)(region_top-region_bottom), 0, 32);
+            else
+                record_gif = jo_gif_start(format, (short)(input.width), (short)(input.height), 0, 32);
+        }
         frame_index = 0;
         current_bytes = 0;
         recording = true;
@@ -516,23 +534,41 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_BACK);
 
-        unsigned char *data = (unsigned char*)malloc(w*h*3);
-        glReadPixels(x, y, w, h, GL_RGB, GL_UNSIGNED_BYTE, data);
+        unsigned char *data = (unsigned char*)malloc(w*h*4);
+        glReadPixels(x, y, w, h, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
-        char filename[1024];
-        // sprintf(filename, format, frame_index);
-        sprintf(filename, "C:/Temp/out_data_3aug_2/video%04d.png", frame_index);
-        int bytes = stbi_write_png(filename, w, h, 3, data+w*(h-1)*3, -w*3);
-        if (bytes == 0)
+        if (record_mode == record_mode_gif)
         {
-            TextColored(ImVec4(1.0f, 0.3f, 0.1f, 1.0f), "Failed to write file %s\n", filename);
+            // flip y
+            for (int y = 0; y < h/2; y++)
+            {
+                for (int x = 0; x < w*4; x++)
+                {
+                    unsigned char temp = data[y*w*4+x];
+                    data[y*w*4+x] = data[(h-1-y)*w*4+x];
+                    data[(h-1-y)*w*4+x] = temp;
+                }
+            }
+            jo_gif_frame(&record_gif, data, gif_frame_delay/10, false);
         }
-        current_bytes += bytes;
+        else
+        {
+            char filename[1024];
+            sprintf(filename, format, frame_index);
+            int bytes = stbi_write_png(filename, w, h, 4, data+w*(h-1)*4, -w*4);
+            if (bytes == 0)
+            {
+                TextColored(ImVec4(1.0f, 0.3f, 0.1f, 1.0f), "Failed to write file %s\n", filename);
+            }
+            current_bytes += bytes;
+        }
         frame_index++;
         free(data);
 
         if (frame_limit > 0 && frame_index >= frame_limit)
         {
+            if (record_mode == record_mode_gif)
+                jo_gif_end(&record_gif);
             recording = false;
         }
 
@@ -765,9 +801,14 @@ void vdb_postamble(so_input input)
     }
 }
 
-#define VDBB(LABEL) { vdb_init(LABEL);                  \
+#define VDBB(LABEL) if (!vdb__globals.stopped) {        \
+                    vdb_init(LABEL);                    \
                     so_input vdb_input = {0};           \
-                    while (so_loopWindow(&vdb_input)) { \
+                    while (true) {                      \
+                    if (!so_loopWindow(&vdb_input)) {   \
+                        vdb__globals.stopped = true;    \
+                        break;                          \
+                    }                                   \
                     if (vdb__globals.break_loop) break; \
                     using namespace ImGui;              \
                     vdb_preamble(vdb_input);            \
@@ -861,6 +902,16 @@ int main()
         // End();
     }
     VDBE();
+
+    for (int i = 0; i < 10; i++)
+    {
+        VDBB("Testfor");
+        {
+            glClearColor(i/10.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+        }
+        VDBE();
+    }
 
     VDBB("Ho");
     {
