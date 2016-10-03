@@ -313,32 +313,32 @@ void vdb_osd_push_tool_style()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-    // ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-    // ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    // ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
-    // ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.8f, 0.8f, 1.0f));
-    // ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.7f, 0.7f, 0.7f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-    // ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
-    // ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
-    // ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    // ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.6f, 0.5f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.7f, 0.6f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.75f, 0.65f, 0.55f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
 }
 
 void vdb_osd_pop_tool_style()
 {
     ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor(1);
+    ImGui::PopStyleColor(20);
 }
 
 void vdb_osd_ruler_tool(so_input input)
