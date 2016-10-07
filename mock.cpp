@@ -71,7 +71,7 @@ static struct vdb_globals
     bool step_over;
     bool step_skip;
     bool break_loop;
-    bool stopped;
+    bool abort;
 } vdb__globals;
 
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
@@ -614,6 +614,11 @@ void vdb_postamble(so_input input)
     static bool osd_show_ruler_tool = false;
     static bool open_video_tool = false;
 
+    if (input.keys[SO_KEY_F4].pressed && input.keys[SO_KEY_ALT].down)
+    {
+        vdb__globals.abort = true;
+    }
+
     if (input.keys[SO_KEY_ESCAPE].pressed)
     {
         if (osd_mode == osd_mode_closed)
@@ -801,13 +806,12 @@ void vdb_postamble(so_input input)
     }
 }
 
-#define VDBB(LABEL) if (!vdb__globals.stopped) {        \
-                    vdb_init(LABEL);                    \
+#define VDBB(LABEL) { vdb_init(LABEL);                  \
                     so_input vdb_input = {0};           \
                     while (true) {                      \
-                    if (!so_loopWindow(&vdb_input)) {   \
-                        vdb__globals.stopped = true;    \
-                        break;                          \
+                    if (!so_loopWindow(&vdb_input) ||   \
+                        vdb__globals.abort) {           \
+                        exit(1);                        \
                     }                                   \
                     if (vdb__globals.break_loop) break; \
                     using namespace ImGui;              \
