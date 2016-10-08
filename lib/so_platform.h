@@ -44,6 +44,7 @@
 #define VC_EXTRALEAN
 #include <windows.h>
 #include <gl/gl.h>
+#include "so_gl.h"
 #endif
 
 typedef struct

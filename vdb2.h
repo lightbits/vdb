@@ -1,3 +1,25 @@
+#ifndef VDB_GL_MAJOR
+#define VDB_GL_MAJOR 1
+#endif
+#ifndef VDB_GL_MINOR
+#define VDB_GL_MINOR 5
+#endif
+#ifndef VDB_MULTISAMPLES
+#define VDB_MULTISAMPLES 4
+#endif
+#ifndef VDB_COLOR_BITS
+#define VDB_COLOR_BITS 32
+#endif
+#ifndef VDB_ALPHA_BITS
+#define VDB_ALPHA_BITS 8
+#endif
+#ifndef VDB_DEPTH_BITS
+#define VDB_DEPTH_BITS 24
+#endif
+#ifndef VDB_STENCIL_BITS
+#define VDB_STENCIL_BITS 0
+#endif
+
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
 #define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/Roboto-Bold.ttf", 18.0f
@@ -110,10 +132,16 @@ void vdbView(mat4 projection, mat4 view, mat4 model)
     glLoadMatrixf(pvm.data);
 }
 
+void vdbView3D(mat4 view, mat4 model=m_id4(), float fov=SO_PI/4.0f, float z_near = 0.01f, float z_far = 20.0f)
+{
+    mat4 projection = mat_perspective(fov, vdb__globals.window_w, vdb__globals.window_h, z_near, z_far);
+    vdbView(projection, view, model);
+}
+
 mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
 {
     static float radius = 1.0f;
-    static float htheta = SO_PI/2.0f-0.3f;
+    static float htheta = 0.0f;
     static float vtheta = 0.3f;
     static float Rradius = radius;
     static float Rhtheta = htheta;
@@ -159,6 +187,18 @@ mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
     vec3 p = focus + R.a3 * radius;
     mat4 c_to_w = m_se3(R, p);
     return m_se3_inverse(c_to_w);
+}
+
+void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
+{
+    for (int i = 0; i <= steps; i++)
+    {
+        glVertex3f(x_min, y_min + (y_max-y_min)*i/steps, 0.0f);
+        glVertex3f(x_max, y_min + (y_max-y_min)*i/steps, 0.0f);
+
+        glVertex3f(x_min + (x_max-x_min)*i/steps, y_min, 0.0f);
+        glVertex3f(x_min + (x_max-x_min)*i/steps, y_max, 0.0f);
+    }
 }
 
 void vdbOrtho(float left, float right, float bottom, float top)
@@ -214,11 +254,14 @@ void vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
     vdb__globals.map_index++;
 }
 
-void vdbUnmap(int *i, float *x, float *y, float *z=0)
+void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0)
 {
-    *i = vdb__globals.map_closest_index;
-    *x = vdb__globals.map_closest_x;
-    *y = vdb__globals.map_closest_y;
+    if (i)
+        *i = vdb__globals.map_closest_index;
+    if (x)
+        *x = vdb__globals.map_closest_x;
+    if (y)
+        *y = vdb__globals.map_closest_y;
     // if (z)
         // vdb__globals.map_closest_z;
 }
@@ -255,6 +298,70 @@ void vdbViewport(int x, int y, int w, int h)
     glViewport(x, y, w, h);
 }
 
+void vdbClear(float r, float g, float b, float a)
+{
+    glClearColor(r, g, b, a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+#define vdb_Palette_Qualitative_Medium 0
+void vdbPalette4i(int i, float a = 1.0f, int palette=vdb_Palette_Qualitative_Medium)
+{
+    if (palette == vdb_Palette_Qualitative_Medium)
+    {
+        float c[][3] = {
+            { 0.40, 0.76, 0.64 },
+            { 0.99, 0.55, 0.38 },
+            { 0.54, 0.63, 0.82 },
+            { 0.91, 0.54, 0.77 },
+            { 0.64, 0.86, 0.29 },
+            { 1.00, 0.85, 0.19 },
+            { 0.89, 0.77, 0.58 },
+            { 0.70, 0.70, 0.70 },
+        };
+        i = i % 8;
+        glColor4f(c[i][0], c[i][1], c[i][2], a);
+    }
+}
+
+void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
+void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
+void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
+void glVertex(vec3 p) { glVertex3f(p.x, p.y, p.z); }
+void glTexCoord(vec2 p) { glTexCoord2f(p.x, p.y); }
+
+GLuint vdbTexImage2D(
+    void *data,
+    int width,
+    int height,
+    GLenum data_format,
+    GLenum data_type = GL_UNSIGNED_BYTE,
+    GLenum mag_filter = GL_LINEAR,
+    GLenum min_filter = GL_LINEAR,
+    GLenum wrap_s = GL_CLAMP_TO_EDGE,
+    GLenum wrap_t = GL_CLAMP_TO_EDGE,
+    GLenum internal_format = GL_RGBA)
+{
+    GLuint result = 0;
+    glGenTextures(1, &result);
+    glBindTexture(GL_TEXTURE_2D, result);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+                 internal_format,
+                 width,
+                 height,
+                 0,
+                 data_format,
+                 data_type,
+                 data);
+    // glGenerateMipmap(GL_TEXTURE_2D); // todo
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return result;
+}
+
 void vdb_init(const char *label)
 {
     struct window
@@ -269,7 +376,7 @@ void vdb_init(const char *label)
     static bool have_window = false;
     if (!have_window)
     {
-        so_openWindow("vdb", 640, 480, -1, -1, 1, 5, 4, 32, 8, 24, 0);
+        so_openWindow("vdb", 640, 480, -1, -1, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_COLOR_BITS, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
         so_imgui_init();
         have_window = true;
     }
@@ -304,6 +411,8 @@ void vdb_preamble(so_input input)
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
     ImGui::NewFrame();
 }

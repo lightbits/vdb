@@ -100,7 +100,7 @@ int main()
     VDBB("Ho");
     {
         vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
-        glPointSize(6.0f);
+        glPointSize(2.0f);
         glBegin(GL_POINTS);
         {
             mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
