@@ -19,6 +19,9 @@
 #ifndef VDB_STENCIL_BITS
 #define VDB_STENCIL_BITS 0
 #endif
+#ifndef VDB_SETTINGS_FILENAME
+#define VDB_SETTINGS_FILENAME "./vdb2.ini"
+#endif
 
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
@@ -33,6 +36,8 @@
 #include "lib/so_platform.h"
 #include "lib/so_math.h"
 #include "lib/so_noise.h"
+#include <assert.h>
+#define vdb_assert assert
 #define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
 #define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
 #define vdbKeyDown(KEY) input.keys[SO_KEY_##KEY].down
@@ -75,6 +80,8 @@ static struct vdb_globals
     int viewport_w;
     int viewport_h;
 
+    int window_x;
+    int window_y;
     int window_w;
     int window_h;
 
@@ -362,6 +369,53 @@ GLuint vdbTexImage2D(
     return result;
 }
 
+struct vdb_settings
+{
+    int w;
+    int h;
+    int x;
+    int y;
+};
+
+vdb_settings vdb_loadSettings()
+{
+    vdb_settings Result = {0};
+    FILE *File = fopen(VDB_SETTINGS_FILENAME, "rb");
+    if (File)
+    {
+        char Buffer[sizeof(vdb_settings)];
+        size_t Count = fread(Buffer, sizeof(vdb_settings), 1, File);
+        if (Count == 1)
+        {
+            Result = *(vdb_settings*)Buffer;
+        }
+        fclose(File);
+    }
+    else
+    {
+        Result.w = 640;
+        Result.h = 480;
+        Result.x = -1;
+        Result.y = -1;
+    }
+    return Result;
+}
+
+void vdb_saveSettings()
+{
+    vdb_settings Settings = {0};
+    Settings.w = vdb__globals.window_w;
+    Settings.h = vdb__globals.window_h;
+    Settings.x = vdb__globals.window_x;
+    Settings.y = vdb__globals.window_y;
+    FILE *File = fopen(VDB_SETTINGS_FILENAME, "wb+");
+    if (File)
+    {
+        fwrite((const void*)&Settings, sizeof(vdb_settings), 1, File);
+        fclose(File);
+    }
+}
+
 void vdb_init(const char *label)
 {
     struct window
@@ -376,7 +430,8 @@ void vdb_init(const char *label)
     static bool have_window = false;
     if (!have_window)
     {
-        so_openWindow("vdb", 640, 480, -1, -1, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_COLOR_BITS, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
+        vdb_settings settings = vdb_loadSettings();
+        so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_COLOR_BITS, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
         so_imgui_init();
         have_window = true;
     }
@@ -399,6 +454,8 @@ void vdb_init(const char *label)
 
 void vdb_preamble(so_input input)
 {
+    vdb__globals.window_x = input.win_x;
+    vdb__globals.window_y = input.win_y;
     vdb__globals.window_w = input.width;
     vdb__globals.window_h = input.height;
     vdb__globals.mouse = input.mouse;
@@ -920,6 +977,7 @@ void vdb_postamble(so_input input)
                     while (true) {                      \
                     if (!so_loopWindow(&vdb_input) ||   \
                         vdb__globals.abort) {           \
+                        vdb_saveSettings();             \
                         exit(1);                        \
                     }                                   \
                     if (vdb__globals.break_loop) break; \

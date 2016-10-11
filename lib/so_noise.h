@@ -68,6 +68,38 @@ unsigned int noise_xor128()
     return w = w ^ (w >> 19) ^ (t ^ (t >>8));
 }
 
+void
+noise_xor128(unsigned int *in_out_x,
+             unsigned int *in_out_y,
+             unsigned int *in_out_z,
+             unsigned int *in_out_w)
+{
+    unsigned int x = *in_out_x;
+    unsigned int y = *in_out_y;
+    unsigned int z = *in_out_z;
+    unsigned int w = *in_out_w;
+    unsigned int t = x ^ (x << 11);
+    *in_out_x = y;
+    *in_out_y = z;
+    *in_out_z = w;
+    *in_out_w = w ^ (w >> 19) ^ t ^ (t >> 8);
+}
+
+struct noise_xor128_generator
+{
+    unsigned int x, y, z, w;
+    unsigned int urand()
+    {
+        noise_xor128(&x, &y, &z, &w);
+        return w;
+    }
+    float frand()
+    {
+        noise_xor128(&x, &y, &z, &w);
+        return w / 4294967295.0f;
+    }
+};
+
 float noise_frand()
 {
     return noise_xor128() / float(4294967295.0f);

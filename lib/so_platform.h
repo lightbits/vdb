@@ -69,6 +69,7 @@ struct so_input
     so_input_button right; // Right mouse button
     so_input_button *keys; // Array of key states accessible through SO_KEY_* enums
     int shift, ctrl, alt; // Key modifiers (1 if active)
+    int win_x, win_y; // Window upper-left corner relative upper-left corner of screen
     int width, height; // Window width and height in pixels
     float dt; // Seconds elapsed since previous so_loopWindow was called
     float t; // Seconds elapsed since so_openWindow was called
@@ -776,10 +777,20 @@ bool so_loopWindow(so_input *input)
     }
 
     // Fetch latest width and height of window
-    RECT rect;
-    GetClientRect(so_hwnd, &rect);
-    input->width = rect.right-rect.left;
-    input->height = rect.bottom-rect.top;
+    {
+        RECT rect;
+        GetClientRect(so_hwnd, &rect);
+        input->width = rect.right-rect.left;
+        input->height = rect.bottom-rect.top;
+    }
+
+    // Fetch latest window position
+    {
+        RECT rect;
+        GetWindowRect(so_hwnd, &rect);
+        input->win_x = rect.left;
+        input->win_y = rect.top;
+    }
 
     // Translate mouse pixel coordinates to normalized coordinates
     input->mouse.u = -1.0f + 2.0f * (input->mouse.x / (float)input->width);
