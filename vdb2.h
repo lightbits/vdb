@@ -474,39 +474,6 @@ void vdb_preamble(so_input input)
     ImGui::NewFrame();
 }
 
-void vdb_osd_push_tool_style()
-{
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 4.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_TextSelectedBg, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.6f, 0.5f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.7f, 0.6f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.75f, 0.65f, 0.55f, 1.0f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.9f, 0.9f, 0.9f, 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButton, ImVec4(0.9f, 0.9f, 0.9f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButtonHovered, ImVec4(0.7f, 0.7f, 0.7f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CloseButtonActive, ImVec4(0.6f, 0.6f, 0.6f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_CheckMark, ImVec4(0.2f, 0.2f, 0.2f, 0.5f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.96f, 0.96f, 0.96f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrab, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabHovered, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-    ImGui::PushStyleColor(ImGuiCol_ScrollbarGrabActive, ImVec4(0.8f, 0.8f, 0.8f, 2.0f));
-}
-
-void vdb_osd_pop_tool_style()
-{
-    ImGui::PopStyleVar(3);
-    ImGui::PopStyleColor(20);
-}
-
 void vdb_osd_ruler_tool(so_input input)
 {
     using namespace ImGui;
@@ -625,7 +592,6 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
     static jo_gif_t record_gif;
     static int gif_frame_delay = 16;
 
-    vdb_osd_push_tool_style();
     if (current_bytes > 0)
     {
         float megabytes = current_bytes / (1024.0f*1024.0f);
@@ -741,7 +707,6 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
     }
 
     End();
-    vdb_osd_pop_tool_style();
 
     if (record_region)
     {
@@ -770,7 +735,7 @@ void vdb_postamble(so_input input)
 
     using namespace ImGui;
 
-    static float osd_timer_interval = 0.15f;
+    static float osd_timer_interval = 0.18f;
     static float osd_timer = osd_timer_interval;
     const int osd_mode_closed = 0;
     const int osd_mode_opening = 1;
@@ -779,10 +744,40 @@ void vdb_postamble(so_input input)
     static int osd_mode = 0;
     static bool osd_show_ruler_tool = false;
     static bool open_video_tool = false;
+    const float escape_timer_duration = 0.5f;
+    static float escape_timer = escape_timer_duration;
 
     if (input.keys[SO_KEY_F4].pressed && input.keys[SO_KEY_ALT].down)
     {
         vdb__globals.abort = true;
+    }
+
+    if (input.keys[SO_KEY_ESCAPE].down)
+    {
+        escape_timer -= input.dt;
+        float t = escape_timer/escape_timer_duration;
+        float x0 = 0.0f;
+        float x1 = t*input.width;
+        float y0 = 0.0f;
+        float y1 = 5.0f;
+        float a = m_map(0.2f, 0.5f, 1.0f-t, 0.0f, 0.75f);
+        a *= a;
+        vdbOrtho(0.0f, input.width, input.height, 0.0f);
+        glBegin(GL_TRIANGLES);
+        glColor4f(0.3f, 0.3f, 0.3f, a);
+        glVertex2f(x0, y0);
+        glVertex2f(x1, y0);
+        glVertex2f(x1, y1);
+        glVertex2f(x1, y1);
+        glVertex2f(x0, y1);
+        glVertex2f(x0, y0);
+        glEnd();
+        if (escape_timer < 0.0f)
+            vdb__globals.abort = true;
+    }
+    else
+    {
+        escape_timer = escape_timer_duration;
     }
 
     if (input.keys[SO_KEY_ESCAPE].pressed)
@@ -837,11 +832,12 @@ void vdb_postamble(so_input input)
         if (osd_mode == osd_mode_opened)
             t = 1.0f;
 
-        float a = powf(t, 0.13f);
+        float a = powf(t, 0.2f);
         float w = 0.35f;
+        float p = 0.0f;
 
-        SetNextWindowPos(ImVec2(-w*input.width + (w*input.width+10.0f)*a, 10.0f));
-        SetNextWindowSize(ImVec2(w*input.width, input.height-20.0f));
+        SetNextWindowPos(ImVec2(-w*input.width + (w*input.width+p)*a, p));
+        SetNextWindowSize(ImVec2(w*input.width, input.height-2.0f*p));
         PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f);
         PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
         PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
@@ -849,7 +845,7 @@ void vdb_postamble(so_input input)
         PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
         PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.1f));
         PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
-        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.96f, 0.96f, 0.96f, 0.0f));
+        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
         Begin("##vdb_osd", 0,
                      ImGuiWindowFlags_NoTitleBar |
                      ImGuiWindowFlags_NoResize |
@@ -857,15 +853,19 @@ void vdb_postamble(so_input input)
                      ImGuiWindowFlags_NoCollapse);
 
         // flow control
+        bool hotkey_screenshot = input.keys[SO_KEY_PRINTSCREEN].pressed;
+        bool hotkey_ruler = input.keys[SO_KEY_R].pressed && input.keys[SO_KEY_CTRL].down;
+        bool hotkey_video = input.keys[SO_KEY_V].pressed && input.keys[SO_KEY_CTRL].down;
+        bool hotkey_size = input.keys[SO_KEY_W].pressed && input.keys[SO_KEY_CTRL].down;
+
         {
             if (Button("Step once")) vdb__globals.step_once = true;
             if (Button("Step over")) vdb__globals.step_over = true;
             if (Button("Step and skip")) vdb__globals.step_skip = true;
-            if (Button("Take screenshot"))
+            if (Button("Take screenshot") || input.keys[SO_KEY_PRINTSCREEN].pressed)
             {
                 ImGui::OpenPopup("Take screenshot##popup");
             }
-            vdb_osd_push_tool_style();
             if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
                 static char filename[1024];
@@ -885,20 +885,18 @@ void vdb_postamble(so_input input)
                 if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
                 EndPopup();
             }
-            vdb_osd_pop_tool_style();
-            if (osd_show_ruler_tool && Button("Hide ruler"))
+            if (osd_show_ruler_tool && (Button("Hide ruler") || hotkey_ruler))
             {
                 osd_show_ruler_tool = false;
             }
-            else if (!osd_show_ruler_tool && Button("Show ruler"))
+            else if (!osd_show_ruler_tool && (Button("Show ruler") || hotkey_ruler))
             {
                 osd_show_ruler_tool = true;
             }
-            if (Button("Set window size"))
+            if (Button("Set window size") || hotkey_size)
             {
                 ImGui::OpenPopup("Set window size##popup");
             }
-            vdb_osd_push_tool_style();
             if (BeginPopupModal("Set window size##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
             {
                 static int width = input.width;
@@ -918,8 +916,7 @@ void vdb_postamble(so_input input)
                 if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
                 EndPopup();
             }
-            vdb_osd_pop_tool_style();
-            if (Button("Record video"))
+            if (Button("Record video") || hotkey_video)
             {
                 open_video_tool = true;
             }
