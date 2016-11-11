@@ -19,13 +19,13 @@ int main()
 
     VDBB("my label");
     {
-        vdbView(mat_perspective(SO_PI/4.0f, input.width, input.height, 0.01f, 10.0f),
-                vdbCamera3D(input), m_id4());
+        vdbView(mat_perspective(SO_PI/4.0f, vdb_input.width, vdb_input.height, 0.01f, 10.0f),
+                vdbCamera3D(vdb_input), m_id4());
         vdbBeginMap();
         glBegin(GL_TRIANGLES);
         {
-            int nx = (int)(input.width/64.0f);
-            int ny = (int)(input.height/64.0f);
+            int nx = (int)(vdb_input.width/64.0f);
+            int ny = (int)(vdb_input.height/64.0f);
             vdb_for(yi, 0, ny+1)
             vdb_for(xi, 0, nx+1)
             {
@@ -35,7 +35,7 @@ int main()
                 float yn = -1.0f + 2.0f*yt;
                 float dx = 2.0f/nx;
                 float dy = 2.0f/ny;
-                glColor4f(0.2f+0.8f*xt, 0.3f+0.7f*yt, 0.5f+0.5f*sinf(0.3f*input.t), 1.0f);
+                glColor4f(0.2f+0.8f*xt, 0.3f+0.7f*yt, 0.5f+0.5f*sinf(0.3f*vdb_input.t), 1.0f);
                 glVertex2f(xn, yn);
                 glVertex2f(xn+dx, yn);
                 glVertex2f(xn+dx, yn+dy);
@@ -56,7 +56,7 @@ int main()
 
             float x_win, y_win;
             vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
-            vdbOrtho(0.0f, input.width, input.height, 0.0f);
+            vdbOrtho(0.0f, vdb_input.width, vdb_input.height, 0.0f);
             glBegin(GL_TRIANGLES);
             glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
             vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);
@@ -114,16 +114,16 @@ int main()
                 float yt = (float)yi/n;
                 float zt = (float)zi/n;
                 int it = xi*n*n+yi*n+zi;
-                float offx = sinf(3.0f*input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-                float offy = sinf(3.0f*input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
-                float offz = sinf(3.0f*input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offx = sinf(3.0f*vdb_input.t+0.0f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offy = sinf(3.0f*vdb_input.t+1.5f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
+                float offz = sinf(3.0f*vdb_input.t+3.1f+it)*(-1.0f+2.0f*noise_hash1f(it))/(4.0f*n);
                 vec3 pm = m_normalize(m_vec3(-1.0f+2.0f*xt, -1.0f+2.0f*yt, -1.0f+2.0f*zt));
                 pm += m_vec3(offx, offy, offz);
                 vec3 pc = R*pm + m_vec3(0.0f, 0.0f, -5.0f);
-                float f = (input.height/2.0f) / tanf(SO_PI/8.0f);
-                vec2 uv = m_project_pinhole(f, f, input.width/2.0f, input.height/2.0f, pc);
-                float xn = -1.0f + 2.0f*uv.x/input.width;
-                float yn = -1.0f + 2.0f*uv.y/input.height;
+                float f = (vdb_input.height/2.0f) / tanf(SO_PI/8.0f);
+                vec2 uv = m_project_pinhole(f, f, vdb_input.width/2.0f, vdb_input.height/2.0f, pc);
+                float xn = -1.0f + 2.0f*uv.x/vdb_input.width;
+                float yn = -1.0f + 2.0f*uv.y/vdb_input.height;
                 glColor4f(0.9f+0.1f*xt, 0.8f+0.2f*yt, 0.85f+0.15f*zt, 1.0f);
                 glVertex2f(xn, yn);
 
@@ -140,7 +140,7 @@ int main()
 
             float x_win, y_win;
             vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
-            vdbOrtho(0.0f, input.width, input.height, 0.0f);
+            vdbOrtho(0.0f, vdb_input.width, vdb_input.height, 0.0f);
             glBegin(GL_TRIANGLES);
             glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
             vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);

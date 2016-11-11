@@ -979,8 +979,8 @@ void vdb_postamble(so_input input)
                     }                                   \
                     if (vdb__globals.break_loop) break; \
                     using namespace ImGui;              \
-                    vdb_preamble(vdb_input);            \
-                    so_input input = vdb_input;
+                    vdb_preamble(vdb_input);
+                    // so_input input = vdb_input;
 
 #define VDBE()      vdb_postamble(vdb_input); } }
 
