@@ -369,6 +369,57 @@ GLuint vdbTexImage2D(
     return result;
 }
 
+void vdbSetTexture2D(
+    int slot,
+    void *data,
+    int width,
+    int height,
+    GLenum data_format,
+    GLenum data_type = GL_UNSIGNED_BYTE,
+    GLenum mag_filter = GL_LINEAR,
+    GLenum min_filter = GL_LINEAR,
+    GLenum wrap_s = GL_CLAMP_TO_EDGE,
+    GLenum wrap_t = GL_CLAMP_TO_EDGE,
+    GLenum internal_format = GL_RGBA)
+{
+    GLuint tex = 4040 + slot; // Hopefully no one else uses this texture range!
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+                 internal_format,
+                 width,
+                 height,
+                 0,
+                 data_format,
+                 data_type,
+                 data);
+    // glGenerateMipmap(GL_TEXTURE_2D); // todo
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void vdbBindTexture2D(int slot)
+{
+    glBindTexture(GL_TEXTURE_2D, 4040 + slot);
+}
+
+void vdbDrawTexture2D(int slot)
+{
+    glEnable(GL_TEXTURE_2D);
+    vdbBindTexture2D(slot);
+    glBegin(GL_TRIANGLES);
+    glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
+    glColor4f(1,1,1,1); glTexCoord2f(1,0); glVertex2f(+1,-1);
+    glColor4f(1,1,1,1); glTexCoord2f(1,1); glVertex2f(+1,+1);
+    glColor4f(1,1,1,1); glTexCoord2f(1,1); glVertex2f(+1,+1);
+    glColor4f(1,1,1,1); glTexCoord2f(0,1); glVertex2f(-1,+1);
+    glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
+    glEnd();
+    glDisable(GL_TEXTURE_2D);
+}
+
 struct vdb_settings
 {
     int w;
