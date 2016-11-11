@@ -305,10 +305,38 @@ void vdbViewport(int x, int y, int w, int h)
     glViewport(x, y, w, h);
 }
 
+void vdbSquareViewport()
+{
+    int w = vdb__globals.window_w;
+    int h = vdb__globals.window_h;
+    if (w > h)
+    {
+        vdbViewport((w-h)/2, 0, h, h);
+    }
+    else
+    {
+        vdbViewport(0, (h-w)/2, w, w);
+    }
+}
+
 void vdbClear(float r, float g, float b, float a)
 {
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void vdbClearViewport(float r, float g, float b, float a)
+{
+    vdbOrtho(-1,+1,-1,+1);
+    glBegin(GL_TRIANGLES);
+    glColor4f(r, g, b, a);
+    glVertex2f(-1,-1);
+    glVertex2f(+1,-1);
+    glVertex2f(+1,+1);
+    glVertex2f(+1,+1);
+    glVertex2f(-1,+1);
+    glVertex2f(-1,-1);
+    glEnd();
 }
 
 #define vdb_Palette_Qualitative_Medium 0
