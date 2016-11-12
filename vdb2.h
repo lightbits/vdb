@@ -145,6 +145,13 @@ void vdbView3D(mat4 view, mat4 model=m_id4(), float fov=SO_PI/4.0f, float z_near
     vdbView(projection, view, model);
 }
 
+void vdbView3DOrtho(mat4 view, mat4 model=m_id4(), float h=1.0f, float z_near = 0.01f, float z_far = 20.0f)
+{
+    float w = h*vdb__globals.window_w/vdb__globals.window_h;
+    mat4 projection = mat_ortho_depth(-w/2.0f, +w/2.0f, -h/2.0f, +h/2.0f, z_near, z_far);
+    vdbView(projection, view, model);
+}
+
 mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
 {
     static float radius = 1.0f;
@@ -359,6 +366,29 @@ void vdbPalette4i(int i, float a = 1.0f, int palette=vdb_Palette_Qualitative_Med
     }
 }
 
+void vdbColorRamp(float t)
+{
+    float A1 = 0.54f;
+    float A2 = 0.55f;
+    float A3 = 0.56f;
+    float B1 = 0.5f;
+    float B2 = 0.5f;
+    float B3 = 0.7f;
+    float C1 = 0.5f;
+    float C2 = 0.5f;
+    float C3 = 0.5f;
+    float D1 = 0.7f;
+    float D2 = 0.8f;
+    float D3 = 0.88f;
+    float tp = 3.1415926f*2.0f;
+    if (t > 1.0f) t = 1.0f;
+    if (t < 0.0f) t = 0.0f;
+    float r = A1 + B1 * sinf(tp * (C1 * t + D1));
+    float g = A2 + B2 * sinf(tp * (C2 * t + D2));
+    float b = A3 + B3 * sinf(tp * (C3 * t + D3));
+    glColor4f(r, g, b, 1.0f);
+}
+
 void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
 void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
@@ -380,6 +410,13 @@ GLuint vdbTexImage2D(
     GLuint result = 0;
     glGenTextures(1, &result);
     glBindTexture(GL_TEXTURE_2D, result);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+    // glGenerateMipmap(GL_TEXTURE_2D); // todo
+    if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
     glTexImage2D(GL_TEXTURE_2D, 0,
                  internal_format,
                  width,
@@ -388,11 +425,6 @@ GLuint vdbTexImage2D(
                  data_format,
                  data_type,
                  data);
-    // glGenerateMipmap(GL_TEXTURE_2D); // todo
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
     glBindTexture(GL_TEXTURE_2D, 0);
     return result;
 }
@@ -412,6 +444,13 @@ void vdbSetTexture2D(
 {
     GLuint tex = 4040 + slot; // Hopefully no one else uses this texture range!
     glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
+    // glGenerateMipmap(GL_TEXTURE_2D); // todo
+    if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
     glTexImage2D(GL_TEXTURE_2D, 0,
                  internal_format,
                  width,
@@ -420,11 +459,6 @@ void vdbSetTexture2D(
                  data_format,
                  data_type,
                  data);
-    // glGenerateMipmap(GL_TEXTURE_2D); // todo
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
