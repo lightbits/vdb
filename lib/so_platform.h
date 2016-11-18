@@ -475,6 +475,14 @@ HWND so__createWindow(HINSTANCE instance, WNDCLASSW wndclass, const char *title,
 
 void so_setWindowPos(int x, int y, int w, int h, bool topmost)
 {
+    RECT rect;
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = w;
+    rect.bottom = h;
+    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+    w = rect.right-rect.left;
+    h = rect.bottom-rect.top;
     // SWP_NOSIZE
     if (topmost)
         SetWindowPos(so_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE);
