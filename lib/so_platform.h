@@ -726,6 +726,7 @@ bool so_loopWindow(so_input *input)
                     keys[msg.wParam].down = false;
                 }
 
+                if (msg.wParam == VK_SNAPSHOT) keys[msg.wParam].released = true; // http://gamedev.stackexchange.com/questions/20446/does-vk-snapshot-not-send-a-wm-keydown-only-wm-keyup
                 if (msg.wParam == VK_MENU) input->alt = false;
                 if (msg.wParam == VK_CONTROL) input->ctrl = false;
                 if (msg.wParam == VK_SHIFT) input->shift = false;

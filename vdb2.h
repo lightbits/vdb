@@ -966,7 +966,6 @@ void vdb_postamble(so_input input)
                      ImGuiWindowFlags_NoCollapse);
 
         // flow control
-        bool hotkey_screenshot = input.keys[SO_KEY_PRINTSCREEN].pressed;
         bool hotkey_ruler = input.keys[SO_KEY_R].pressed && input.keys[SO_KEY_CTRL].down;
         bool hotkey_video = input.keys[SO_KEY_V].pressed && input.keys[SO_KEY_CTRL].down;
         bool hotkey_size = input.keys[SO_KEY_W].pressed && input.keys[SO_KEY_CTRL].down;
@@ -975,29 +974,6 @@ void vdb_postamble(so_input input)
             if (Button("Step once")) vdb__globals.step_once = true;
             if (Button("Step over")) vdb__globals.step_over = true;
             if (Button("Step and skip")) vdb__globals.step_skip = true;
-            if (Button("Take screenshot") || input.keys[SO_KEY_PRINTSCREEN].pressed)
-            {
-                ImGui::OpenPopup("Take screenshot##popup");
-            }
-            if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                static char filename[1024];
-                InputText("Filename", filename, sizeof(filename));
-
-                if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
-                {
-                    unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
-                    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-                    glReadBuffer(GL_BACK);
-                    glReadPixels(0, 0, input.width, input.height, GL_RGB, GL_UNSIGNED_BYTE, data);
-                    stbi_write_png(filename, input.width, input.height, 3, data+input.width*(input.height-1)*3, -input.width*3);
-                    free(data);
-                    CloseCurrentPopup();
-                }
-                SameLine();
-                if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
-                EndPopup();
-            }
             if (osd_show_ruler_tool && (Button("Hide ruler") || hotkey_ruler))
             {
                 osd_show_ruler_tool = false;
@@ -1051,6 +1027,33 @@ void vdb_postamble(so_input input)
 
     if (open_video_tool)
         vdb_osd_video_tool(&open_video_tool, input);
+
+    // Take screenshot
+    {
+        if (input.keys[SO_KEY_PRINTSCREEN].released)
+        {
+            ImGui::OpenPopup("Take screenshot##popup");
+        }
+        if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            static char filename[1024];
+            InputText("Filename", filename, sizeof(filename));
+
+            if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
+            {
+                unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
+                glPixelStorei(GL_PACK_ALIGNMENT, 1);
+                glReadBuffer(GL_BACK);
+                glReadPixels(0, 0, input.width, input.height, GL_RGB, GL_UNSIGNED_BYTE, data);
+                stbi_write_png(filename, input.width, input.height, 3, data+input.width*(input.height-1)*3, -input.width*3);
+                free(data);
+                CloseCurrentPopup();
+            }
+            SameLine();
+            if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+            EndPopup();
+        }
+    }
 
     Render();
     so_swapBuffers();
