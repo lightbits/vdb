@@ -442,6 +442,14 @@ wchar_t *so__from_utf8_temp(const char *text)
 HWND so__createWindow(HINSTANCE instance, WNDCLASSW wndclass, const char *title, int width, int height, int x, int y)
 {
     DWORD flags = WS_OVERLAPPEDWINDOW;
+
+    RECT rect;
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = width;
+    rect.bottom = height;
+    AdjustWindowRect(&rect, flags, false);
+
     HWND wnd = CreateWindowExW(
         0,
         wndclass.lpszClassName,
@@ -449,8 +457,8 @@ HWND so__createWindow(HINSTANCE instance, WNDCLASSW wndclass, const char *title,
         flags,
         x == -1 ? CW_USEDEFAULT : x,
         y == -1 ? CW_USEDEFAULT : y,
-        width,
-        height,
+        rect.right-rect.left,
+        rect.bottom-rect.top,
         0,
         0,
         instance,
