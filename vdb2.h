@@ -682,7 +682,7 @@ void vdb_osd_ruler_tool(so_input input)
     // PopStyleColor();
 }
 
-void vdb_osd_video_tool(bool *open_video_tool, so_input input)
+void vdb_osd_video_tool(bool *show_video, so_input input)
 {
     using namespace ImGui;
     static char format[1024];
@@ -710,11 +710,11 @@ void vdb_osd_video_tool(bool *open_video_tool, so_input input)
         float megabytes = current_bytes / (1024.0f*1024.0f);
         char title[256];
         sprintf(title, "Record video (%d frames, %.2f mb)###Record video", frame_index, megabytes);
-        Begin(title, open_video_tool);
+        Begin(title, show_video);
     }
     else
     {
-        Begin("Record video###Record video", open_video_tool);
+        Begin("Record video###Record video", show_video);
     }
 
     InputText("Filename", format, sizeof(format));
@@ -848,185 +848,85 @@ void vdb_postamble(so_input input)
 
     using namespace ImGui;
 
-    static float osd_timer_interval = 0.18f;
-    static float osd_timer = osd_timer_interval;
-    const int osd_mode_closed = 0;
-    const int osd_mode_opening = 1;
-    const int osd_mode_opened = 2;
-    const int osd_mode_closing = 3;
-    static int osd_mode = 0;
-    static bool osd_show_ruler_tool = false;
-    static bool open_video_tool = false;
-    const float escape_timer_duration = 0.5f;
-    static float escape_timer = escape_timer_duration;
+    static bool show_ruler = false;
+    static bool show_video = false;
 
     if (input.keys[SO_KEY_F4].pressed && input.keys[SO_KEY_ALT].down)
     {
         vdb__globals.abort = true;
     }
 
-    if (input.keys[SO_KEY_ESCAPE].down)
-    {
-        escape_timer -= input.dt;
-        float t = escape_timer/escape_timer_duration;
-        float x0 = 0.0f;
-        float x1 = t*input.width;
-        float y0 = 0.0f;
-        float y1 = 5.0f;
-        float a = m_map(0.2f, 0.5f, 1.0f-t, 0.0f, 0.75f);
-        a *= a;
-        vdbOrtho(0.0f, input.width, input.height, 0.0f);
-        glBegin(GL_TRIANGLES);
-        glColor4f(0.3f, 0.3f, 0.3f, a);
-        glVertex2f(x0, y0);
-        glVertex2f(x1, y0);
-        glVertex2f(x1, y1);
-        glVertex2f(x1, y1);
-        glVertex2f(x0, y1);
-        glVertex2f(x0, y0);
-        glEnd();
-        if (escape_timer < 0.0f)
-            vdb__globals.abort = true;
-    }
-    else
-    {
-        escape_timer = escape_timer_duration;
-    }
-
     if (input.keys[SO_KEY_ESCAPE].pressed)
     {
-        if (osd_mode == osd_mode_closed)
+        if (show_ruler)
         {
-            osd_timer = osd_timer_interval;
-            osd_mode = osd_mode_opening;
+            show_ruler = false;
+        }
+        else if (show_video)
+        {
+            show_video = false;
         }
         else
-        if (osd_mode == osd_mode_opened)
         {
-            osd_timer = osd_timer_interval;
-            osd_mode = osd_mode_closing;
-        }
-        else
-        if (osd_mode == osd_mode_opening)
-        {
-            osd_timer = osd_timer_interval - osd_timer;
-            osd_mode = osd_mode_closing;
-        }
-        else
-        if (osd_mode == osd_mode_closing)
-        {
-            osd_timer = osd_timer_interval - osd_timer;
-            osd_mode = osd_mode_opening;
+            vdb__globals.abort = true;
         }
     }
 
-    if (osd_mode == osd_mode_opening ||
-        osd_mode == osd_mode_opened ||
-        osd_mode == osd_mode_closing)
+    // Ruler
     {
-        if (osd_timer > 0.0f)
-            osd_timer -= input.dt;
-
-        if (osd_timer <= 0.0f)
+        bool hotkey = input.keys[SO_KEY_R].pressed && input.keys[SO_KEY_CTRL].down;
+        if (show_ruler && hotkey)
         {
-            if (osd_mode == osd_mode_opening)
-                osd_mode = osd_mode_opened;
-            else if (osd_mode == osd_mode_closing)
-                osd_mode = osd_mode_closed;
+            show_ruler = false;
         }
-
-        float t = 0.0f;
-        if (osd_mode == osd_mode_closed)
-            t = 0.0f;
-        if (osd_mode == osd_mode_opening)
-            t = 1.0f - osd_timer / osd_timer_interval;
-        if (osd_mode == osd_mode_closing)
-            t = osd_timer / osd_timer_interval;
-        if (osd_mode == osd_mode_opened)
-            t = 1.0f;
-
-        float a = powf(t, 0.2f);
-        float w = 0.35f;
-        float p = 0.0f;
-
-        SetNextWindowPos(ImVec2(-w*input.width + (w*input.width+p)*a, p));
-        SetNextWindowSize(ImVec2(w*input.width, input.height-2.0f*p));
-        PushStyleVar(ImGuiStyleVar_WindowRounding, 3.0f);
-        PushStyleVar(ImGuiStyleVar_FrameRounding, 3.0f);
-        PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
-        PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 1.0f));
-        PushStyleColor(ImGuiCol_Button, ImVec4(1.0f, 1.0f, 1.0f, 0.0f));
-        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 1.0f, 1.0f, 0.1f));
-        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(1.0f, 1.0f, 1.0f, 0.2f));
-        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
-        Begin("##vdb_osd", 0,
-                     ImGuiWindowFlags_NoTitleBar |
-                     ImGuiWindowFlags_NoResize |
-                     ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoCollapse);
-
-        // flow control
-        bool hotkey_ruler = input.keys[SO_KEY_R].pressed && input.keys[SO_KEY_CTRL].down;
-        bool hotkey_video = input.keys[SO_KEY_V].pressed && input.keys[SO_KEY_CTRL].down;
-        bool hotkey_size = input.keys[SO_KEY_W].pressed && input.keys[SO_KEY_CTRL].down;
-
+        else if (!show_ruler && hotkey)
         {
-            if (Button("Step once")) vdb__globals.step_once = true;
-            if (Button("Step over")) vdb__globals.step_over = true;
-            if (Button("Step and skip")) vdb__globals.step_skip = true;
-            if (osd_show_ruler_tool && (Button("Hide ruler") || hotkey_ruler))
-            {
-                osd_show_ruler_tool = false;
-            }
-            else if (!osd_show_ruler_tool && (Button("Show ruler") || hotkey_ruler))
-            {
-                osd_show_ruler_tool = true;
-            }
-            if (Button("Set window size") || hotkey_size)
-            {
-                ImGui::OpenPopup("Set window size##popup");
-            }
-            if (BeginPopupModal("Set window size##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                static int width = input.width;
-                static int height = input.height;
-                static bool topmost = false;
-                InputInt("Width", &width);
-                InputInt("Height", &height);
-                Separator();
-                Checkbox("Topmost", &topmost);
-
-                if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
-                {
-                    so_setWindowPos(0, 0, width, height, topmost);
-                    CloseCurrentPopup();
-                }
-                SameLine();
-                if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
-                EndPopup();
-            }
-            if (Button("Record video") || hotkey_video)
-            {
-                open_video_tool = true;
-            }
+            show_ruler = true;
         }
-
-        End();
-        PopStyleColor();
-        PopStyleColor();
-        PopStyleColor();
-        PopStyleColor();
-        PopStyleColor();
-        PopStyleVar();
-        PopStyleVar();
-        PopStyleVar();
     }
 
-    if (osd_show_ruler_tool)
+    // Video
+    {
+        bool hotkey = input.keys[SO_KEY_V].pressed && input.keys[SO_KEY_CTRL].down;
+        if (hotkey)
+        {
+            show_video = true;
+        }
+    }
+
+    // Set window size
+    {
+        bool hotkey = input.keys[SO_KEY_W].pressed && input.keys[SO_KEY_CTRL].down;
+        if (hotkey)
+        {
+            ImGui::OpenPopup("Set window size##popup");
+        }
+        if (BeginPopupModal("Set window size##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            static int width = input.width;
+            static int height = input.height;
+            static bool topmost = false;
+            InputInt("Width", &width);
+            InputInt("Height", &height);
+            Separator();
+            Checkbox("Topmost", &topmost);
+
+            if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
+            {
+                so_setWindowPos(0, 0, width, height, topmost);
+                CloseCurrentPopup();
+            }
+            SameLine();
+            if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+            EndPopup();
+        }
+    }
+
+    if (show_ruler)
         vdb_osd_ruler_tool(input);
 
-    if (open_video_tool)
-        vdb_osd_video_tool(&open_video_tool, input);
+    if (show_video)
+        vdb_osd_video_tool(&show_video, input);
 
     // Take screenshot
     {
