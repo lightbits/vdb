@@ -96,6 +96,8 @@ static struct vdb_globals
     float map_closest_y;
     float map_closest_z;
 
+    int note_index;
+
     so_input_mouse mouse;
 
     bool step_once;
@@ -232,6 +234,22 @@ void vdbOrtho(float left, float right, float bottom, float top)
     mat4 view = m_id4();
     mat4 model = m_id4();
     vdbView(projection, view, model);
+}
+
+void vdbNote(float x, float y, const char* fmt, ...)
+{
+    char name[1024];
+    sprintf(name, "vdb_tooltip_%d", vdb__globals.note_index);
+    va_list args;
+    va_start(args, fmt);
+    float x_win, y_win;
+    vdbModelToWindow(x, y, 0.0f, 1.0f, &x_win, &y_win);
+    ImGui::SetNextWindowPos(ImVec2(x_win, y_win));
+    ImGui::Begin(name, 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::TextV(fmt, args);
+    ImGui::End();
+    va_end(args);
+    vdb__globals.note_index++;
 }
 
 void vdbResetMap()
@@ -579,6 +597,7 @@ void vdb_preamble(so_input input)
     vdb__globals.window_w = input.width;
     vdb__globals.window_h = input.height;
     vdb__globals.mouse = input.mouse;
+    vdb__globals.note_index = 0;
 
     so_imgui_processEvents(input);
 

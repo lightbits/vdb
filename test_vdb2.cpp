@@ -1,9 +1,5 @@
 #include "vdb2.h"
 
-/*
-vdbMultiTooltip(...)
-*/
-
 int main()
 {
     struct Thing
@@ -46,6 +42,7 @@ int main()
                 glVertex2f(xn, yn+dy);
                 glVertex2f(xn, yn);
 
+                vdbNote(xn+1.0f/nx, yn+1.0f/ny, "%.2f", xn);
                 if (vdbMap(xn+1.0f/nx, yn+1.0f/ny))
                 {
                     SetTooltip("%.2f %.2f", xn+1.0f/nx, yn+1.0f/ny);
@@ -53,6 +50,7 @@ int main()
             }
         }
         glEnd();
+
 
         {
             int i;
