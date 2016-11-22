@@ -51,7 +51,6 @@ int main()
         }
         glEnd();
 
-
         {
             int i;
             float x_src, y_src;
@@ -68,26 +67,6 @@ int main()
             vdbFillCircle(x_win, y_win, 5.0f);
             glEnd();
         }
-
-        // vdb_pushView
-        // vdb_steerableView2D()
-        // vdb_view2D()
-        // vdb_for(x, 0, N)
-        // vdb_for(y, 0, N)
-        // {
-        //     int i = y*N+x;
-        //     vdb_map2f(i, x, y);
-        // }
-
-        // {
-        //     float x, y;
-        //     int i = vdb_unmap2f(&x, &y);
-        //     SetTooltip("count: %d\nerror: %.2f", things[i].count, things[i].error);
-        // }
-
-        // Begin("Test");
-        // ShowTestWindow();
-        // End();
     }
     VDBE();
 
