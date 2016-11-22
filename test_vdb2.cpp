@@ -1,5 +1,9 @@
 #include "vdb2.h"
 
+/*
+vdbMultiTooltip(...)
+*/
+
 int main()
 {
     struct Thing
@@ -21,7 +25,6 @@ int main()
     {
         vdbView(mat_perspective(SO_PI/4.0f, vdb_input.width, vdb_input.height, 0.01f, 10.0f),
                 vdbCamera3D(vdb_input), m_id4());
-        vdbBeginMap();
         glBegin(GL_TRIANGLES);
         {
             int nx = (int)(vdb_input.width/64.0f);
@@ -43,7 +46,10 @@ int main()
                 glVertex2f(xn, yn+dy);
                 glVertex2f(xn, yn);
 
-                vdbMap(xn+1.0f/nx, yn+1.0f/ny);
+                if (vdbMap(xn+1.0f/nx, yn+1.0f/ny))
+                {
+                    SetTooltip("%.2f %.2f", xn+1.0f/nx, yn+1.0f/ny);
+                }
             }
         }
         glEnd();
@@ -52,7 +58,7 @@ int main()
             int i;
             float x_src, y_src;
             vdbUnmap(&i, &x_src, &y_src);
-            SetTooltip("%d: %.2f %.2f", i, x_src, y_src);
+            // SetTooltip("%d: %.2f %.2f", i, x_src, y_src);
 
             float x_win, y_win;
             vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
@@ -105,7 +111,6 @@ int main()
         {
             mat3 R = m_mat3(mat_rotate_z(0.4f)*mat_rotate_y(0.4f)*mat_rotate_x(0.4f));
             int n = 16;
-            vdbBeginMap();
             vdb_for(zi, 0, n+1)
             vdb_for(yi, 0, n+1)
             vdb_for(xi, 0, n+1)

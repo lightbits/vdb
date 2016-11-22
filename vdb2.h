@@ -90,6 +90,7 @@ static struct vdb_globals
 
     int map_index;
     int map_closest_index;
+    int map_prev_closest_index;
     float map_closest_distance;
     float map_closest_x;
     float map_closest_y;
@@ -233,15 +234,16 @@ void vdbOrtho(float left, float right, float bottom, float top)
     vdbView(projection, view, model);
 }
 
-void vdbBeginMap()
+void vdbResetMap()
 {
     float w = vdb__globals.window_w;
     float h = vdb__globals.window_h;
     vdb__globals.map_closest_distance = w*w + h*h;
+    vdb__globals.map_prev_closest_index = vdb__globals.map_closest_index;
     vdb__globals.map_index = 0;
 }
 
-void vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
+bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
 {
     // todo: find closest in z
 
@@ -266,7 +268,9 @@ void vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
         vdb__globals.map_closest_distance = distance;
     }
 
+    bool active_last_frame = vdb__globals.map_index == vdb__globals.map_prev_closest_index;
     vdb__globals.map_index++;
+    return active_last_frame;
 }
 
 void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0)
@@ -390,6 +394,8 @@ void vdbColorRamp(float t)
     glColor4f(r, g, b, 1.0f);
 }
 
+#define vdbSliderFloat(name, val0, val1) static float name; SliderFloat(#name, &name, val0, val1);
+#define vdbSliderInt(name, val0, val1) static int name; SliderInt(#name, &name, val0, val1);
 void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
 void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
@@ -584,6 +590,8 @@ void vdb_preamble(so_input input)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+
+    vdbResetMap();
 
     ImGui::NewFrame();
 }
