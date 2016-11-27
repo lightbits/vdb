@@ -43,35 +43,6 @@
 #define vdbKeyPressed(KEY) input.keys[SO_KEY_##KEY].pressed
 #define vdbKeyReleased(KEY) input.keys[SO_KEY_##KEY].released
 
-/*
-Press esc (or tab): Open VDB overlay.
-Recording options, etc. Smooth animation?
-
-vdb_mapPoint2(i, x, y):
-vdb_mapPoint3(i, x, y, z):
-
-vdb_getHoveredElement(): index
-Works with 3D and 2D projections
-
-vdbView2D
-vdbView3D
-
-vdb_forEach2f()
-{
-    x, y, i is accessible in here.
-    Default behaviour is that this loop only iterates over one element:
-    The one hovered over by the mouse.
-
-    If the tools menu is uncovered, and the user presses the "Select multi"
-    button, this for loop may iterate over several elements.
-}
-
-vdb_ndc_to_view
-vdb_view_to_ndc
-vdb_ndc_to_world
-vdb_world_to_ndc
-*/
-
 static struct vdb_globals
 {
     int viewport_x;
@@ -262,14 +233,8 @@ void vdbResetMap()
 bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f)
 {
     // todo: find closest in z
-
-    vec4 model = { x, y, z, w };
-    vec4 clip = vdb__globals.pvm * model;
-    float x_ndc = clip.x / clip.w; // todo: verify?
-    float y_ndc = clip.y / clip.w; // todo: verify?
-    // float z_ndc = clip.z / clip.w; // todo: verify?
-    float x_win = (0.5f+0.5f*x_ndc)*vdb__globals.window_w;
-    float y_win = (0.5f-0.5f*y_ndc)*vdb__globals.window_h;
+    float x_win, y_win;
+    vdbModelToWindow(x, y, z, w, &x_win, &y_win);
 
     float dx = x_win - vdb__globals.mouse.x;
     float dy = y_win - vdb__globals.mouse.y;
