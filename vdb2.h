@@ -326,6 +326,21 @@ void vdbDrawCircle(float x, float y, float r, int n = 16)
     }
 }
 
+void vdbDrawRect(float x, float y, float w, float h)
+{
+    glVertex2f(x, y);
+    glVertex2f(x+w, y);
+
+    glVertex2f(x+w, y);
+    glVertex2f(x+w, y+h);
+
+    glVertex2f(x+w, y+h);
+    glVertex2f(x, y+h);
+
+    glVertex2f(x, y+h);
+    glVertex2f(x, y);
+}
+
 void vdbViewport(int x, int y, int w, int h)
 {
     vdb__globals.viewport_x = x;
@@ -412,8 +427,8 @@ void vdbColorRamp(float t)
     glColor4f(r, g, b, 1.0f);
 }
 
-#define vdbSliderFloat(name, val0, val1) static float name; SliderFloat(#name, &name, val0, val1);
-#define vdbSliderInt(name, val0, val1) static int name; SliderInt(#name, &name, val0, val1);
+#define vdbSliderFloat(name, val0, val1) static float name = ((val0)+(val1))*0.5f; SliderFloat(#name, &name, val0, val1);
+#define vdbSliderInt(name, val0, val1) static int name = val0; SliderInt(#name, &name, val0, val1);
 void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
 void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
@@ -505,6 +520,23 @@ void vdbDrawTexture2D(int slot)
     glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
     glEnd();
     glDisable(GL_TEXTURE_2D);
+}
+
+void vdbAdditiveBlend()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+}
+
+void vdbAlphaBlend()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void vdbNoBlend()
+{
+    glDisable(GL_BLEND);
 }
 
 struct vdb_settings
