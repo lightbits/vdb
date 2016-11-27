@@ -605,6 +605,12 @@ void vdb_preamble(so_input input)
 
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
+    // Specify the start of each pixel row in memory to be 1-byte aligned
+    // as opposed to 4-byte aligned or something. Useful to allow for arbitrarily
+    // dimensioned textures. Unpack denoting how texture data is _from_ our memory
+    // to the GPU.
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
     vdbResetMap();
 
     ImGui::NewFrame();

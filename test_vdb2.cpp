@@ -1,23 +1,115 @@
+// HOW TO COMPILE
+//   1) Obtain SDL 2 (https://www.libsdl.org/)
+//
+// WINDOWS
+//   2) In your command line or batch script or whatever
+//        cl test.cpp -MD -I"C:/path/to/sdl/include" /link -LIBPATH:"C:/path/to/sdl/lib/x86" -subsystem:console SDL2.lib SDL2main.lib opengl32.lib
+//   3) Make sure SDL2.dll is in the executable directory
+//
+// LINUX
+//   2) In your command line or batch script or whatever
+//        g++ test.cpp -std=c++11 -o test -lGL `sdl2-config --cflags --libs`
+//
+// OSX
+//   2) In your command line or batch script or whatever
+//        g++ test.cpp -std=c++11 -o test -framework OpenGL `sdl2-config --cflags —libs`
+//
+// If you have problems:
+// No clue: See if this page helps. https://wiki.libsdl.org/Installation
 #include "vdb2.h"
 
 int main()
 {
-    struct Thing
-    {
-        float error;
-        int count;
-    };
+    // Controls
+    // F10 : Step once
+    // F5 : Step over
+    // Ctrl+V : Record video
+    // Ctrl+R : Show ruler
+    // Ctrl+W : Set window size
+    // Escape : Close window
 
-    #define N 32
-    Thing things[N*N];
-    vdb_for(x, 0, N)
-    vdb_for(y, 0, N)
+    VDBB("Hello VDB");
     {
-        things[y*N+x].count = y*N+x;
-        things[y*N+x].error = x*y;
+        vdbClear(1.0f, 0.73f, 0.22f, 1.0f);
+        Text("The program has now stopped and is running the\ncontent inside the brackets at 60 fps.");
+        Text("Press F10 to continue.");
+    }
+    VDBE();
+
+    for (int i = 0; i < 50; i++)
+    {
+        VDBB("For loops");
+        {
+            float c[][3] = {
+                { 0.40, 0.76, 0.64 },
+                { 0.99, 0.55, 0.38 },
+                { 0.54, 0.63, 0.82 },
+                { 0.91, 0.54, 0.77 },
+                { 0.64, 0.86, 0.29 },
+                { 1.00, 0.85, 0.19 },
+                { 0.89, 0.77, 0.58 },
+                { 0.70, 0.70, 0.70 },
+            };
+            glClearColor(c[i%8][0], c[i%8][1], c[i%8][2], 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            Text("Iteration: %d", i);
+            Text("It works with for loops.");
+            Text("F10 steps once.");
+            Text("F5 skips to the next window.");
+        }
+        VDBE();
     }
 
-    VDBB("my label");
+    VDBB("Hello OpenGL");
+    {
+        glClearColor(1.0f, 0.73f, 0.22f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glBegin(GL_TRIANGLES);
+        glVertex2f(-0.5f, -0.5f); glColor4f(1.0f, 0.5f, 0.5f, 1.0f);
+        glVertex2f(+0.5f, -0.5f); glColor4f(0.5f, 1.0f, 0.5f, 1.0f);
+        glVertex2f(+0.0f, +0.5f); glColor4f(0.5f, 0.5f, 1.0f, 1.0f);
+        glEnd();
+
+        Text("Inside the loop you can draw stuff with OpenGL.");
+    }
+    VDBE();
+
+    const int width = 129;
+    const int height = 128;
+    unsigned char data[width*height*3];
+    for (int y = 0; y < height; y++)
+    for (int x = 0; x < width; x++)
+    {
+        unsigned char xmod = x % 32;
+        unsigned char ymod = y % 32;
+        unsigned char r = 64+4*xmod;
+        unsigned char g = 64+4*ymod;
+        unsigned char b = xmod+ymod;
+        data[(x+y*width)*3+0] = r;
+        data[(x+y*width)*3+1] = g;
+        data[(x+y*width)*3+2] = b;
+    }
+
+    VDBB("Variable access");
+    {
+        vdbSetTexture2D(0, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
+        vdbDrawTexture2D(0);
+
+        TextWrapped("You can access variables outside the scope.");
+    }
+    VDBE();
+
+    VDBB("ImGui");
+    {
+        vdbClear(0.99f, 0.55f, 0.38f, 1.0f);
+        ShowTestWindow();
+
+        TextWrapped("VDB includes ImGui: https://github.com/ocornut/imgui/");
+    }
+    VDBE();
+
+    VDBB("Full bananacakes");
     {
         vdbView(mat_perspective(SO_PI/4.0f, vdb_input.width, vdb_input.height, 0.01f, 10.0f),
                 vdbCamera3D(vdb_input), m_id4());
@@ -67,18 +159,12 @@ int main()
             vdbFillCircle(x_win, y_win, 5.0f);
             glEnd();
         }
+
+        Text("Press the arrow keys to move the camera");
+        Text("Press z and x to zoom in and out");
+        Text("Hold shift for fast movement");
     }
     VDBE();
-
-    for (int i = 0; i < 10; i++)
-    {
-        VDBB("Testfor");
-        {
-            glClearColor(i/10.0f, 0.0f, 0.0f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
-        }
-        VDBE();
-    }
 
     VDBB("Ho");
     {
