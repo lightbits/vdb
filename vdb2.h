@@ -348,7 +348,7 @@ void vdbClearViewport(float r, float g, float b, float a)
 }
 
 #define vdb_Palette_Qualitative_Medium 0
-void vdbPalette4i(int i, float a = 1.0f, int palette=vdb_Palette_Qualitative_Medium)
+vec4 vdbPalette4i(int i, float a = 1.0f, int palette=vdb_Palette_Qualitative_Medium)
 {
     if (palette == vdb_Palette_Qualitative_Medium)
     {
@@ -363,7 +363,13 @@ void vdbPalette4i(int i, float a = 1.0f, int palette=vdb_Palette_Qualitative_Med
             { 0.70, 0.70, 0.70 },
         };
         i = i % 8;
-        glColor4f(c[i][0], c[i][1], c[i][2], a);
+        vec4 result = { c[i][0], c[i][1], c[i][2], a };
+        return result;
+    }
+    else
+    {
+        vec4 result = { 0.0f, 0.0f, 0.0f, 1.0f };
+        return result;
     }
 }
 
@@ -397,6 +403,9 @@ void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
 void glVertex(vec3 p) { glVertex3f(p.x, p.y, p.z); }
 void glTexCoord(vec2 p) { glTexCoord2f(p.x, p.y); }
+void glClearColor(vec4 c) { glClearColor(c.x, c.y, c.z, c.w); }
+void glColor4f(vec4 c) { glColor4f(c.x, c.y, c.z, c.w); }
+void vdbClear(vec4 c) { vdbClear(c.x, c.y, c.z, c.w); }
 
 GLuint vdbTexImage2D(
     void *data,
