@@ -25,8 +25,6 @@
 
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
-#define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/SourceSansPro-SemiBold.ttf", 18.0f
-// #define SO_PLATFORM_IMGUI_FONT "C:/Windows/Fonts/Roboto-Bold.ttf", 18.0f
 #define SO_NOISE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "lib/stb_image_write.h"
