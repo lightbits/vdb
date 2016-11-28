@@ -85,7 +85,6 @@ void so_openWindow(const char *title,
                    int major = 3,
                    int minor = 1,
                    int multisamples = 4,
-                   int color_bits = 32,
                    int alpha_bits = 8,
                    int depth_bits = 24,
                    int stencil_bits = 0);
@@ -473,7 +472,7 @@ HWND so__createWindow(HINSTANCE instance, WNDCLASSW wndclass, const char *title,
     return wnd;
 }
 
-void so_setWindowPos(int x, int y, int w, int h, bool topmost)
+void so_setWindowSize(int w, int h, bool topmost)
 {
     RECT rect;
     rect.left = 0;
@@ -485,9 +484,9 @@ void so_setWindowPos(int x, int y, int w, int h, bool topmost)
     h = rect.bottom-rect.top;
     // SWP_NOSIZE
     if (topmost)
-        SetWindowPos(so_hwnd, HWND_TOPMOST, x, y, w, h, SWP_NOMOVE);
+        SetWindowPos(so_hwnd, HWND_TOPMOST, 0, 0, w, h, SWP_NOMOVE);
     else
-        SetWindowPos(so_hwnd, HWND_TOP, x, y, w, h, SWP_NOMOVE);
+        SetWindowPos(so_hwnd, HWND_TOP, 0, 0, w, h, SWP_NOMOVE);
 }
 
 void so_openWindow(
@@ -499,11 +498,12 @@ void so_openWindow(
     int major,
     int minor,
     int multisamples,
-    int color_bits,
     int alpha_bits,
     int depth_bits,
     int stencil_bits)
 {
+    int color_bits = 32;
+
     so_ignore_destroy = false;
     so_wheel_delta = 0;
 

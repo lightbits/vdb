@@ -135,7 +135,7 @@ mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f))
     static float Rvtheta = vtheta;
 
     float dt = input.dt;
-    if (vdbKeyDown(SHIFT))
+    if (vdbKeyDown(LSHIFT))
     {
         if (vdbKeyPressed(Z))
             Rradius /= 2.0f;
@@ -573,7 +573,7 @@ void vdb_init(const char *label)
     if (!have_window)
     {
         vdb_settings settings = vdb_loadSettings();
-        so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_COLOR_BITS, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
+        so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
         so_imgui_init();
         have_window = true;
     }
@@ -889,12 +889,12 @@ void vdb_postamble(so_input input)
     static bool show_ruler = false;
     static bool show_video = false;
 
-    if (input.keys[SO_KEY_F4].pressed && input.keys[SO_KEY_ALT].down)
+    if (vdbKeyPressed(F4) && vdbKeyDown(LALT))
     {
         vdb__globals.abort = true;
     }
 
-    if (input.keys[SO_KEY_ESCAPE].pressed)
+    if (vdbKeyPressed(ESCAPE))
     {
         if (show_ruler)
         {
@@ -912,7 +912,7 @@ void vdb_postamble(so_input input)
 
     // Ruler
     {
-        bool hotkey = input.keys[SO_KEY_R].pressed && input.keys[SO_KEY_CTRL].down;
+        bool hotkey = vdbKeyPressed(R) && vdbKeyDown(LCTRL);
         if (show_ruler && hotkey)
         {
             show_ruler = false;
@@ -925,7 +925,7 @@ void vdb_postamble(so_input input)
 
     // Video
     {
-        bool hotkey = input.keys[SO_KEY_V].pressed && input.keys[SO_KEY_CTRL].down;
+        bool hotkey = vdbKeyPressed(V) && vdbKeyDown(LCTRL);
         if (hotkey)
         {
             show_video = true;
@@ -934,7 +934,7 @@ void vdb_postamble(so_input input)
 
     // Set window size
     {
-        bool hotkey = input.keys[SO_KEY_W].pressed && input.keys[SO_KEY_CTRL].down;
+        bool hotkey = vdbKeyPressed(W) && vdbKeyDown(LCTRL);
         if (hotkey)
         {
             ImGui::OpenPopup("Set window size##popup");
@@ -949,9 +949,9 @@ void vdb_postamble(so_input input)
             Separator();
             Checkbox("Topmost", &topmost);
 
-            if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
+            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(ENTER))
             {
-                so_setWindowPos(0, 0, width, height, topmost);
+                so_setWindowSize(width, height, topmost);
                 CloseCurrentPopup();
             }
             SameLine();
@@ -968,7 +968,7 @@ void vdb_postamble(so_input input)
 
     // Take screenshot
     {
-        if (input.keys[SO_KEY_PRINTSCREEN].released)
+        if (vdbKeyPressed(PRINTSCREEN))
         {
             ImGui::OpenPopup("Take screenshot##popup");
         }
@@ -977,7 +977,7 @@ void vdb_postamble(so_input input)
             static char filename[1024];
             InputText("Filename", filename, sizeof(filename));
 
-            if (Button("OK", ImVec2(120,0)) || input.keys[SO_KEY_ENTER].pressed)
+            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(ENTER))
             {
                 unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
                 glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -1000,14 +1000,14 @@ void vdb_postamble(so_input input)
     if (error != GL_NO_ERROR)
         assert(false);
 
-    if (input.keys[SO_KEY_F10].pressed)
+    if (vdbKeyPressed(F10))
     {
-        if (input.keys[SO_KEY_SHIFT].down)
+        if (vdbKeyDown(LSHIFT))
             vdb__globals.step_skip = true;
         else
             vdb__globals.step_once = true;
     }
-    if (input.keys[SO_KEY_F5].pressed) vdb__globals.step_over = true;
+    if (vdbKeyPressed(F5)) vdb__globals.step_over = true;
 
     if (vdb__globals.step_once)
     {
