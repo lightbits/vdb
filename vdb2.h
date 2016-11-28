@@ -761,7 +761,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     if (record_mode == record_mode_gif)
         InputInt("Frame delay (ms)", &gif_frame_delay);
     Separator();
-    InputInt("Frames", &frame_limit);
+    InputInt("Frames (0 for no limit)", &frame_limit);
     Separator();
     Checkbox("Record region", &record_region);
     if (record_region)
@@ -880,6 +880,11 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     }
 }
 
+#define vdbTriggeredDurationBlock(Event, Duration) \
+    static float tdb_timer_##__LINE__ = 0.0f; \
+    if (Event) tdb_timer_##__LINE__ = input.t; \
+    if (input.t - tdb_timer_##__LINE__ < Duration)
+
 void vdb_postamble(so_input input)
 {
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
@@ -894,21 +899,7 @@ void vdb_postamble(so_input input)
         vdb__globals.abort = true;
     }
 
-    if (vdbKeyPressed(ESCAPE))
-    {
-        if (show_ruler)
-        {
-            show_ruler = false;
-        }
-        else if (show_video)
-        {
-            show_video = false;
-        }
-        else
-        {
-            vdb__globals.abort = true;
-        }
-    }
+    bool escape_eaten = false;
 
     // Ruler
     {
@@ -921,6 +912,11 @@ void vdb_postamble(so_input input)
         {
             show_ruler = true;
         }
+        if (show_ruler && vdbKeyPressed(ESCAPE))
+        {
+            show_ruler = false;
+            escape_eaten = true;
+        }
     }
 
     // Video
@@ -929,6 +925,11 @@ void vdb_postamble(so_input input)
         if (hotkey)
         {
             show_video = true;
+        }
+        if (show_video && vdbKeyPressed(ESCAPE))
+        {
+            show_video = false;
+            escape_eaten = true;
         }
     }
 
@@ -955,10 +956,57 @@ void vdb_postamble(so_input input)
                 CloseCurrentPopup();
             }
             SameLine();
-            if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+            if (Button("Cancel", ImVec2(120,0)))
+            {
+                CloseCurrentPopup();
+            }
+            if (vdbKeyPressed(ESCAPE))
+            {
+                CloseCurrentPopup();
+                escape_eaten = true;
+            }
             EndPopup();
         }
     }
+
+    // Corner protip
+    #ifndef VDB_DISABLE_PROTIP
+    {
+        static float x = -30.0f;
+        if (x < 0.0f)
+        {
+            x += 5.0f*(0.0f-x)*input.dt;
+        }
+        SetNextWindowPos(ImVec2(x, 0));
+        PushStyleColor(ImGuiCol_WindowBg, ImVec4(0,0,0,0));
+        PushStyleColor(ImGuiCol_Text, ImVec4(1,1,1,1));
+        PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0.1f));
+        PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0.5f));
+        PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,1));
+        Begin("##vdb_help_window", 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
+        if (Button("?##vdb_help_button"))
+        {
+            OpenPopup("Protips##vdb");
+        }
+        if (BeginPopupModal("Protips##vdb", NULL, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            Text("F10 : Step once");
+            Text("F5 : Step over");
+            Text("Ctrl+V : Record video");
+            Text("Ctrl+R : Show ruler");
+            Text("Ctrl+W : Set window size");
+            Text("Escape : Close window");
+            if (vdbKeyPressed(ESCAPE) || input.left.pressed)
+            {
+                CloseCurrentPopup();
+                escape_eaten = true;
+            }
+            EndPopup();
+        }
+        End();
+        PopStyleColor(5);
+    }
+    #endif
 
     if (show_ruler)
         vdb_osd_ruler_tool(input);
@@ -975,6 +1023,10 @@ void vdb_postamble(so_input input)
         if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             static char filename[1024];
+            vdbTriggeredDurationBlock(vdbKeyReleased(PRINTSCREEN), 1.0f)
+            {
+                SetKeyboardFocusHere();
+            }
             InputText("Filename", filename, sizeof(filename));
 
             static bool checkbox;
@@ -1001,7 +1053,15 @@ void vdb_postamble(so_input input)
                 CloseCurrentPopup();
             }
             SameLine();
-            if (Button("Cancel", ImVec2(120,0))) { CloseCurrentPopup(); }
+            if (Button("Cancel", ImVec2(120,0)))
+            {
+                CloseCurrentPopup();
+            }
+            if (vdbKeyPressed(ESCAPE))
+            {
+                CloseCurrentPopup();
+                escape_eaten = true;
+            }
             EndPopup();
         }
     }
@@ -1033,6 +1093,10 @@ void vdb_postamble(so_input input)
     if (vdb__globals.step_over)
     {
         vdb__globals.break_loop = true;
+    }
+    if (vdbKeyPressed(ESCAPE) && !escape_eaten)
+    {
+        vdb__globals.abort = true;
     }
 }
 
