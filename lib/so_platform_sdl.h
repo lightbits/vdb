@@ -186,7 +186,7 @@ void so_openWindow(
 
 bool so_loopWindow(so_input *input)
 {
-    static so_input_button keys[SDL_NUM_SCANCODES];
+    static so_input_button keys[SDL_NUM_SCANCODES] = {0};
     input->keys = keys;
 
     for (int i = 0; i < SDL_NUM_SCANCODES; i++)
@@ -201,6 +201,8 @@ bool so_loopWindow(so_input *input)
     input->middle.pressed = false;
     input->right.released = false;
     input->right.pressed = false;
+
+    input->mouse.wheel = 0;
 
     static char text_utf8[1024];
     int cur_text_utf8 = 0;
@@ -234,9 +236,9 @@ bool so_loopWindow(so_input *input)
                     keys[c].released = true;
                 keys[c].down = false;
 
-                if (c == VK_MENU) input->alt = false;
-                if (c == VK_CONTROL) input->ctrl = false;
-                if (c == VK_SHIFT) input->shift = false;
+                if (c == SDL_SCANCODE_LALT) input->alt = false;
+                if (c == SDL_SCANCODE_LCTRL) input->ctrl = false;
+                if (c == SDL_SCANCODE_LSHIFT) input->shift = false;
             } break;
 
             #define so__btn_up(btn) { if ((btn).down) btn.released = true; btn.down = false; }
@@ -244,21 +246,21 @@ bool so_loopWindow(so_input *input)
 
             case SDL_MOUSEBUTTONDOWN:
             {
-                if (SDL_BUTTON_LMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_LEFT)
                     so__btn_down(input->left);
-                if (SDL_BUTTON_RMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_RIGHT)
                     so__btn_down(input->right);
-                if (SDL_BUTTON_MMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_MIDDLE)
                     so__btn_down(input->middle);
             } break;
 
             case SDL_MOUSEBUTTONUP:
             {
-                if (SDL_BUTTON_LMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_LEFT)
                     so__btn_up(input->left);
-                if (SDL_BUTTON_RMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_RIGHT)
                     so__btn_up(input->right);
-                if (SDL_BUTTON_MMASK & event.button.button)
+                if (event.button.button == SDL_BUTTON_MIDDLE)
                     so__btn_up(input->middle);
             } break;
 
@@ -329,6 +331,8 @@ bool so_loopWindow(so_input *input)
 
         input->dt = (float)(count - prev_count) / (float)frequency;
         input->t = (float)(count - init_count) / (float)frequency;
+
+        prev_count = count;
     }
 
     return true;

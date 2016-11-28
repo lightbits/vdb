@@ -65,7 +65,17 @@ int main(int, char **)
 {
     VDBB("");
     {
-        vdbClear(vdbPalette4i(0));
+        // vdbClear(vdbPalette4i(0));
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        ShowTestWindow();
+
+        vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+        glBegin(GL_TRIANGLES);
+        glColor4f(vdbPalette4i(0));
+        vdbFillCircle(0.0f, 0.0f, 0.3f);
+        glEnd();
 
         vdbOrtho(0.0f, 4.0f, 0.0f, 4.0f);
         for (int y = 0; y < 4; y++)

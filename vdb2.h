@@ -968,7 +968,7 @@ void vdb_postamble(so_input input)
 
     // Take screenshot
     {
-        if (vdbKeyPressed(PRINTSCREEN))
+        if (vdbKeyReleased(PRINTSCREEN))
         {
             ImGui::OpenPopup("Take screenshot##popup");
         }
@@ -977,13 +977,26 @@ void vdb_postamble(so_input input)
             static char filename[1024];
             InputText("Filename", filename, sizeof(filename));
 
+            static bool checkbox;
+            Checkbox("32bpp (alpha channel)", &checkbox);
+
             if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(RETURN))
             {
-                unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
+                int channels = 3;
+                GLenum format = GL_RGB;
+                if (checkbox)
+                {
+                    format = GL_RGBA;
+                    channels = 4;
+                }
+                int width = input.width;
+                int height = input.height;
+                int stride = width*channels;
+                unsigned char *data = (unsigned char*)malloc(height*stride);
                 glPixelStorei(GL_PACK_ALIGNMENT, 1);
                 glReadBuffer(GL_BACK);
-                glReadPixels(0, 0, input.width, input.height, GL_RGB, GL_UNSIGNED_BYTE, data);
-                stbi_write_png(filename, input.width, input.height, 3, data+input.width*(input.height-1)*3, -input.width*3);
+                glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
+                stbi_write_png(filename, width, height, channels, data+stride*(height-1), -stride);
                 free(data);
                 CloseCurrentPopup();
             }
