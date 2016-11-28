@@ -30,7 +30,7 @@ unsigned int noise_xor128();
 // return: A uniformly distributed value in [0.0f, 1.0f]
 float noise_frand();
 
-#endif // SO_FBO_HEADER_INCLUDE
+#endif // SO_NOISE_HEADER_INCLUDE
 #ifdef SO_NOISE_IMPLEMENTATION
 
 float noise_hash1f(int x)
