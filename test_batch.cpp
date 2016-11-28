@@ -30,6 +30,7 @@ void vdbPoint2f(float x, float y, float size=4.0f)
         sob_point(v, size);
     }
 }
+
 void vdbLine2f(float x1, float y1, float x2, float y2, float width=2.0f)
 {
     float x1_ndc, y1_ndc, x2_ndc, y2_ndc;
@@ -59,13 +60,6 @@ void vdbLine2f(float x1, float y1, float x2, float y2, float width=2.0f)
         sob_line(v1, v2, width);
     }
 }
-// void vdbLine2f(float x1, float y1, float x2, float y2, float width=2.0f)
-// {
-//     float x1_ndc, y1_ndc, x2_ndc, y2_ndc;
-//     vdbModelToNDC(x1, y1, 0.0f, 1.0f, &x1_ndc, &y1_ndc);
-//     vdbModelToNDC(x2, y2, 0.0f, 1.0f, &x2_ndc, &y2_ndc);
-//     sob_line(x1_ndc, y1_ndc, 0.0f, 1.0f, x2_ndc, y2_ndc, 0.0f, 1.0f, width);
-// }
 
 int main(int, char **)
 {
