@@ -47,6 +47,8 @@
 #include "so_gl.h"
 #endif
 
+#define SO_PLATFORM_KEY(KEY) SO_KEY_##KEY
+
 typedef struct
 {
     int x, y; // Pixel coordinate from top-left
@@ -171,7 +173,7 @@ enum
     // See <winuser.h>
     SO_KEY_BACKSPACE   = 0x08,
     SO_KEY_TAB         = 0x09,
-    SO_KEY_ENTER       = 0x0D,
+    SO_KEY_RETURN      = 0x0D,
     SO_KEY_SHIFT       = 0x10,
     SO_KEY_CTRL        = 0x11,
     SO_KEY_ALT         = 0x12,
@@ -955,7 +957,7 @@ void so_imgui_init()
     io.KeyMap[ImGuiKey_End] = SO_KEY_END;
     io.KeyMap[ImGuiKey_Delete] = SO_KEY_DELETE;
     io.KeyMap[ImGuiKey_Backspace] = SO_KEY_BACKSPACE;
-    io.KeyMap[ImGuiKey_Enter] = SO_KEY_ENTER;
+    io.KeyMap[ImGuiKey_Enter] = SO_KEY_RETURN;
     io.KeyMap[ImGuiKey_Escape] = SO_KEY_ESCAPE;
     io.KeyMap[ImGuiKey_A] = SO_KEY_A;
     io.KeyMap[ImGuiKey_C] = SO_KEY_C;

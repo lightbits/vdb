@@ -949,7 +949,7 @@ void vdb_postamble(so_input input)
             Separator();
             Checkbox("Topmost", &topmost);
 
-            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(ENTER))
+            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(RETURN))
             {
                 so_setWindowSize(width, height, topmost);
                 CloseCurrentPopup();
@@ -977,7 +977,7 @@ void vdb_postamble(so_input input)
             static char filename[1024];
             InputText("Filename", filename, sizeof(filename));
 
-            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(ENTER))
+            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(RETURN))
             {
                 unsigned char *data = (unsigned char*)malloc(input.width*input.height*3);
                 glPixelStorei(GL_PACK_ALIGNMENT, 1);
