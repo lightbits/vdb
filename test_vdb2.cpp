@@ -18,7 +18,7 @@
 // No clue: See if this page helps. https://wiki.libsdl.org/Installation
 #include "vdb2.h"
 
-int main()
+int main(int, char **)
 {
     // Controls
     // F10 : Step once
@@ -218,4 +218,6 @@ int main()
         }
     }
     VDBE();
+
+    return 0;
 }
