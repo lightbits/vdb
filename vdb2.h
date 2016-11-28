@@ -32,16 +32,16 @@
 #include "lib/imgui/imgui_draw.cpp"
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
-#include "lib/so_platform.h"
+#include "lib/so_platform_sdl.h"
 #include "lib/so_math.h"
 #include "lib/so_noise.h"
 #include <assert.h>
 #define vdb_assert assert
 #define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
 #define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
-#define vdbKeyDown(KEY) input.keys[SO_KEY_##KEY].down
-#define vdbKeyPressed(KEY) input.keys[SO_KEY_##KEY].pressed
-#define vdbKeyReleased(KEY) input.keys[SO_KEY_##KEY].released
+#define vdbKeyDown(KEY) input.keys[SO_PLATFORM_KEY(KEY)].down
+#define vdbKeyPressed(KEY) input.keys[SO_PLATFORM_KEY(KEY)].pressed
+#define vdbKeyReleased(KEY) input.keys[SO_PLATFORM_KEY(KEY)].released
 
 static struct vdb_globals
 {
@@ -994,7 +994,7 @@ void vdb_postamble(so_input input)
     }
 
     Render();
-    so_swapBuffers();
+    so_swapBuffersAndSleep(input.dt);
 
     GLenum error = glGetError();
     if (error != GL_NO_ERROR)
