@@ -4,7 +4,6 @@
 #include <SDL.h>
 #include <SDL_assert.h>
 #include <SDL_opengl.h>
-
 #define SO_PLATFORM_KEY(KEY) SDL_SCANCODE_##KEY
 
 typedef struct
