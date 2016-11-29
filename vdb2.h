@@ -1053,14 +1053,19 @@ void vdb_postamble(so_input input)
     #ifndef VDB_DISABLE_PROTIP
     {
         static float x = -30.0f;
+        static float a = 0.4f;
         if (x < 0.0f)
         {
             x += 5.0f*(0.0f-x)*input.dt;
         }
+        if (a > 0.1f)
+        {
+            a += (0.1f-a)*input.dt;
+        }
         SetNextWindowPos(ImVec2(x, 0));
         PushStyleColor(ImGuiCol_WindowBg, ImVec4(0,0,0,0));
         PushStyleColor(ImGuiCol_Text, ImVec4(1,1,1,1));
-        PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0.1f));
+        PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,a));
         PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0.5f));
         PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,1));
         Begin("##vdb_help_window", 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
@@ -1076,6 +1081,7 @@ void vdb_postamble(so_input input)
             Text("Ctrl+R : Show ruler");
             Text("Ctrl+W : Set window size");
             Text("Escape : Close window");
+            Text("PrtScr : Take screenshot");
             if (vdbKeyPressed(ESCAPE) || input.left.pressed)
             {
                 CloseCurrentPopup();

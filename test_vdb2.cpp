@@ -134,7 +134,8 @@ int main(int, char **)
                 glVertex2f(xn, yn+dy);
                 glVertex2f(xn, yn);
 
-                vdbNote(xn+1.0f/nx, yn+1.0f/ny, "%.2f", xn);
+                if (xi == 7 && yi == 7)
+                    vdbNote(xn+1.0f/nx, yn+1.0f/ny, "My coordinates are: %d %d", xi, yi);
                 if (vdbMap(xn+1.0f/nx, yn+1.0f/ny))
                 {
                     SetTooltip("%.2f %.2f", xn+1.0f/nx, yn+1.0f/ny);
