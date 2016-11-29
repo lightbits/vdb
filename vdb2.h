@@ -1,18 +1,10 @@
-// Settings
-#ifndef VDB_GL_MAJOR
-#define VDB_GL_MAJOR 1
-#endif
-#ifndef VDB_GL_MINOR
-#define VDB_GL_MINOR 5
-#endif
+// SETTINGS can be overwritten by #defining any of the following
+// before #including this file.
 #ifndef VDB_MULTISAMPLES
 #define VDB_MULTISAMPLES 4
 #endif
-#ifndef VDB_COLOR_BITS
-#define VDB_COLOR_BITS 32
-#endif
 #ifndef VDB_ALPHA_BITS
-#define VDB_ALPHA_BITS 8
+#define VDB_ALPHA_BITS 8 // Set to > 0 to be able to take screenshots with transparent backgrounds
 #endif
 #ifndef VDB_DEPTH_BITS
 #define VDB_DEPTH_BITS 24
@@ -24,8 +16,7 @@
 #define VDB_SETTINGS_FILENAME "./vdb2.ini"
 #endif
 
-// Dependencies
-
+// DEPENDENCIES
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
 #define SO_NOISE_IMPLEMENTATION
@@ -653,7 +644,9 @@ void vdb_init(const char *label)
     if (!have_window)
     {
         vdb_settings settings = vdb_loadSettings();
-        so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, VDB_GL_MAJOR, VDB_GL_MINOR, VDB_MULTISAMPLES, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
+        int gl_major = 1;
+        int gl_minor = 5;
+        so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, gl_major, gl_minor, VDB_MULTISAMPLES, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
         so_imgui_init();
         have_window = true;
     }
