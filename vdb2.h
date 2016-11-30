@@ -140,41 +140,6 @@ void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
 #define vdbKeyPressed(KEY) input.keys[SO_PLATFORM_KEY(KEY)].pressed
 #define vdbKeyReleased(KEY) input.keys[SO_PLATFORM_KEY(KEY)].released
 
-static struct vdb_globals
-{
-    int viewport_x;
-    int viewport_y;
-    int viewport_w;
-    int viewport_h;
-
-    int window_x;
-    int window_y;
-    int window_w;
-    int window_h;
-
-    float pvm[16];
-
-    int map_index;
-    int map_closest_index;
-    int map_prev_closest_index;
-    float map_closest_distance;
-    float map_closest_x;
-    float map_closest_y;
-    float map_closest_z;
-
-    int note_index;
-
-    so_input_mouse mouse;
-    so_input input;
-
-    bool step_once;
-    bool step_over;
-    bool step_skip;
-    bool break_loop;
-    bool abort;
-} vdb__globals;
-
-#if 0
 struct vdb_mat4
 {
     union
@@ -190,7 +155,10 @@ struct vdb_mat4
     };
 };
 
-struct vdb_vec4 { float v1, v2, v3, v4; };
+struct vdb_vec4
+{
+    float x, y, z, w;
+};
 
 vdb_mat4 vdb_mul4x4(vdb_mat4 a, vdb_mat4 b)
 {
@@ -217,34 +185,64 @@ vdb_mat4 vdb_mul4x4(vdb_mat4 a, vdb_mat4 b)
 vdb_vec4 vdb_mul4x1(vdb_mat4 a, vdb_vec4 b)
 {
     vdb_vec4 c = {0};
-    c.v1 = b.v1*a.columns.a1.v1 + b.v2*a.columns.a2.v1 + b.v3*a.columns.a3.v1 + b.v4*a.columns.a4.v1;
-    c.v2 = b.v1*a.columns.a1.v2 + b.v2*a.columns.a2.v2 + b.v3*a.columns.a3.v2 + b.v4*a.columns.a4.v2;
-    c.v3 = b.v1*a.columns.a1.v3 + b.v2*a.columns.a2.v3 + b.v3*a.columns.a3.v3 + b.v4*a.columns.a4.v3;
-    c.v4 = b.v1*a.columns.a1.v4 + b.v2*a.columns.a2.v4 + b.v3*a.columns.a3.v4 + b.v4*a.columns.a4.v4;
+    c.x = b.x*a.columns.a1.v1 + b.y*a.columns.a2.v1 + b.z*a.columns.a3.v1 + b.w*a.columns.a4.v1;
+    c.y = b.x*a.columns.a1.v2 + b.y*a.columns.a2.v2 + b.z*a.columns.a3.v2 + b.w*a.columns.a4.v2;
+    c.z = b.x*a.columns.a1.v3 + b.y*a.columns.a2.v3 + b.z*a.columns.a3.v3 + b.w*a.columns.a4.v3;
+    c.w = b.x*a.columns.a1.v4 + b.y*a.columns.a2.v4 + b.z*a.columns.a3.v4 + b.w*a.columns.a4.v4;
     return c;
 }
-#endif
 
-#define vdb_mat1i(rows, cols, r, c) (r + c*rows)
-
-void vdb_movMatrix(float *src, int n, float *dst)
+vdb_mat4 vdb_mat_identity()
 {
-    for (int i = 0; i < n; i++) dst[i] = src[i];
+    vdb_mat4 result = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    return result;
 }
 
-void vdb_mulMatrix(float *a, int rows_a, int cols_a,
-                   float *b, int rows_b, int cols_b,
-                   float *result)
+vdb_mat4 vdb_mat_rot_z(float t)
 {
-    for (int r = 0; r < rows_a; r++)
-    for (int c = 0; c < cols_b; c++)
-    {
-        float sum = 0.0f;
-        for (int i = 0; i < cols_a; i++)
-            sum += a[vdb_mat1i(rows_a, cols_a, r, i)]*b[vdb_mat1i(rows_b, cols_b, i, c)];
-        result[vdb_mat1i(rows_a, cols_b, r, c)] = sum;
-    }
+    vdb_mat4 result = { cosf(t),sinf(t),0,0, -sinf(t),cosf(t),0,0, 0,0,1,0, 0,0,0,1 };
+    return result;
 }
+
+vdb_mat4 vdb_mat_rot_x(float t)
+{
+    vdb_mat4 result = { 1,0,0,0, 0,cosf(t),sinf(t),0, 0,-sinf(t),cosf(t),0, 0,0,0,1 };
+    return result;
+}
+
+static struct vdb_globals
+{
+    int viewport_x;
+    int viewport_y;
+    int viewport_w;
+    int viewport_h;
+
+    int window_x;
+    int window_y;
+    int window_w;
+    int window_h;
+
+    vdb_mat4 pvm;
+
+    int map_index;
+    int map_closest_index;
+    int map_prev_closest_index;
+    float map_closest_distance;
+    float map_closest_x;
+    float map_closest_y;
+    float map_closest_z;
+
+    int note_index;
+
+    so_input_mouse mouse;
+    so_input input;
+
+    bool step_once;
+    bool step_over;
+    bool step_skip;
+    bool break_loop;
+    bool abort;
+} vdb__globals;
 
 void vdbViewport(int x, int y, int w, int h)
 {
@@ -283,11 +281,10 @@ void vdbWindowToNDC(float x, float y, float *nx, float *ny)
 
 void vdbModelToNDC(float x, float y, float z, float w, float *x_ndc, float *y_ndc)
 {
-    float model[4] = { x, y, z, w };
-    float clip[4];
-    vdb_mulMatrix(vdb__globals.pvm, 4, 4, model, 4, 1, clip);
-    *x_ndc = clip[0] / clip[3];
-    *y_ndc = clip[1] / clip[3];
+    vdb_vec4 model = { x, y, z, w };
+    vdb_vec4 clip = vdb_mul4x1(vdb__globals.pvm, model);
+    *x_ndc = clip.x / clip.w;
+    *y_ndc = clip.y / clip.w;
 }
 
 void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y_win)
@@ -297,21 +294,13 @@ void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y
     vdbNDCToWindow(x_ndc, y_ndc, x_win, y_win);
 }
 
-void vdbPVM(float *projection, float *view, float *model)
+void vdbPVM(vdb_mat4 projection, vdb_mat4 view, vdb_mat4 model)
 {
-    {
-        float pv[16];
-        vdb_mulMatrix(projection, 4, 4, view, 4, 4, pv);
-        vdb_mulMatrix(pv, 4, 4, model, 4, 4, vdb__globals.pvm);
-    }
+    vdb__globals.pvm = vdb_mul4x4(vdb_mul4x4(projection, view), model);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glLoadMatrixf(vdb__globals.pvm);
+    glLoadMatrixf(vdb__globals.pvm.data);
 }
-
-#define vdb_4x4_identity() { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
-#define vdb_3x3_rot_z(t) { cosf(t),sinf(t),0, -sinf(t),cosf(t),0, 0,0,1 }
-#define vdb_3x3_rot_x(t) { 1,0,0, 0,cosf(t),sinf(t), 0,-sinf(t),cosf(t) }
 
 void vdbOrtho(float left, float right, float bottom, float top)
 {
@@ -319,14 +308,13 @@ void vdbOrtho(float left, float right, float bottom, float top)
     float ay = 2.0f/(top-bottom);
     float bx = (left+right)/(left-right);
     float by = (bottom+top)/(bottom-top);
-    float projection[16] = {
+    vdb_mat4 projection = {
         ax, 0, 0, 0,
         0, ay, 0, 0,
         0, 0, 0, 0,
         bx, by, 0, 1
     };
-    float identity[16] = vdb_4x4_identity();
-    vdbPVM(projection, identity, identity);
+    vdbPVM(projection, vdb_mat_identity(), vdb_mat_identity());
 }
 
 void vdbSphereCamera(float htheta,
@@ -339,34 +327,32 @@ void vdbSphereCamera(float htheta,
                      float zn,
                      float zf)
 {
-    float model[16] = vdb_4x4_identity();
-    float view[16] = vdb_4x4_identity();
+    vdb_mat4 model = vdb_mat_identity();
+    vdb_mat4 view = vdb_mat_identity();
     {
-        float rz[9] = vdb_3x3_rot_z(-htheta);
-        float rx[9] = vdb_3x3_rot_x(-vtheta);
-        float R[9]; vdb_mulMatrix(rx, 3, 3, rz, 3, 3, R);
+        vdb_mat4 rz = vdb_mat_rot_z(-htheta);
+        vdb_mat4 rx = vdb_mat_rot_x(-vtheta);
+        vdb_mat4 r = vdb_mul4x4(rx, rz);
 
-        float xyz[3] = { -focus_x, -focus_y, -focus_z };
-        float T[3]; vdb_mulMatrix(R, 3, 3, xyz, 3, 1, T);
+        vdb_vec4 f = { -focus_x, -focus_y, -focus_z, 1.0f };
+        vdb_vec4 t = vdb_mul4x1(r, f);
+        t.z -= radius;
 
-        T[2] -= radius;
-        for (int r = 0; r < 3; r++)
-        {
-            view[vdb_mat1i(4,4,r,3)] = T[r];
-            for (int c = 0; c < 3; c++)
-                view[vdb_mat1i(4,4,r,c)] = R[vdb_mat1i(3,3,r,c)];
-        }
+        view = r;
+        view.columns.a4.v1 += t.x;
+        view.columns.a4.v2 += t.y;
+        view.columns.a4.v3 += t.z;
     }
 
-    float projection[16] = {0};
+    vdb_mat4 projection = {0};
     {
         float a = vdb__globals.window_w / (float)vdb__globals.window_h;
         float t = 1.0f/tanf(fov/2.0f);
-        projection[vdb_mat1i(4,4,0,0)] = t/a;
-        projection[vdb_mat1i(4,4,1,1)] = t;
-        projection[vdb_mat1i(4,4,2,2)] = (zn+zf)/(zn-zf);
-        projection[vdb_mat1i(4,4,3,2)] = -1.0f;
-        projection[vdb_mat1i(4,4,2,3)] = 2.0f*zn*zf/(zn-zf);
+        projection.columns.a1.v1 = t/a;
+        projection.columns.a2.v2 = t;
+        projection.columns.a3.v3 = (zn+zf)/(zn-zf);
+        projection.columns.a3.v4 = -1.0f;
+        projection.columns.a4.v3 = 2.0f*zn*zf/(zn-zf);
     }
 
     vdbPVM(projection, view, model);
