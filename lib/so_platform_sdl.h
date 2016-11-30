@@ -447,7 +447,7 @@ void so_imgui_init()
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
-    #ifdef so_PLATFORM_IMGUI_FONT
+    #ifdef SO_PLATFORM_IMGUI_FONT
     io.Fonts->AddFontFromFileTTF(SO_PLATFORM_IMGUI_FONT);
     #endif
     // io.IniFilename = ...

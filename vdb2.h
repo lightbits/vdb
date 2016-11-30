@@ -811,6 +811,9 @@ void vdb_preamble(so_input input)
     so_imgui_processEvents(input);
 
     vdbViewport(0, 0, input.width, input.height);
+
+    glDisable(GL_DEPTH_TEST);
+
     glClearColor(0.16f, 0.16f, 0.11f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
