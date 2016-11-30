@@ -30,19 +30,21 @@
 #include "lib/so_math.h"
 #include "lib/so_noise.h"
 
+
 // VIEWPORT MANIPULATION
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
 void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
-void vdbView(mat4 projection, mat4 view, mat4 model); // Define a generic homogeneous transformation applied to all geometry
-void vdbOrtho(float left, float right, float bottom, float top); // Map x coordinates from [left, right] and y coordinates from [bottom, top] to corresponding edges of the viewport
-void vdbView3D(mat4 view, mat4 model=m_id4(), float fov=SO_PI/4.0f, float z_near = 0.01f, float z_far = 20.0f); // Shorthand for a pinhole perspective projection with your own view
-void vdbView3DOrtho(mat4 view, mat4 model=m_id4(), float h=1.0f, float z_near = 0.01f, float z_far = 20.0f); // Shorthand for an orthographic projection with your own view
-mat4 vdbCamera3D(so_input input, vec3 focus = m_vec3(0.0f, 0.0f, 0.0f)); // Returns a user-controlled camera view matrix that can be inserted in vdbView
+void vdbOrtho(float left, float right, float bottom, float top); // Map coordinates [x=left,x=right],[y=bottom,y=top] to corresponding edges of the viewport
+void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
+void vdbFreeSphereCamera(float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
+
 
 // REALLY USEFUL STUFF
 void vdbNote(float x, float y, const char* fmt, ...); // Like printf but displays the text at (x,y) in the current view
 
-// MAPPING can be used to select elements using the mouse and conditionally
+
+// MAPPING
+//   Can be used to select elements using the mouse and conditionally
 //   execute code if an element is hovered over. Typical usage is in a for
 //   loop drawing a bunch of stuff to the screen, and you want to display
 //   information about a specific element, for example, highlighting it
@@ -61,11 +63,18 @@ void vdbNote(float x, float y, const char* fmt, ...); // Like printf but display
 bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f); // Returns true if element was hovered over in _previous_ frame
 void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0); // Optionally returns the index of the hovered element, and the coordinates you specified when calling vdbMap
 
+
 // VIEWPORT CONVERSIONS
+//   NDC (Normalized Device Coordinates) is a space that maps [x=-1,x=+1] to
+//   the left and right edges of the viewport, and [y=-1,y=+1] to the bottom
+//   and top edges of the viewport. Window coordinates maps x=0 to left, and
+//   x=width-1 to right, and y=0 to top and y=height-1 to bottom. The model
+//   coordinates are the space that your coordinates in glVertex calls are in.
 void vdbNDCToWindow(float x, float y, float *wx, float *wy);
 void vdbWindowToNDC(float x, float y, float *nx, float *ny);
 void vdbModelToNDC(float x, float y, float z, float w, float *x_ndc, float *y_ndc);
 void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y_win);
+
 
 // DRAWING STUFF
 void vdbClear(float r, float g, float b, float a);
@@ -75,40 +84,38 @@ void vdbDrawCircle(float x, float y, float r, int n = 16);
 void vdbDrawRect(float x, float y, float w, float h);
 void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps);
 
+
 // COLORS
-vec4 vdbPalette4i(int i, float a = 1.0f);
-void vdbColorRamp(float t);
+struct vdb_color { float r, g, b, a; };
+vdb_color vdbPalette(int i, float a=1.0f);
+vdb_color vdbColorRamp(float t, float a=1.0f);
+void glColor3f(vdb_color c);
+void glColor4f(vdb_color c);
+void glClearColor(vdb_color c);
+void vdbClear(vdb_color c);
+
 
 // SHORTHAND FUNCTIONS
 void glPoints(float size); // -> glPointSize(size); glBegin(GL_POINTS);
 void glLines(float width); // -> glLineWidth(width); glBegin(GL_LINES);
-void glVertex(vec2 p);     // -> glVertex2f(p.x, p.y);
-void glVertex(vec3 p);     // -> glVertex3f(p.x, p.y, p.z);
-void glTexCoord(vec2 p);   // -> glTexCoord2f(p.x, p.y);
-void glClearColor(vec4 c); // -> glClearColor(c.x, c.y, c.z, c.w);
-void glColor4f(vec4 c);    // -> glColor4f(c.x, c.y, c.z, c.w);
-void vdbClear(vec4 c);     // -> vdbClear(c.x, c.y, c.z, c.w);
+void vdbAdditiveBlend();   // -> glEnable(GL_BLEND); glBlendFunc(GL_ONE, GL_ONE);
+void vdbAlphaBlend();      // -> glEnable(GL_BLEND); glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+void vdbNoBlend();         // -> glDisable(GL_GLEND);
 
-// BLEND MODES
-void vdbAdditiveBlend();
-void vdbAlphaBlend();
-void vdbNoBlend();
 
-// 2D TEXTURES can be assigned to a 'slot' which can then be bound to render it.
+// TEXTURES
+//   Can be assigned to a 'slot' which can then be bound to render it on meshes.
 //   OpenGL supports many texture formats aside from unsigned 8 bit values, for example,
 //   32bit float or 32bit int, as well as anywhere from one to four components (RGBA).
-//
-// EXAMPLE: Upload a RGB 8bit texture
+// EXAMPLE
 //   unsigned char data[128*128*3];
 //   vdbSetTexture2D(0, data, 128, 128, GL_RGB, GL_UNSIGNED_BYTE);
 //   vdbDrawTexture2D(0);
-//
-// EXAMPLE: Various data_format and data_type pairs
+// EXAMPLE
 //                           data_format   data_type
 //   Grayscale 32 bit float: GL_LUMINANCE  GL_FLOAT
 //   RGB       32 bit float: GL_RGB        GL_FLOAT
 //   RGB        8 bit  char: GL_RGB        GL_UNSIGNED_BYTE
-
 void vdbSetTexture2D(
     int slot,
     void *data,
@@ -122,7 +129,8 @@ void vdbSetTexture2D(
     GLenum wrap_t = GL_CLAMP_TO_EDGE,
     GLenum internal_format = GL_RGBA);
 void vdbBindTexture2D(int slot);
-void vdbDrawTexture2D(int slot);
+void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
+
 
 // IMPLEMENTATION
 #define vdb_assert SDL_assert
@@ -144,7 +152,7 @@ static struct vdb_globals
     int window_w;
     int window_h;
 
-    mat4 pvm;
+    float pvm[16];
 
     int map_index;
     int map_closest_index;
@@ -157,6 +165,7 @@ static struct vdb_globals
     int note_index;
 
     so_input_mouse mouse;
+    so_input input;
 
     bool step_once;
     bool step_over;
@@ -164,6 +173,78 @@ static struct vdb_globals
     bool break_loop;
     bool abort;
 } vdb__globals;
+
+#if 0
+struct vdb_mat4
+{
+    union
+    {
+        float data[16];
+        struct
+        {
+            struct column
+            {
+                float v1, v2, v3, v4;
+            } a1, a2, a3, a4;
+        } columns;
+    };
+};
+
+struct vdb_vec4 { float v1, v2, v3, v4; };
+
+vdb_mat4 vdb_mul4x4(vdb_mat4 a, vdb_mat4 b)
+{
+    vdb_mat4 c = {0};
+    c.columns.a1.v1 = a.columns.a1.v1*b.columns.a1.v1 + a.columns.a2.v1*b.columns.a1.v2 + a.columns.a3.v1*b.columns.a1.v3 + a.columns.a4.v1*b.columns.a1.v4;
+    c.columns.a2.v1 = a.columns.a1.v1*b.columns.a2.v1 + a.columns.a2.v1*b.columns.a2.v2 + a.columns.a3.v1*b.columns.a2.v3 + a.columns.a4.v1*b.columns.a2.v4;
+    c.columns.a3.v1 = a.columns.a1.v1*b.columns.a3.v1 + a.columns.a2.v1*b.columns.a3.v2 + a.columns.a3.v1*b.columns.a3.v3 + a.columns.a4.v1*b.columns.a3.v4;
+    c.columns.a4.v1 = a.columns.a1.v1*b.columns.a4.v1 + a.columns.a2.v1*b.columns.a4.v2 + a.columns.a3.v1*b.columns.a4.v3 + a.columns.a4.v1*b.columns.a4.v4;
+    c.columns.a1.v2 = a.columns.a1.v2*b.columns.a1.v1 + a.columns.a2.v2*b.columns.a1.v2 + a.columns.a3.v2*b.columns.a1.v3 + a.columns.a4.v2*b.columns.a1.v4;
+    c.columns.a2.v2 = a.columns.a1.v2*b.columns.a2.v1 + a.columns.a2.v2*b.columns.a2.v2 + a.columns.a3.v2*b.columns.a2.v3 + a.columns.a4.v2*b.columns.a2.v4;
+    c.columns.a3.v2 = a.columns.a1.v2*b.columns.a3.v1 + a.columns.a2.v2*b.columns.a3.v2 + a.columns.a3.v2*b.columns.a3.v3 + a.columns.a4.v2*b.columns.a3.v4;
+    c.columns.a4.v2 = a.columns.a1.v2*b.columns.a4.v1 + a.columns.a2.v2*b.columns.a4.v2 + a.columns.a3.v2*b.columns.a4.v3 + a.columns.a4.v2*b.columns.a4.v4;
+    c.columns.a1.v3 = a.columns.a1.v3*b.columns.a1.v1 + a.columns.a2.v3*b.columns.a1.v2 + a.columns.a3.v3*b.columns.a1.v3 + a.columns.a4.v3*b.columns.a1.v4;
+    c.columns.a2.v3 = a.columns.a1.v3*b.columns.a2.v1 + a.columns.a2.v3*b.columns.a2.v2 + a.columns.a3.v3*b.columns.a2.v3 + a.columns.a4.v3*b.columns.a2.v4;
+    c.columns.a3.v3 = a.columns.a1.v3*b.columns.a3.v1 + a.columns.a2.v3*b.columns.a3.v2 + a.columns.a3.v3*b.columns.a3.v3 + a.columns.a4.v3*b.columns.a3.v4;
+    c.columns.a4.v3 = a.columns.a1.v3*b.columns.a4.v1 + a.columns.a2.v3*b.columns.a4.v2 + a.columns.a3.v3*b.columns.a4.v3 + a.columns.a4.v3*b.columns.a4.v4;
+    c.columns.a1.v4 = a.columns.a1.v4*b.columns.a1.v1 + a.columns.a2.v4*b.columns.a1.v2 + a.columns.a3.v4*b.columns.a1.v3 + a.columns.a4.v4*b.columns.a1.v4;
+    c.columns.a2.v4 = a.columns.a1.v4*b.columns.a2.v1 + a.columns.a2.v4*b.columns.a2.v2 + a.columns.a3.v4*b.columns.a2.v3 + a.columns.a4.v4*b.columns.a2.v4;
+    c.columns.a3.v4 = a.columns.a1.v4*b.columns.a3.v1 + a.columns.a2.v4*b.columns.a3.v2 + a.columns.a3.v4*b.columns.a3.v3 + a.columns.a4.v4*b.columns.a3.v4;
+    c.columns.a4.v4 = a.columns.a1.v4*b.columns.a4.v1 + a.columns.a2.v4*b.columns.a4.v2 + a.columns.a3.v4*b.columns.a4.v3 + a.columns.a4.v4*b.columns.a4.v4;
+    return c;
+}
+
+vdb_vec4 vdb_mul4x1(vdb_mat4 a, vdb_vec4 b)
+{
+    vdb_vec4 c = {0};
+    c.v1 = b.v1*a.columns.a1.v1 + b.v2*a.columns.a2.v1 + b.v3*a.columns.a3.v1 + b.v4*a.columns.a4.v1;
+    c.v2 = b.v1*a.columns.a1.v2 + b.v2*a.columns.a2.v2 + b.v3*a.columns.a3.v2 + b.v4*a.columns.a4.v2;
+    c.v3 = b.v1*a.columns.a1.v3 + b.v2*a.columns.a2.v3 + b.v3*a.columns.a3.v3 + b.v4*a.columns.a4.v3;
+    c.v4 = b.v1*a.columns.a1.v4 + b.v2*a.columns.a2.v4 + b.v3*a.columns.a3.v4 + b.v4*a.columns.a4.v4;
+    return c;
+}
+#endif
+
+#define vdb_mat1i(rows, cols, r, c) (r + c*rows)
+
+void vdb_movMatrix(float *src, int n, float *dst)
+{
+    for (int i = 0; i < n; i++) dst[i] = src[i];
+}
+
+void vdb_mulMatrix(float *a, int rows_a, int cols_a,
+                   float *b, int rows_b, int cols_b,
+                   float *result)
+{
+    for (int r = 0; r < rows_a; r++)
+    for (int c = 0; c < cols_b; c++)
+    {
+        float sum = 0.0f;
+        for (int i = 0; i < cols_a; i++)
+            sum += a[vdb_mat1i(rows_a, cols_a, r, i)]*b[vdb_mat1i(rows_b, cols_b, i, c)];
+        result[vdb_mat1i(rows_a, cols_b, r, c)] = sum;
+    }
+}
 
 void vdbViewport(int x, int y, int w, int h)
 {
@@ -202,10 +283,11 @@ void vdbWindowToNDC(float x, float y, float *nx, float *ny)
 
 void vdbModelToNDC(float x, float y, float z, float w, float *x_ndc, float *y_ndc)
 {
-    vec4 model = { x, y, z, w };
-    vec4 clip = vdb__globals.pvm * model;
-    *x_ndc = clip.x / clip.w;
-    *y_ndc = clip.y / clip.w;
+    float model[4] = { x, y, z, w };
+    float clip[4];
+    vdb_mulMatrix(vdb__globals.pvm, 4, 4, model, 4, 1, clip);
+    *x_ndc = clip[0] / clip[3];
+    *y_ndc = clip[1] / clip[3];
 }
 
 void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y_win)
@@ -215,14 +297,21 @@ void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y
     vdbNDCToWindow(x_ndc, y_ndc, x_win, y_win);
 }
 
-void vdbView(mat4 projection, mat4 view, mat4 model)
+void vdbPVM(float *projection, float *view, float *model)
 {
-    mat4 pvm = projection * view * model;
-    vdb__globals.pvm = pvm;
+    {
+        float pv[16];
+        vdb_mulMatrix(projection, 4, 4, view, 4, 4, pv);
+        vdb_mulMatrix(pv, 4, 4, model, 4, 4, vdb__globals.pvm);
+    }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glLoadMatrixf(pvm.data);
+    glLoadMatrixf(vdb__globals.pvm);
 }
+
+#define vdb_4x4_identity() { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 }
+#define vdb_3x3_rot_z(t) { cosf(t),sinf(t),0, -sinf(t),cosf(t),0, 0,0,1 }
+#define vdb_3x3_rot_x(t) { 1,0,0, 0,cosf(t),sinf(t), 0,-sinf(t),cosf(t) }
 
 void vdbOrtho(float left, float right, float bottom, float top)
 {
@@ -230,38 +319,72 @@ void vdbOrtho(float left, float right, float bottom, float top)
     float ay = 2.0f/(top-bottom);
     float bx = (left+right)/(left-right);
     float by = (bottom+top)/(bottom-top);
-    mat4 projection = {
-        ax, 0.0f, 0.0f, 0.0f,
-        0.0f, ay, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 0.0f,
-        bx, by, 0.0f, 1.0f
+    float projection[16] = {
+        ax, 0, 0, 0,
+        0, ay, 0, 0,
+        0, 0, 0, 0,
+        bx, by, 0, 1
     };
-    mat4 view = m_id4();
-    mat4 model = m_id4();
-    vdbView(projection, view, model);
+    float identity[16] = vdb_4x4_identity();
+    vdbPVM(projection, identity, identity);
 }
 
-void vdbView3D(mat4 view, mat4 model, float fov, float z_near, float z_far)
+void vdbSphereCamera(float htheta,
+                     float vtheta,
+                     float radius,
+                     float focus_x,
+                     float focus_y,
+                     float focus_z,
+                     float fov,
+                     float zn,
+                     float zf)
 {
-    mat4 projection = mat_perspective(fov, vdb__globals.window_w, vdb__globals.window_h, z_near, z_far);
-    vdbView(projection, view, model);
+    float model[16] = vdb_4x4_identity();
+    float view[16] = vdb_4x4_identity();
+    {
+        float rz[9] = vdb_3x3_rot_z(-htheta);
+        float rx[9] = vdb_3x3_rot_x(-vtheta);
+        float R[9]; vdb_mulMatrix(rx, 3, 3, rz, 3, 3, R);
+
+        float xyz[3] = { -focus_x, -focus_y, -focus_z };
+        float T[3]; vdb_mulMatrix(R, 3, 3, xyz, 3, 1, T);
+
+        T[2] -= radius;
+        for (int r = 0; r < 3; r++)
+        {
+            view[vdb_mat1i(4,4,r,3)] = T[r];
+            for (int c = 0; c < 3; c++)
+                view[vdb_mat1i(4,4,r,c)] = R[vdb_mat1i(3,3,r,c)];
+        }
+    }
+
+    float projection[16] = {0};
+    {
+        float a = vdb__globals.window_w / (float)vdb__globals.window_h;
+        float t = 1.0f/tanf(fov/2.0f);
+        projection[vdb_mat1i(4,4,0,0)] = t/a;
+        projection[vdb_mat1i(4,4,1,1)] = t;
+        projection[vdb_mat1i(4,4,2,2)] = (zn+zf)/(zn-zf);
+        projection[vdb_mat1i(4,4,3,2)] = -1.0f;
+        projection[vdb_mat1i(4,4,2,3)] = 2.0f*zn*zf/(zn-zf);
+    }
+
+    vdbPVM(projection, view, model);
 }
 
-void vdbView3DOrtho(mat4 view, mat4 model, float h, float z_near, float z_far)
+void vdbFreeSphereCamera(float fov, float zn, float zf)
 {
-    float w = h*vdb__globals.window_w/vdb__globals.window_h;
-    mat4 projection = mat_ortho_depth(-w/2.0f, +w/2.0f, -h/2.0f, +h/2.0f, z_near, z_far);
-    vdbView(projection, view, model);
-}
-
-mat4 vdbCamera3D(so_input input, vec3 focus)
-{
+    so_input input = vdb__globals.input;
     static float radius = 1.0f;
     static float htheta = 0.0f;
     static float vtheta = 0.3f;
     static float Rradius = radius;
     static float Rhtheta = htheta;
     static float Rvtheta = vtheta;
+
+    static float focus_x = 0.0f;
+    static float focus_y = 0.0f;
+    static float focus_z = 0.0f;
 
     float dt = input.dt;
     if (vdbKeyDown(LSHIFT))
@@ -299,11 +422,25 @@ mat4 vdbCamera3D(so_input input, vec3 focus)
     htheta += 10.0f * (Rhtheta - htheta) * dt;
     vtheta += 10.0f * (Rvtheta - vtheta) * dt;
 
-    mat3 R = m_mat3(mat_rotate_z(htheta)*mat_rotate_x(vtheta));
-    vec3 p = focus + R.a3 * radius;
-    mat4 c_to_w = m_se3(R, p);
-    return m_se3_inverse(c_to_w);
+    vdbSphereCamera(htheta, vtheta, radius, focus_x, focus_y, focus_z, fov, zn, zf);
 }
+
+// void vdbView3DOrtho(mat4 view, mat4 model, float h, float z_near, float z_far)
+// {
+//     float projection[16];
+//     projection[vdb_mat1i(4,4,0,0)] =
+//     result.a1.x = 2.0f / (right - left);
+//     result.a2.y = 2.0f / (top - bottom);
+//     result.a3.z = 2.0f / (zn - zf);
+//     result.a4.x = (right + left) / (left - right);
+//     result.a4.y = (top + bottom) / (bottom - top);
+//     result.a4.z = (zf + zn) / (zn - zf);
+//     result.a4.w = 1.0f;
+
+//     float w = h*vdb__globals.window_w/vdb__globals.window_h;
+//     mat4 projection = mat_ortho_depth(-w/2.0f, +w/2.0f, -h/2.0f, +h/2.0f, z_near, z_far);
+//     vdbView(projection, view, model);
+// }
 
 void vdbNote(float x, float y, const char* fmt, ...)
 {
@@ -427,24 +564,27 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
     }
 }
 
-vec4 vdbPalette4i(int i, float a)
+static vdb_color vdb_builtin_palette[] =
 {
-    float c[][3] = {
-        { 0.40, 0.76, 0.64 },
-        { 0.99, 0.55, 0.38 },
-        { 0.54, 0.63, 0.82 },
-        { 0.91, 0.54, 0.77 },
-        { 0.64, 0.86, 0.29 },
-        { 1.00, 0.85, 0.19 },
-        { 0.89, 0.77, 0.58 },
-        { 0.70, 0.70, 0.70 },
-    };
-    i = i % 8;
-    vec4 result = { c[i][0], c[i][1], c[i][2], a };
-    return result;
+    { 0.40, 0.76, 0.64, 1.0f },
+    { 0.99, 0.55, 0.38, 1.0f },
+    { 0.54, 0.63, 0.82, 1.0f },
+    { 0.91, 0.54, 0.77, 1.0f },
+    { 0.64, 0.86, 0.29, 1.0f },
+    { 1.00, 0.85, 0.19, 1.0f },
+    { 0.89, 0.77, 0.58, 1.0f },
+    { 0.70, 0.70, 0.70, 1.0f }
+};
+
+vdb_color vdbPalette(int i, float a)
+{
+    i = i % vdb_countof(vdb_builtin_palette);
+    vdb_color c = vdb_builtin_palette[i];
+    c.a = a;
+    return c;
 }
 
-void vdbColorRamp(float t)
+vdb_color vdbColorRamp(float t, float a)
 {
     float A1 = 0.54f;
     float A2 = 0.55f;
@@ -464,19 +604,19 @@ void vdbColorRamp(float t)
     float r = A1 + B1 * sinf(tp * (C1 * t + D1));
     float g = A2 + B2 * sinf(tp * (C2 * t + D2));
     float b = A3 + B3 * sinf(tp * (C3 * t + D3));
-    glColor4f(r, g, b, 1.0f);
+    vdb_color result = { r, g, b, a };
+    return result;
 }
+
+void glColor3f(vdb_color c) { glColor3f(c.r, c.g, c.b); }
+void glColor4f(vdb_color c) { glColor4f(c.r, c.g, c.b, c.a); }
+void glClearColor(vdb_color c) { glClearColor(c.r, c.g, c.b, c.a); }
+void vdbClear(vdb_color c) { vdbClear(c.r, c.g, c.b, c.a); }
 
 #define vdbSliderFloat(name, val0, val1) static float name = ((val0)+(val1))*0.5f; SliderFloat(#name, &name, val0, val1);
 #define vdbSliderInt(name, val0, val1) static int name = val0; SliderInt(#name, &name, val0, val1);
 void glPoints(float size) { glPointSize(size); glBegin(GL_POINTS); }
 void glLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
-void glVertex(vec2 p) { glVertex2f(p.x, p.y); }
-void glVertex(vec3 p) { glVertex3f(p.x, p.y, p.z); }
-void glTexCoord(vec2 p) { glTexCoord2f(p.x, p.y); }
-void glClearColor(vec4 c) { glClearColor(c.x, c.y, c.z, c.w); }
-void glColor4f(vec4 c) { glColor4f(c.x, c.y, c.z, c.w); }
-void vdbClear(vec4 c) { vdbClear(c.x, c.y, c.z, c.w); }
 
 GLuint vdbTexImage2D(
     void *data,
@@ -674,6 +814,7 @@ void vdb_preamble(so_input input)
     vdb__globals.window_w = input.width;
     vdb__globals.window_h = input.height;
     vdb__globals.mouse = input.mouse;
+    vdb__globals.input = input;
     vdb__globals.note_index = 0;
 
     so_imgui_processEvents(input);

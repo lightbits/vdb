@@ -111,8 +111,7 @@ int main(int, char **)
 
     VDBB("Full bananacakes");
     {
-        vdbView(mat_perspective(SO_PI/4.0f, vdb_input.width, vdb_input.height, 0.01f, 10.0f),
-                vdbCamera3D(vdb_input), m_id4());
+        vdbFreeSphereCamera(3.1415f/4.0f, 0.01f, 100.0f);
         glBegin(GL_TRIANGLES);
         {
             int nx = (int)(vdb_input.width/64.0f);

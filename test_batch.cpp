@@ -65,33 +65,45 @@ int main(int, char **)
 {
     VDBB("");
     {
-        vdbClear(vdbPalette4i(0));
+        Text("%d", vdb_countof(vdb_builtin_palette));
 
-        vdbOrtho(0.0f, 4.0f, 0.0f, 4.0f);
-        for (int y = 0; y < 4; y++)
-        for (int x = 0; x < 4; x++)
-        {
-            float u = x+0.5f;
-            float v = y+0.5f;
-            vdbColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            vdbPoint2f(u, v, 8.0f);
+        vdbClear(vdbPalette(1));
 
-            if (vdbMap(u, v))
-            {
-                vdbColor4f(1.0f, 1.0f, 0.1f, 1.0f);
-                vdbPoint2f(u, v, 16.0f);
+        // vdbSphereCamera(0, 0, 0);
+        // vdbSphereCameraOrtho(0, 0, 0);
 
-                vdbColor4f(0.2f, 0.4f, 1.0f, 1.0f);
-                vdbLine2f(u, v, u+0.2f, v);
-                vdbLine2f(u, v, u, v+0.2f);
-                vdbLine2f(u, v, u-0.2f, v);
-                vdbLine2f(u, v, u, v-0.2f);
+        vdbFreeSphereCamera();
 
-                SetTooltip("%d %d", x, y);
-            }
-        }
+        glLines(4.0f);
+        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        vdbGridXY(-1.0f, +1.0f, -1.0f, +1.0f, 16);
+        glEnd();
 
-        sob_draw();
+        // vdbOrtho(0.0f, 4.0f, 0.0f, 4.0f);
+        // for (int y = 0; y < 4; y++)
+        // for (int x = 0; x < 4; x++)
+        // {
+        //     float u = x+0.5f;
+        //     float v = y+0.5f;
+        //     vdbColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        //     vdbPoint2f(u, v, 8.0f);
+
+        //     if (vdbMap(u, v))
+        //     {
+        //         vdbColor4f(1.0f, 1.0f, 0.1f, 1.0f);
+        //         vdbPoint2f(u, v, 16.0f);
+
+        //         vdbColor4f(0.2f, 0.4f, 1.0f, 1.0f);
+        //         vdbLine2f(u, v, u+0.2f, v);
+        //         vdbLine2f(u, v, u, v+0.2f);
+        //         vdbLine2f(u, v, u-0.2f, v);
+        //         vdbLine2f(u, v, u, v-0.2f);
+
+        //         SetTooltip("%d %d", x, y);
+        //     }
+        // }
+
+        // sob_draw();
     }
     VDBE();
 
