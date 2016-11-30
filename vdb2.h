@@ -317,45 +317,67 @@ void vdbOrtho(float left, float right, float bottom, float top)
     vdbPVM(projection, vdb_mat_identity(), vdb_mat_identity());
 }
 
+vdb_mat4 vdb_mat_perspective(float vfov, float aspect, float zn, float zf)
+{
+    vdb_mat4 projection = {0};
+    float t = 1.0f/tanf(vfov/2.0f);
+    projection.columns.a1.v1 = t/aspect;
+    projection.columns.a2.v2 = t;
+    projection.columns.a3.v3 = (zn+zf)/(zn-zf);
+    projection.columns.a3.v4 = -1.0f;
+    projection.columns.a4.v3 = 2.0f*zn*zf/(zn-zf);
+    return projection;
+}
+
+vdb_mat4 vdb_mat_sphere(float x, float y, float z, float htheta, float vtheta, float radius)
+{
+    vdb_mat4 rz = vdb_mat_rot_z(-htheta);
+    vdb_mat4 rx = vdb_mat_rot_x(-vtheta);
+    vdb_mat4 r = vdb_mul4x4(rx, rz);
+
+    vdb_vec4 f = { -x, -y, -z, 1.0f };
+    vdb_vec4 t = vdb_mul4x1(r, f);
+    t.z -= radius;
+
+    vdb_mat4 view = r;
+    view.columns.a4.v1 += t.x;
+    view.columns.a4.v2 += t.y;
+    view.columns.a4.v3 += t.z;
+    return view;
+}
+
+// void vdbView3DOrtho(mat4 view, mat4 model, float h, float z_near, float z_far)
+// {
+//     float projection[16];
+//     projection[vdb_mat1i(4,4,0,0)] =
+//     result.a1.x = 2.0f / (right - left);
+//     result.a2.y = 2.0f / (top - bottom);
+//     result.a3.z = 2.0f / (zn - zf);
+//     result.a4.x = (right + left) / (left - right);
+//     result.a4.y = (top + bottom) / (bottom - top);
+//     result.a4.z = (zf + zn) / (zn - zf);
+//     result.a4.w = 1.0f;
+
+//     float w = h*vdb__globals.window_w/vdb__globals.window_h;
+//     mat4 projection = mat_ortho_depth(-w/2.0f, +w/2.0f, -h/2.0f, +h/2.0f, z_near, z_far);
+//     vdbView(projection, view, model);
+// }
+
 void vdbSphereCamera(float htheta,
                      float vtheta,
                      float radius,
                      float focus_x,
                      float focus_y,
                      float focus_z,
-                     float fov,
+                     float vfov,
                      float zn,
                      float zf)
 {
-    vdb_mat4 model = vdb_mat_identity();
-    vdb_mat4 view = vdb_mat_identity();
-    {
-        vdb_mat4 rz = vdb_mat_rot_z(-htheta);
-        vdb_mat4 rx = vdb_mat_rot_x(-vtheta);
-        vdb_mat4 r = vdb_mul4x4(rx, rz);
-
-        vdb_vec4 f = { -focus_x, -focus_y, -focus_z, 1.0f };
-        vdb_vec4 t = vdb_mul4x1(r, f);
-        t.z -= radius;
-
-        view = r;
-        view.columns.a4.v1 += t.x;
-        view.columns.a4.v2 += t.y;
-        view.columns.a4.v3 += t.z;
-    }
-
-    vdb_mat4 projection = {0};
-    {
-        float a = vdb__globals.window_w / (float)vdb__globals.window_h;
-        float t = 1.0f/tanf(fov/2.0f);
-        projection.columns.a1.v1 = t/a;
-        projection.columns.a2.v2 = t;
-        projection.columns.a3.v3 = (zn+zf)/(zn-zf);
-        projection.columns.a3.v4 = -1.0f;
-        projection.columns.a4.v3 = 2.0f*zn*zf/(zn-zf);
-    }
-
-    vdbPVM(projection, view, model);
+    float aspect = vdb__globals.viewport_w/(float)vdb__globals.viewport_h;
+    vdb_mat4 p = vdb_mat_perspective(vfov, aspect, zn, zf);
+    vdb_mat4 v = vdb_mat_sphere(focus_x, focus_y, focus_z, htheta, vtheta, radius);
+    vdb_mat4 m = vdb_mat_identity();
+    vdbPVM(p, v, m);
 }
 
 void vdbFreeSphereCamera(float fov, float zn, float zf)
@@ -410,23 +432,6 @@ void vdbFreeSphereCamera(float fov, float zn, float zf)
 
     vdbSphereCamera(htheta, vtheta, radius, focus_x, focus_y, focus_z, fov, zn, zf);
 }
-
-// void vdbView3DOrtho(mat4 view, mat4 model, float h, float z_near, float z_far)
-// {
-//     float projection[16];
-//     projection[vdb_mat1i(4,4,0,0)] =
-//     result.a1.x = 2.0f / (right - left);
-//     result.a2.y = 2.0f / (top - bottom);
-//     result.a3.z = 2.0f / (zn - zf);
-//     result.a4.x = (right + left) / (left - right);
-//     result.a4.y = (top + bottom) / (bottom - top);
-//     result.a4.z = (zf + zn) / (zn - zf);
-//     result.a4.w = 1.0f;
-
-//     float w = h*vdb__globals.window_w/vdb__globals.window_h;
-//     mat4 projection = mat_ortho_depth(-w/2.0f, +w/2.0f, -h/2.0f, +h/2.0f, z_near, z_far);
-//     vdbView(projection, view, model);
-// }
 
 void vdbNote(float x, float y, const char* fmt, ...)
 {
