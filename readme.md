@@ -7,7 +7,7 @@ FAQ
 
 #### How do I use this?
 
-test.cpp contains several examples of the functionality, and a note on how to compile the file for Linux and Windows.
+test.cpp contains several examples of the functionality, and a note on how to compile the file for Linux, OSX and Windows.
 
 #### What's the GUI library?
 

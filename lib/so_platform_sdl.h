@@ -450,7 +450,7 @@ void so_imgui_init()
     #ifdef SO_PLATFORM_IMGUI_FONT
     io.Fonts->AddFontFromFileTTF(SO_PLATFORM_IMGUI_FONT);
     #endif
-    // io.IniFilename = ...
+    io.IniFilename = VDB_IMGUI_INI_FILENAME;
 
     // Build texture atlas
     unsigned char* pixels;

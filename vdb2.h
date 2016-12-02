@@ -15,6 +15,9 @@
 #ifndef VDB_SETTINGS_FILENAME
 #define VDB_SETTINGS_FILENAME "./vdb2.ini"
 #endif
+#ifndef VDB_IMGUI_INI_FILENAME
+#define VDB_IMGUI_INI_FILENAME "./imgui.ini"
+#endif
 
 // DEPENDENCIES
 #define SO_PLATFORM_IMPLEMENTATION
@@ -1323,6 +1326,7 @@ void vdb_postamble(so_input input)
 
 #define VDBB(LABEL) { vdb_init(LABEL);                  \
                     so_input vdb_input = {0};           \
+                    bool vdb_first_iteration = true;    \
                     while (true) {                      \
                     if (!so_loopWindow(&vdb_input) ||   \
                         vdb__globals.abort) {           \
@@ -1334,5 +1338,6 @@ void vdb_postamble(so_input input)
                     vdb_preamble(vdb_input);
                     // so_input input = vdb_input;
 
-#define VDBE()      vdb_postamble(vdb_input); } }
+#define VDBE()      vdb_postamble(vdb_input);           \
+                    vdb_first_iteration = false; } }
 
