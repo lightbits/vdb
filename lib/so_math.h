@@ -1,4 +1,4 @@
-// so_math.h - ver 21
+// so_math.h - ver 22
 // + Vector, matrix math.
 // + Linear algebra.
 // + GLSL like functions
@@ -9,6 +9,8 @@
 // + Conversions between SE(3) and se(3)
 //
 // :::::::::::::::::::::::::Changelog::::::::::::::::::::::::::
+//  5/12/16: m_so3_log bounds check on acos
+//
 //  1/10/16: fixed m_ortho
 //
 //  15/9/16: removed undefined types (s32, r32)
@@ -1108,8 +1110,10 @@ mat3 m_so3_exp(vec3 wt)
 // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Log_map_from_SO.283.29_to_so.283.29
 vec3 m_so3_log(mat3 R)
 {
-    float tr = R.a11+R.a22+R.a33;
-    float theta = acos((tr-1.0f)/2.0f);
+    float arg = (R.a11+R.a22+R.a33-1.0f)/2.0f;
+    if (arg < -1.0f) arg = -1.0f;
+    if (arg > +1.0f) arg = +1.0f;
+    float theta = acos(arg);
     if (theta < 0.01f)
     {
         // For small angles
