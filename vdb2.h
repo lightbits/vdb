@@ -85,6 +85,7 @@ void vdbClearViewport(float r, float g, float b, float a);
 void vdbFillCircle(float x, float y, float r, int n = 16);
 void vdbDrawCircle(float x, float y, float r, int n = 16);
 void vdbDrawRect(float x, float y, float w, float h);
+void vdbFillRect(float x, float y, float w, float h);
 void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps);
 
 
@@ -139,9 +140,9 @@ void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
 #define vdb_assert SDL_assert
 #define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
 #define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
-#define vdbKeyDown(KEY) input.keys[SO_PLATFORM_KEY(KEY)].down
-#define vdbKeyPressed(KEY) input.keys[SO_PLATFORM_KEY(KEY)].pressed
-#define vdbKeyReleased(KEY) input.keys[SO_PLATFORM_KEY(KEY)].released
+#define vdbKeyDown(KEY) _vdbKeyDown(SO_PLATFORM_KEY(KEY))
+#define vdbKeyPressed(KEY) _vdbKeyPressed(SO_PLATFORM_KEY(KEY))
+#define vdbKeyReleased(KEY) _vdbKeyReleased(SO_PLATFORM_KEY(KEY))
 
 struct vdb_mat4
 {
@@ -246,6 +247,26 @@ static struct vdb_globals
     bool break_loop;
     bool abort;
 } vdb__globals;
+
+bool _vdbKeyDown(int key)
+{
+    return vdb__globals.input.keys[key].down;
+}
+
+bool _vdbKeyPressed(int key)
+{
+    return vdb__globals.input.keys[key].pressed;
+}
+
+bool _vdbKeyReleased(int key)
+{
+    return vdb__globals.input.keys[key].released;
+}
+
+void vdbStepOnce()
+{
+    vdb__globals.step_once = true;
+}
 
 void vdbViewport(int x, int y, int w, int h)
 {
@@ -442,8 +463,25 @@ void vdbNote(float x, float y, const char* fmt, ...)
     sprintf(name, "vdb_tooltip_%d", vdb__globals.note_index);
     va_list args;
     va_start(args, fmt);
+
+    // Transform position to window coordinates
     float x_win, y_win;
     vdbModelToWindow(x, y, 0.0f, 1.0f, &x_win, &y_win);
+
+    // Clamp tooltip to window
+    {
+        char text[1024];
+        sprintf(text, fmt, args);
+
+        ImVec2 size = ImGui::CalcTextSize(text);
+
+        if (x_win + size.x + 20.0f > vdb__globals.window_w)
+            x_win = vdb__globals.window_w - size.x - 20.0f;
+
+        if (y_win + size.y + 20.0f > vdb__globals.window_h)
+            y_win = vdb__globals.window_h - size.y - 20.0f;
+    }
+
     ImGui::SetNextWindowPos(ImVec2(x_win, y_win));
     ImGui::Begin(name, 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::TextV(fmt, args);
@@ -542,6 +580,17 @@ void vdbDrawRect(float x, float y, float w, float h)
     glVertex2f(x+w, y+h);
     glVertex2f(x, y+h);
 
+    glVertex2f(x, y+h);
+    glVertex2f(x, y);
+}
+
+void vdbFillRect(float x, float y, float w, float h)
+{
+    glVertex2f(x, y);
+    glVertex2f(x+w, y);
+    glVertex2f(x+w, y+h);
+
+    glVertex2f(x+w, y+h);
     glVertex2f(x, y+h);
     glVertex2f(x, y);
 }
