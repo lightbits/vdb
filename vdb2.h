@@ -469,6 +469,8 @@ void vdbNote(float x, float y, const char* fmt, ...)
     vdbModelToWindow(x, y, 0.0f, 1.0f, &x_win, &y_win);
 
     // Clamp tooltip to window
+    // (Doesn't work yet)
+    #if 0
     {
         char text[1024];
         sprintf(text, fmt, args);
@@ -481,6 +483,7 @@ void vdbNote(float x, float y, const char* fmt, ...)
         if (y_win + size.y + 20.0f > vdb__globals.window_h)
             y_win = vdb__globals.window_h - size.y - 20.0f;
     }
+    #endif
 
     ImGui::SetNextWindowPos(ImVec2(x_win, y_win));
     ImGui::Begin(name, 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
