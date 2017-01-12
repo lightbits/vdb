@@ -92,7 +92,8 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps);
 // COLORS
 struct vdb_color { float r, g, b, a; };
 vdb_color vdbPalette(int i, float a=1.0f);
-vdb_color vdbColorRamp(float t, float a=1.0f);
+vdb_color vdbPaletteRamp(float t, float a=1.0f);
+void vdbColorRamp(float t, float a=1.0f);
 void glColor3f(vdb_color c);
 void glColor4f(vdb_color c);
 void glClearColor(vdb_color c);
@@ -630,7 +631,7 @@ vdb_color vdbPalette(int i, float a)
     return c;
 }
 
-vdb_color vdbColorRamp(float t, float a)
+vdb_color vdbPaletteRamp(float t, float a)
 {
     float A1 = 0.54f;
     float A2 = 0.55f;
@@ -652,6 +653,11 @@ vdb_color vdbColorRamp(float t, float a)
     float b = A3 + B3 * sinf(tp * (C3 * t + D3));
     vdb_color result = { r, g, b, a };
     return result;
+}
+
+void vdbColorRamp(float t, float a)
+{
+    glColor4f(vdbPaletteRamp(t, a));
 }
 
 void glColor3f(vdb_color c) { glColor3f(c.r, c.g, c.b); }
