@@ -1047,6 +1047,10 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     static int region_bottom = 0;
     static int region_top = input.height;
 
+    static bool record_and_step = false;
+    static int record_steps = 0;
+    static int record_step = 0;
+
     static int frame_limit = 0;
     static bool recording = false;
     static int frame_index = 0;
@@ -1085,6 +1089,13 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
         Text("%d x %d", region_right-region_left, region_top-region_bottom);
     }
     Separator();
+    Checkbox("Record and step", &record_and_step);
+    if (record_and_step)
+    {
+        InputInt("Record every...", &record_steps);
+        SameLine();
+    }
+    Separator();
     if (recording && Button("Stop##recording"))
     {
         if (record_mode == record_mode_gif)
@@ -1106,7 +1117,23 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     }
     SameLine();
 
+    bool take_frame = false;
     if (recording)
+    {
+        if (record_and_step)
+        {
+            if (record_step % record_steps == 0)
+                take_frame = true;
+            vdb__globals.step_once = true;
+        }
+        else
+        {
+            take_frame = true;
+        }
+        record_step++;
+    }
+
+    if (take_frame)
     {
         int x, y, w, h;
         if (record_region)
@@ -1166,7 +1193,6 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
                 jo_gif_end(&record_gif);
             recording = false;
         }
-
     }
 
     End();
@@ -1199,6 +1225,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
 
 void vdb_postamble(so_input input)
 {
+    vdbViewport(0, 0, input.width, input.height);
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
     using namespace ImGui;
