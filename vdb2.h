@@ -1471,7 +1471,9 @@ void vdb_postamble(so_input input)
 
 #define VDBB(LABEL) if (vdb_init(LABEL)) {                  \
                         so_input vdb_input = {0};           \
-                        while (so_loopWindow(&vdb_input)) { \
+                        while (true) {                      \
+                            if (!so_loopWindow(&vdb_input)) \
+                                vdb__globals.abort = true;  \
                             if (vdb__globals.break_loop ||  \
                                 vdb__globals.abort)         \
                                 break;                      \
