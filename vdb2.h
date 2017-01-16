@@ -18,6 +18,9 @@
 #ifndef VDB_IMGUI_INI_FILENAME
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
 #endif
+#ifndef VDB_MAX_WINDOWS
+#define VDB_MAX_WINDOWS 1024
+#endif
 
 // DEPENDENCIES
 #define SO_PLATFORM_IMPLEMENTATION
@@ -241,6 +244,12 @@ static struct vdb_globals
 
     so_input_mouse mouse;
     so_input input;
+
+    const char *window_labels[1024];
+    bool        window_hiddens[1024];
+    const char *window_label;
+    int         window_index;
+    int         window_count;
 
     bool step_once;
     bool step_over;
@@ -821,42 +830,69 @@ void vdb_saveSettings()
     }
 }
 
-void vdb_init(const char *label)
+bool vdb_init(const char *label)
 {
-    struct window
-    {
-        const char *label;
-        bool hidden;
-    };
-    static window windows[1024];
-    static int window_count = 0;
-
-    static const char *prev_label = 0;
-    static bool have_window = false;
-    if (!have_window)
+    static bool have_gui = false;
+    if (!have_gui)
     {
         vdb_settings settings = vdb_loadSettings();
         int gl_major = 1;
         int gl_minor = 5;
         so_openWindow("vdb", settings.w, settings.h, settings.x, settings.y, gl_major, gl_minor, VDB_MULTISAMPLES, VDB_ALPHA_BITS, VDB_DEPTH_BITS, VDB_STENCIL_BITS);
         so_imgui_init();
-        have_window = true;
+        have_gui = true;
     }
+
+    // Add to window list
+    int index = -1;
+    {
+        for (int i = 0; i < vdb__globals.window_count; i++)
+        {
+            bool same = true;
+            const char *a = vdb__globals.window_labels[i];
+            const char *b = label;
+            while (*a && *b)
+            {
+                if (*a != *b)
+                {
+                    same = false;
+                    break;
+                }
+                a++;
+                b++;
+            }
+            if (same)
+                index = i;
+        }
+
+        if (index < 0)
+        {
+            vdb_assert(vdb__globals.window_count+1 <= VDB_MAX_WINDOWS);
+            index = vdb__globals.window_count;
+            vdb__globals.window_labels[index] = label;
+            vdb__globals.window_hiddens[index] = false;
+            vdb__globals.window_count++;
+        }
+    }
+
+    bool is_new = label != vdb__globals.window_label;
+    vdb__globals.window_label = label;
+    vdb__globals.window_index = index;
 
     vdb__globals.break_loop = false;
     vdb__globals.step_once = false;
+    vdb__globals.step_skip = false;
 
-    if (prev_label == label) // is same visualization
-    {
-        if (vdb__globals.step_over)
-            vdb__globals.break_loop = true;
-    }
-    else
-    {
-        vdb__globals.step_over = false;
-    }
+    if (vdb__globals.window_hiddens[index])
+        return false; // don't start looping
 
-    prev_label = label;
+    if (vdb__globals.step_over && !is_new)
+        return false; // don't start looping
+
+    if (vdb__globals.step_over && is_new)
+        vdb__globals.step_over = false; // step over is only active while window is the same
+
+    return true; // can start looping
 }
 
 void vdb_preamble(so_input input)
@@ -1169,6 +1205,7 @@ void vdb_postamble(so_input input)
 
     static bool show_ruler = false;
     static bool show_video = false;
+    static bool show_views = false;
 
     if (vdbKeyPressed(F4) && vdbKeyDown(LALT))
     {
@@ -1205,6 +1242,20 @@ void vdb_postamble(so_input input)
         if (show_video && vdbKeyPressed(ESCAPE))
         {
             show_video = false;
+            escape_eaten = true;
+        }
+    }
+
+    // Views
+    {
+        bool hotkey = vdbKeyPressed(L) & vdbKeyDown(LCTRL);
+        if (hotkey)
+        {
+            show_views = true;
+        }
+        if (show_views && vdbKeyPressed(ESCAPE))
+        {
+            show_views = false;
             escape_eaten = true;
         }
     }
@@ -1296,6 +1347,14 @@ void vdb_postamble(so_input input)
     if (show_video)
         vdb_osd_video_tool(&show_video, input);
 
+    if (show_views)
+    {
+        Begin("Hidden views##vdb_windows");
+        for (int i = 0; i < vdb__globals.window_count; i++)
+            Checkbox(vdb__globals.window_labels[i], &vdb__globals.window_hiddens[i]);
+        End();
+    }
+
     // Take screenshot
     {
         if (vdbKeyReleased(PRINTSCREEN))
@@ -1371,6 +1430,7 @@ void vdb_postamble(so_input input)
     if (vdb__globals.step_skip)
     {
         vdb__globals.break_loop = true;
+        vdb__globals.window_hiddens[vdb__globals.window_index] = true;
     }
     if (vdb__globals.step_over)
     {
@@ -1382,20 +1442,19 @@ void vdb_postamble(so_input input)
     }
 }
 
-#define VDBB(LABEL) { vdb_init(LABEL);                  \
-                    so_input vdb_input = {0};           \
-                    bool vdb_first_iteration = true;    \
-                    while (true) {                      \
-                    if (!so_loopWindow(&vdb_input) ||   \
-                        vdb__globals.abort) {           \
-                        vdb_saveSettings();             \
-                        exit(1);                        \
-                    }                                   \
-                    if (vdb__globals.break_loop) break; \
-                    using namespace ImGui;              \
-                    vdb_preamble(vdb_input);
-                    // so_input input = vdb_input;
+#define VDBB(LABEL) if (vdb_init(LABEL)) {                  \
+                        so_input vdb_input = {0};           \
+                        while (so_loopWindow(&vdb_input)) { \
+                            if (vdb__globals.break_loop ||  \
+                                vdb__globals.abort)         \
+                                break;                      \
+                            using namespace ImGui;          \
+                            vdb_preamble(vdb_input);
 
-#define VDBE()      vdb_postamble(vdb_input);           \
-                    vdb_first_iteration = false; } }
 
+#define VDBE()              vdb_postamble(vdb_input);       \
+                        }                                   \
+                        vdb_saveSettings();                 \
+                        if (vdb__globals.abort)             \
+                            exit(1);                        \
+                    }
