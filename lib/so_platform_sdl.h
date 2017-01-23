@@ -447,8 +447,8 @@ void so_imgui_init()
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
-    #ifdef SO_PLATFORM_IMGUI_FONT
-    io.Fonts->AddFontFromFileTTF(SO_PLATFORM_IMGUI_FONT);
+    #ifdef VDB_FONT
+    io.Fonts->AddFontFromFileTTF(VDB_FONT);
     #endif
     io.IniFilename = VDB_IMGUI_INI_FILENAME;
 
