@@ -57,7 +57,9 @@
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
 #include "lib/so_platform_sdl.h"
+#ifndef VDB_NO_MATH
 #include "lib/so_math.h"
+#endif
 #include "lib/so_noise.h"
 
 // VIEWPORT MANIPULATION
@@ -465,13 +467,13 @@ void vdbFreeSphereCamera(float fov, float zn, float zf)
         if (vdbKeyPressed(X))
             Rradius *= 2.0f;
         if (vdbKeyPressed(LEFT))
-            Rhtheta -= SO_PI / 4.0f;
+            Rhtheta -= 3.1415926f / 4.0f;
         if (vdbKeyPressed(RIGHT))
-            Rhtheta += SO_PI / 4.0f;
+            Rhtheta += 3.1415926f / 4.0f;
         if (vdbKeyPressed(UP))
-            Rvtheta -= SO_PI / 4.0f;
+            Rvtheta -= 3.1415926f / 4.0f;
         if (vdbKeyPressed(DOWN))
-            Rvtheta += SO_PI / 4.0f;
+            Rvtheta += 3.1415926f / 4.0f;
     }
     else
     {
