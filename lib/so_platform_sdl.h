@@ -451,6 +451,7 @@ void so_imgui_init()
     io.Fonts->AddFontFromFileTTF(VDB_FONT);
     #endif
     io.IniFilename = VDB_IMGUI_INI_FILENAME;
+    // io.IniSavingRate = 1.0f;
 
     // Build texture atlas
     unsigned char* pixels;

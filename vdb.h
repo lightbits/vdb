@@ -1512,5 +1512,6 @@ void vdb_postamble(so_input input)
                         }                                   \
                         vdb_saveSettings();                 \
                         if (vdb__globals.abort)             \
+                            ImGui::Shutdown();              \
                             exit(1);                        \
                     }
