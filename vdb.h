@@ -354,6 +354,7 @@ void vdbModelToWindow(float x, float y, float z, float w, float *x_win, float *y
 
 void vdbPVM(vdb_mat4 pvm)
 {
+    vdb__globals.pvm = pvm;
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glLoadMatrixf(pvm.data);
