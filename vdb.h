@@ -328,7 +328,7 @@ void vdbSquareViewport()
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
 {
     *wx = vdb__globals.viewport_x + (0.5f + 0.5f*x)*vdb__globals.viewport_w;
-    *wy = vdb__globals.viewport_y + (0.5f - 0.5f*y)*vdb__globals.viewport_h;
+    *wy = vdb__globals.window_h - 1 - (vdb__globals.viewport_y + (0.5f + 0.5f*y)*vdb__globals.viewport_h);
 }
 
 void vdbWindowToNDC(float x, float y, float *nx, float *ny)
