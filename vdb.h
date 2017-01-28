@@ -67,7 +67,7 @@ void vdbViewport(int x, int y, int w, int h); // Define the window region to be 
 void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
 void vdbOrtho(float left, float right, float bottom, float top); // Map coordinates [x=left,x=right],[y=bottom,y=top] to corresponding edges of the viewport
 void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
-void vdbFreeSphereCamera(float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
+void vdbFreeSphereCamera(float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f, float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f); // Input-controlled 3D camera
 
 
 // REALLY USEFUL STUFF
@@ -446,7 +446,7 @@ void vdbSphereCamera(float htheta,
     vdbPVM(p, v, m);
 }
 
-void vdbFreeSphereCamera(float fov, float zn, float zf)
+void vdbFreeSphereCamera(float fov, float zn, float zf, float focus_x, float focus_y, float focus_z)
 {
     so_input input = vdb__globals.input;
     static float radius = 1.0f;
@@ -456,9 +456,9 @@ void vdbFreeSphereCamera(float fov, float zn, float zf)
     static float Rhtheta = htheta;
     static float Rvtheta = vtheta;
 
-    static float focus_x = 0.0f;
-    static float focus_y = 0.0f;
-    static float focus_z = 0.0f;
+    // static float focus_x = 0.0f;
+    // static float focus_y = 0.0f;
+    // static float focus_z = 0.0f;
 
     float dt = input.dt;
     if (vdbKeyDown(LSHIFT))
