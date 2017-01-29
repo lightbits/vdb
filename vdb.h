@@ -67,7 +67,7 @@ void vdbViewport(int x, int y, int w, int h); // Define the window region to be 
 void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
 void vdbOrtho(float left, float right, float bottom, float top); // Map coordinates [x=left,x=right],[y=bottom,y=top] to corresponding edges of the viewport
 void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
-void vdbFreeSphereCamera(float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f, float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f); // Input-controlled 3D camera
+void vdbFreeSphereCamera(float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f, float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
 
 
 // REALLY USEFUL STUFF
@@ -446,19 +446,22 @@ void vdbSphereCamera(float htheta,
     vdbPVM(p, v, m);
 }
 
-void vdbFreeSphereCamera(float fov, float zn, float zf, float focus_x, float focus_y, float focus_z)
+void vdbFreeSphereCamera(float focus_x0, float focus_y0, float focus_z0, float fov, float zn, float zf)
 {
     so_input input = vdb__globals.input;
     static float radius = 1.0f;
     static float htheta = 0.0f;
-    static float vtheta = 0.3f;
+    static float vtheta = 0.0f;
     static float Rradius = radius;
     static float Rhtheta = htheta;
     static float Rvtheta = vtheta;
 
-    // static float focus_x = 0.0f;
-    // static float focus_y = 0.0f;
-    // static float focus_z = 0.0f;
+    static float focus_x = focus_x0;
+    static float focus_y = focus_y0;
+    static float focus_z = focus_z0;
+    static float Rfocus_x = focus_x;
+    static float Rfocus_y = focus_y;
+    static float Rfocus_z = focus_z;
 
     float dt = input.dt;
     if (vdbKeyDown(LSHIFT))
@@ -475,6 +478,14 @@ void vdbFreeSphereCamera(float fov, float zn, float zf, float focus_x, float foc
             Rvtheta -= 3.1415926f / 4.0f;
         if (vdbKeyPressed(DOWN))
             Rvtheta += 3.1415926f / 4.0f;
+        if (vdbKeyPressed(W))
+            Rfocus_y += 1.0f;
+        if (vdbKeyPressed(S))
+            Rfocus_y -= 1.0f;
+        if (vdbKeyPressed(A))
+            Rfocus_x -= 1.0f;
+        if (vdbKeyPressed(D))
+            Rfocus_x += 1.0f;
     }
     else
     {
@@ -490,11 +501,22 @@ void vdbFreeSphereCamera(float fov, float zn, float zf, float focus_x, float foc
             Rvtheta -= dt;
         if (vdbKeyDown(DOWN))
             Rvtheta += dt;
+        if (vdbKeyDown(W))
+            Rfocus_y += dt;
+        if (vdbKeyDown(S))
+            Rfocus_y -= dt;
+        if (vdbKeyDown(A))
+            Rfocus_x -= dt;
+        if (vdbKeyDown(D))
+            Rfocus_x += dt;
     }
 
     radius += 10.0f * (Rradius - radius) * dt;
     htheta += 10.0f * (Rhtheta - htheta) * dt;
     vtheta += 10.0f * (Rvtheta - vtheta) * dt;
+    focus_x += 10.0f * (Rfocus_x - focus_x) * dt;
+    focus_y += 10.0f * (Rfocus_y - focus_y) * dt;
+    focus_z += 10.0f * (Rfocus_z - focus_z) * dt;
 
     vdbSphereCamera(htheta, vtheta, radius, focus_x, focus_y, focus_z, fov, zn, zf);
 }
