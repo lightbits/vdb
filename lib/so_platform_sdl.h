@@ -447,11 +447,38 @@ void so_imgui_init()
     ImGuiStyle &style = ImGui::GetStyle();
     style.FrameRounding = 2.0f;
     style.GrabRounding = 2.0f;
+    {
+        style.Colors[ImGuiCol_FrameBg]               = ImVec4(0.16f, 0.26f, 0.38f, 0.70f);
+        style.Colors[ImGuiCol_FrameBgHovered]        = ImVec4(0.20f, 0.35f, 0.47f, 0.70f);
+        style.Colors[ImGuiCol_TitleBg]               = ImVec4(0.18f, 0.18f, 0.18f, 1.00f);
+        style.Colors[ImGuiCol_TitleBgCollapsed]      = ImVec4(0.18f, 0.18f, 0.18f, 0.39f);
+        style.Colors[ImGuiCol_TitleBgActive]         = ImVec4(0.00f, 0.00f, 0.00f, 0.55f);
+        style.Colors[ImGuiCol_MenuBarBg]             = ImVec4(0.00f, 0.00f, 0.00f, 0.39f);
+        style.Colors[ImGuiCol_ScrollbarBg]           = ImVec4(0.00f, 0.00f, 0.00f, 0.42f);
+        style.Colors[ImGuiCol_ScrollbarGrab]         = ImVec4(0.24f, 0.24f, 0.24f, 0.59f);
+        style.Colors[ImGuiCol_ScrollbarGrabHovered]  = ImVec4(0.31f, 0.31f, 0.31f, 0.59f);
+        style.Colors[ImGuiCol_ScrollbarGrabActive]   = ImVec4(0.78f, 0.78f, 0.78f, 0.40f);
+        style.Colors[ImGuiCol_CheckMark]             = ImVec4(0.24f, 0.52f, 0.88f, 0.90f);
+        style.Colors[ImGuiCol_SliderGrab]            = ImVec4(0.24f, 0.52f, 0.88f, 0.90f);
+        style.Colors[ImGuiCol_Button]                = ImVec4(0.16f, 0.26f, 0.38f, 0.78f);
+        style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.18f, 0.28f, 0.40f, 1.00f);
+        style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.20f, 0.31f, 0.47f, 1.00f);
+        style.Colors[ImGuiCol_Header]                = ImVec4(0.16f, 0.26f, 0.38f, 1.00f);
+        style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.24f, 0.52f, 0.88f, 0.80f);
+        style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.24f, 0.52f, 0.88f, 0.80f);
+        style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.16f, 0.26f, 0.38f, 0.60f);
+        style.Colors[ImGuiCol_ResizeGripHovered]     = ImVec4(0.16f, 0.26f, 0.38f, 0.90f);
+        style.Colors[ImGuiCol_ResizeGripActive]      = ImVec4(0.20f, 0.29f, 0.43f, 0.90f);
+        style.Colors[ImGuiCol_CloseButton]           = ImVec4(0.29f, 0.29f, 0.29f, 0.50f);
+        style.Colors[ImGuiCol_CloseButtonHovered]    = ImVec4(0.39f, 0.39f, 0.39f, 0.60f);
+
+
+    }
     #ifdef VDB_FONT
     io.Fonts->AddFontFromFileTTF(VDB_FONT);
     #endif
     io.IniFilename = VDB_IMGUI_INI_FILENAME;
-    // io.IniSavingRate = 1.0f;
+    io.IniSavingRate = 1.0f;
 
     // Build texture atlas
     unsigned char* pixels;

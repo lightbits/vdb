@@ -30,7 +30,7 @@ int main(int, char **)
 
     VDBB("Hello VDB");
     {
-        vdbClear(1.0f, 0.73f, 0.22f, 1.0f);
+        vdbClear(0.45f, 0.56f, 0.6f, 1.0f);
         Text("The program has now stopped and is running the\ncontent inside the brackets at 60 fps.");
         Text("Press F10 to continue.");
     }
