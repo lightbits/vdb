@@ -463,7 +463,7 @@ void so_imgui_init()
         style.Colors[ImGuiCol_Button]                = ImVec4(0.16f, 0.26f, 0.38f, 0.78f);
         style.Colors[ImGuiCol_ButtonHovered]         = ImVec4(0.18f, 0.28f, 0.40f, 1.00f);
         style.Colors[ImGuiCol_ButtonActive]          = ImVec4(0.20f, 0.31f, 0.47f, 1.00f);
-        style.Colors[ImGuiCol_Header]                = ImVec4(0.16f, 0.26f, 0.38f, 1.00f);
+        style.Colors[ImGuiCol_Header]                = ImVec4(0.16f, 0.26f, 0.38f, 0.80f);
         style.Colors[ImGuiCol_HeaderHovered]         = ImVec4(0.24f, 0.52f, 0.88f, 0.80f);
         style.Colors[ImGuiCol_HeaderActive]          = ImVec4(0.24f, 0.52f, 0.88f, 0.80f);
         style.Colors[ImGuiCol_ResizeGrip]            = ImVec4(0.16f, 0.26f, 0.38f, 0.60f);

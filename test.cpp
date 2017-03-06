@@ -111,7 +111,7 @@ int main(int, char **)
 
     VDBB("Full bananacakes");
     {
-        vdbFreeSphereCamera(3.1415f/4.0f, 0.01f, 100.0f);
+        vdbFreeSphereCamera();
         glBegin(GL_TRIANGLES);
         {
             int nx = (int)(vdb_input.width/64.0f);
