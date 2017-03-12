@@ -57,10 +57,6 @@
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
 #include "lib/so_platform_sdl.h"
-#ifndef VDB_NO_MATH
-#include "lib/so_math.h"
-#endif
-#include "lib/so_noise.h"
 
 // VIEWPORT MANIPULATION
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
