@@ -181,6 +181,7 @@ struct vdb_mat4
             } a1, a2, a3, a4;
         } columns;
     };
+    float &operator[](int i) { return data[i]; }
 };
 
 struct vdb_vec4
@@ -278,6 +279,11 @@ static struct vdb_globals
     bool abort;
 } vdb__globals;
 
+bool vdbLeftPressed()
+{
+    return vdb__globals.input.left.pressed;
+}
+
 bool _vdbKeyDown(int key)
 {
     return vdb__globals.input.keys[key].down;
@@ -373,7 +379,7 @@ void vdbOrtho(float left, float right, float bottom, float top)
     vdb_mat4 projection = {
         ax, 0, 0, 0,
         0, ay, 0, 0,
-        0, 0, 0, 0,
+        0, 0, 1, 0,
         bx, by, 0, 1
     };
     vdbPVM(projection, vdb_mat_identity(), vdb_mat_identity());
