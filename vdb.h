@@ -277,6 +277,8 @@ static struct vdb_globals
     bool step_skip;
     bool break_loop;
     bool abort;
+
+    bool first_iteration;
 } vdb__globals;
 
 bool vdbLeftPressed()
@@ -944,6 +946,8 @@ bool vdb_init(const char *label)
     if (vdb__globals.step_over && is_new)
         vdb__globals.step_over = false; // step over is only active while window is the same
 
+    vdb__globals.first_iteration = true;
+
     return true; // can start looping
 }
 
@@ -1277,6 +1281,8 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
 
 void vdb_postamble(so_input input)
 {
+    vdb__globals.first_iteration = false;
+
     vdbViewport(0, 0, input.width, input.height);
     vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
 
