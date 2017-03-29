@@ -57,6 +57,7 @@
 #include "lib/imgui/imgui.cpp"
 #include "lib/imgui/imgui_demo.cpp"
 #include "lib/so_platform_sdl.h"
+#include <float.h> // FLT_MAX
 
 // VIEWPORT MANIPULATION
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
@@ -676,14 +677,14 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
 
 static vdb_color vdb_builtin_palette[] =
 {
-    { 0.40, 0.76, 0.64, 1.0f },
-    { 0.99, 0.55, 0.38, 1.0f },
-    { 0.54, 0.63, 0.82, 1.0f },
-    { 0.91, 0.54, 0.77, 1.0f },
-    { 0.64, 0.86, 0.29, 1.0f },
-    { 1.00, 0.85, 0.19, 1.0f },
-    { 0.89, 0.77, 0.58, 1.0f },
-    { 0.70, 0.70, 0.70, 1.0f }
+    { 0.40f, 0.76f, 0.64f, 1.0f },
+    { 0.99f, 0.55f, 0.38f, 1.0f },
+    { 0.54f, 0.63f, 0.82f, 1.0f },
+    { 0.91f, 0.54f, 0.77f, 1.0f },
+    { 0.64f, 0.86f, 0.29f, 1.0f },
+    { 1.00f, 0.85f, 0.19f, 1.0f },
+    { 0.89f, 0.77f, 0.58f, 1.0f },
+    { 0.70f, 0.70f, 0.70f, 1.0f }
 };
 
 vdb_color vdbPalette(int i, float a)
@@ -983,9 +984,7 @@ void vdb_preamble(so_input input)
 
     // Reset selection
     {
-        float w = vdb__globals.window_w;
-        float h = vdb__globals.window_h;
-        vdb__globals.map_closest_distance = w*w + h*h;
+        vdb__globals.map_closest_distance = FLT_MAX;
         vdb__globals.map_prev_closest_index = vdb__globals.map_closest_index;
         vdb__globals.map_index = 0;
     }
@@ -1255,7 +1254,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
 
     if (record_region)
     {
-        vdbOrtho(0.0f, input.width, 0.0f, input.height);
+        vdbOrtho(0.0f, (float)input.width, 0.0f, (float)input.height);
         glLineWidth(2.0f);
         glBegin(GL_LINE_LOOP);
         glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -1265,11 +1264,11 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
         glVertex2f(region_left+1.0f, region_top-1.0f);
         glVertex2f(region_left+1.0f, region_bottom-1.0f);
         glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-        glVertex2f(region_left, region_bottom);
-        glVertex2f(region_right, region_bottom);
-        glVertex2f(region_right, region_top);
-        glVertex2f(region_left, region_top);
-        glVertex2f(region_left, region_bottom);
+        glVertex2f(region_left+0.0f, region_bottom+0.0f);
+        glVertex2f(region_right+0.0f, region_bottom+0.0f);
+        glVertex2f(region_right+0.0f, region_top+0.0f);
+        glVertex2f(region_left+0.0f, region_top+0.0f);
+        glVertex2f(region_left+0.0f, region_bottom+0.0f);
         glEnd();
     }
 }

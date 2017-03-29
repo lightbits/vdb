@@ -513,13 +513,13 @@ void so_imgui_processEvents(so_input input)
 {
     ImGuiIO &io = ImGui::GetIO();
     io.DeltaTime = input.dt > 0.0f ? input.dt : 1.0f / 60.0f;
-    io.DisplaySize.x = input.width;
-    io.DisplaySize.y = input.height;
+    io.DisplaySize.x = (float)input.width;
+    io.DisplaySize.y = (float)input.height;
 
-    io.MousePos.x = input.mouse.x;
-    io.MousePos.y = input.mouse.y;
+    io.MousePos.x = (float)input.mouse.x;
+    io.MousePos.y = (float)input.mouse.y;
 
-    io.MouseWheel = input.mouse.wheel;
+    io.MouseWheel = (float)input.mouse.wheel;
 
     io.MouseDown[0] = input.left.pressed || input.left.down;
     io.MouseDown[1] = input.right.pressed || input.right.down;
