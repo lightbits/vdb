@@ -23,15 +23,15 @@
 #endif
 
 // The size of the VDB window is remembered between sessions.
-// This path specifies the executable-relative path where the
-// information is stored.
+// This path specifies the path (relative to working directory)
+// where the information is stored.
 #ifndef VDB_SETTINGS_FILENAME
 #define VDB_SETTINGS_FILENAME "./vdb.ini"
 #endif
 
 // The state of ImGui windows is remembered between sessions.
-// This path specifies the executable-relative path where the
-// information is stored.
+// This path specifies the path (relative to working directory)
+// where the information is stored.
 #ifndef VDB_IMGUI_INI_FILENAME
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
 #endif
