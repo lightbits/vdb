@@ -116,8 +116,8 @@ int main(int, char **)
         {
             int nx = (int)(vdb_input.width/64.0f);
             int ny = (int)(vdb_input.height/64.0f);
-            vdb_for(yi, 0, ny+1)
-            vdb_for(xi, 0, nx+1)
+            for (int yi = 0; yi <= ny; yi++)
+            for (int xi = 0; xi <= nx; xi++)
             {
                 float xt = (float)xi/nx;
                 float yt = (float)yi/ny;

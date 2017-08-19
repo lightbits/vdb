@@ -160,14 +160,25 @@ void vdbSetTexture2D(
 void vdbBindTexture2D(int slot);
 void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
 
+// Left mouse button
+#define vdbLeftDown()       (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.down)
+#define vdbLeftPressed()    (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.pressed)
+#define vdbLeftReleased()   (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.released)
 
-// IMPLEMENTATION
-#define vdb_assert SDL_assert
-#define vdb_countof(X) (sizeof(X) / sizeof((X)[0]))
-#define vdb_for(VAR, FIRST, LAST_PLUS_ONE) for (int VAR = FIRST; VAR < LAST_PLUS_ONE; VAR++)
-#define vdbKeyDown(KEY) _vdbKeyDown(SO_PLATFORM_KEY(KEY))
-#define vdbKeyPressed(KEY) _vdbKeyPressed(SO_PLATFORM_KEY(KEY))
-#define vdbKeyReleased(KEY) _vdbKeyReleased(SO_PLATFORM_KEY(KEY))
+// Right mouse button
+#define vdbRightDown()      (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.down)
+#define vdbRightPressed()   (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.pressed)
+#define vdbRightReleased()  (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.released)
+
+// Middle mouse button
+#define vdbMiddleDown()     (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.down)
+#define vdbMiddlePressed()  (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.pressed)
+#define vdbMiddleReleased() (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.released)
+
+// Keyboard keys. Usage: if (vdbKeyDown(A)) { ... }. Keynames can be found in SDL_scancode.h.
+#define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+#define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+#define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
 
 struct vdb_mat4
 {
@@ -281,26 +292,6 @@ static struct vdb_globals
 
     bool first_iteration;
 } vdb__globals;
-
-bool vdbLeftPressed()
-{
-    return vdb__globals.input.left.pressed;
-}
-
-bool _vdbKeyDown(int key)
-{
-    return vdb__globals.input.keys[key].down;
-}
-
-bool _vdbKeyPressed(int key)
-{
-    return vdb__globals.input.keys[key].pressed;
-}
-
-bool _vdbKeyReleased(int key)
-{
-    return vdb__globals.input.keys[key].released;
-}
 
 void vdbStepOnce()
 {
@@ -675,22 +666,24 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps)
     }
 }
 
-static vdb_color vdb_builtin_palette[] =
-{
-    { 0.40f, 0.76f, 0.64f, 1.0f },
-    { 0.99f, 0.55f, 0.38f, 1.0f },
-    { 0.54f, 0.63f, 0.82f, 1.0f },
-    { 0.91f, 0.54f, 0.77f, 1.0f },
-    { 0.64f, 0.86f, 0.29f, 1.0f },
-    { 1.00f, 0.85f, 0.19f, 1.0f },
-    { 0.89f, 0.77f, 0.58f, 1.0f },
-    { 0.70f, 0.70f, 0.70f, 1.0f }
-};
 
 vdb_color vdbPalette(int i, float a)
 {
-    i = i % vdb_countof(vdb_builtin_palette);
-    vdb_color c = vdb_builtin_palette[i];
+    static vdb_color palette[] =
+    {
+        { 0.40f, 0.76f, 0.64f, 1.0f },
+        { 0.99f, 0.55f, 0.38f, 1.0f },
+        { 0.54f, 0.63f, 0.82f, 1.0f },
+        { 0.91f, 0.54f, 0.77f, 1.0f },
+        { 0.64f, 0.86f, 0.29f, 1.0f },
+        { 1.00f, 0.85f, 0.19f, 1.0f },
+        { 0.89f, 0.77f, 0.58f, 1.0f },
+        { 0.70f, 0.70f, 0.70f, 1.0f }
+    };
+    const int num_colors = (sizeof(palette) / sizeof((palette)[0]));
+
+    i = i % num_colors;
+    vdb_color c = palette[i];
     c.a = a;
     return c;
 }
@@ -922,7 +915,7 @@ bool vdb_init(const char *label)
 
         if (index < 0)
         {
-            vdb_assert(vdb__globals.window_count+1 <= VDB_MAX_WINDOWS);
+            SDL_assert(vdb__globals.window_count+1 <= VDB_MAX_WINDOWS);
             index = vdb__globals.window_count;
             vdb__globals.window_labels[index] = label;
             vdb__globals.window_hiddens[index] = false;
