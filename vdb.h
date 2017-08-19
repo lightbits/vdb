@@ -176,9 +176,13 @@ void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
 #define vdbMiddleReleased() (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.released)
 
 // Keyboard keys. Usage: if (vdbKeyDown(A)) { ... }. Keynames can be found in SDL_scancode.h.
-#define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
-#define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
-#define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
+// #define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+// #define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+// #define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
+
+#define vdbKeyDown(KEY)     (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+#define vdbKeyPressed(KEY)  (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+#define vdbKeyReleased(KEY) (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
 
 struct vdb_mat4
 {
