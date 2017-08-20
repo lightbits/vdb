@@ -176,13 +176,13 @@ void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
 #define vdbMiddleReleased() (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.released)
 
 // Keyboard keys. Usage: if (vdbKeyDown(A)) { ... }. Keynames can be found in SDL_scancode.h.
-// #define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
-// #define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
-// #define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
+#define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+#define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+#define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
 
-#define vdbKeyDown(KEY)     (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
-#define vdbKeyPressed(KEY)  (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
-#define vdbKeyReleased(KEY) (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
+#define _vdbKeyDown(KEY)     (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+#define _vdbKeyPressed(KEY)  (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+#define _vdbKeyReleased(KEY) (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
 
 struct vdb_mat4
 {
@@ -1288,7 +1288,7 @@ void vdb_postamble(so_input input)
     static bool show_video = false;
     static bool show_views = false;
 
-    if (vdbKeyPressed(F4) && vdbKeyDown(LALT))
+    if (_vdbKeyPressed(F4) && _vdbKeyDown(LALT))
     {
         vdb__globals.abort = true;
     }
@@ -1297,7 +1297,7 @@ void vdb_postamble(so_input input)
 
     // Ruler
     {
-        bool hotkey = vdbKeyPressed(R) && vdbKeyDown(LCTRL);
+        bool hotkey = _vdbKeyPressed(R) && _vdbKeyDown(LCTRL);
         if (show_ruler && hotkey)
         {
             show_ruler = false;
@@ -1306,7 +1306,7 @@ void vdb_postamble(so_input input)
         {
             show_ruler = true;
         }
-        if (show_ruler && vdbKeyPressed(ESCAPE))
+        if (show_ruler && _vdbKeyPressed(ESCAPE))
         {
             show_ruler = false;
             escape_eaten = true;
@@ -1315,12 +1315,12 @@ void vdb_postamble(so_input input)
 
     // Video
     {
-        bool hotkey = vdbKeyPressed(V) && vdbKeyDown(LCTRL);
+        bool hotkey = _vdbKeyPressed(V) && _vdbKeyDown(LCTRL);
         if (hotkey)
         {
             show_video = true;
         }
-        if (show_video && vdbKeyPressed(ESCAPE))
+        if (show_video && _vdbKeyPressed(ESCAPE))
         {
             show_video = false;
             escape_eaten = true;
@@ -1329,12 +1329,12 @@ void vdb_postamble(so_input input)
 
     // Views
     {
-        bool hotkey = vdbKeyPressed(L) & vdbKeyDown(LCTRL);
+        bool hotkey = _vdbKeyPressed(L) & _vdbKeyDown(LCTRL);
         if (hotkey)
         {
             show_views = true;
         }
-        if (show_views && vdbKeyPressed(ESCAPE))
+        if (show_views && _vdbKeyPressed(ESCAPE))
         {
             show_views = false;
             escape_eaten = true;
@@ -1343,7 +1343,7 @@ void vdb_postamble(so_input input)
 
     // Set window size
     {
-        bool hotkey = vdbKeyPressed(W) && vdbKeyDown(LCTRL);
+        bool hotkey = _vdbKeyPressed(W) && _vdbKeyDown(LCTRL);
         if (hotkey)
         {
             ImGui::OpenPopup("Set window size##popup");
@@ -1358,7 +1358,7 @@ void vdb_postamble(so_input input)
             Separator();
             Checkbox("Topmost", &topmost);
 
-            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(RETURN))
+            if (Button("OK", ImVec2(120,0)) || _vdbKeyPressed(RETURN))
             {
                 so_setWindowSize(width, height, topmost);
                 CloseCurrentPopup();
@@ -1368,7 +1368,7 @@ void vdb_postamble(so_input input)
             {
                 CloseCurrentPopup();
             }
-            if (vdbKeyPressed(ESCAPE))
+            if (_vdbKeyPressed(ESCAPE))
             {
                 CloseCurrentPopup();
                 escape_eaten = true;
@@ -1410,7 +1410,7 @@ void vdb_postamble(so_input input)
             Text("Ctrl+W : Set window size");
             Text("Escape : Close window");
             Text("PrtScr : Take screenshot");
-            if (vdbKeyPressed(ESCAPE) || input.left.pressed)
+            if (_vdbKeyPressed(ESCAPE) || input.left.pressed)
             {
                 CloseCurrentPopup();
                 escape_eaten = true;
@@ -1438,14 +1438,14 @@ void vdb_postamble(so_input input)
 
     // Take screenshot
     {
-        if (vdbKeyReleased(PRINTSCREEN))
+        if (_vdbKeyReleased(PRINTSCREEN))
         {
             ImGui::OpenPopup("Take screenshot##popup");
         }
         if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             static char filename[1024];
-            vdbTriggeredDurationBlock(vdbKeyReleased(PRINTSCREEN), 1.0f)
+            vdbTriggeredDurationBlock(_vdbKeyReleased(PRINTSCREEN), 1.0f)
             {
                 SetKeyboardFocusHere();
             }
@@ -1454,7 +1454,7 @@ void vdb_postamble(so_input input)
             static bool checkbox;
             Checkbox("32bpp (alpha channel)", &checkbox);
 
-            if (Button("OK", ImVec2(120,0)) || vdbKeyPressed(RETURN))
+            if (Button("OK", ImVec2(120,0)) || _vdbKeyPressed(RETURN))
             {
                 int channels = 3;
                 GLenum format = GL_RGB;
@@ -1479,7 +1479,7 @@ void vdb_postamble(so_input input)
             {
                 CloseCurrentPopup();
             }
-            if (vdbKeyPressed(ESCAPE))
+            if (_vdbKeyPressed(ESCAPE))
             {
                 CloseCurrentPopup();
                 escape_eaten = true;
@@ -1495,14 +1495,14 @@ void vdb_postamble(so_input input)
     if (error != GL_NO_ERROR)
         assert(false);
 
-    if (vdbKeyPressed(F10))
+    if (_vdbKeyPressed(F10))
     {
-        if (vdbKeyDown(LSHIFT))
+        if (_vdbKeyDown(LSHIFT))
             vdb__globals.step_skip = true;
         else
             vdb__globals.step_once = true;
     }
-    if (vdbKeyPressed(F5)) vdb__globals.step_over = true;
+    if (_vdbKeyPressed(F5)) vdb__globals.step_over = true;
 
     if (vdb__globals.step_once)
     {
@@ -1517,7 +1517,7 @@ void vdb_postamble(so_input input)
     {
         vdb__globals.break_loop = true;
     }
-    if (vdbKeyPressed(ESCAPE) && !escape_eaten)
+    if (_vdbKeyPressed(ESCAPE) && !escape_eaten)
     {
         vdb__globals.abort = true;
     }
