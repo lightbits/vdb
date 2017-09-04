@@ -35,4 +35,4 @@ Once you are able to compile and run this program you should be good to go integ
 
 * See [example_cmake](example_cmake) for how to integrate the library into a CMake-based project.
 
-* See [example_ros](example_ros) for an example of using the library with ROS: visualizing the results some another node, and also adjusting its run-time parameters live.
+* See [example_ros](example_ros) for an example of using the library with ROS, to visualize the results of a node and adjusting its run-time parameters live.
