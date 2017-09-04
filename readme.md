@@ -7,7 +7,7 @@
 **VDB** is a C++ library that lets you to add interactive visualizations to your code: e.g. visualize real-time sensor data, see step-by-step algorithm results, or tweak the parameters of an image processing algorithm and see the results change live. You can also use it to prototype full GUI applications.
 
 ## What does it do?
-The library simplifies the tedious process of opening an OpenGL graphics window, and also includes the [Dear ImGUI](https://github.com/ocornut/imgui/) library. For example, here is a complete program that opens a graphics window, and lets you change the background color with a slider widget:
+The library simplifies the tedious process of opening an OpenGL graphics window, and also includes the [Dear ImGui](https://github.com/ocornut/imgui/) library. For example, here is a complete program that opens a graphics window, and lets you change the background color with a slider widget:
 
 ```
 #include <vdb.h>
@@ -29,7 +29,7 @@ For a quick start, try to compile and run [test.cpp](test.cpp). This is a self-c
 
 Once you are able to compile and run this program you should be good to go integrate the library into your own project! Here are some tips to get you further:
 
-* Learn more about using ImGUI and its features by visiting its [project page](https://github.com/ocornut/imgui/), or by reading its documentation found at the top of the [imgui.h](src/imgui.h) header file.
+* Learn more about using ImGui and its features by visiting its [project page](https://github.com/ocornut/imgui/), or by reading its documentation found at the top of the [imgui.h](src/imgui.h) header file.
 
 * Look at screenshots and videos of the library in action in the [gallery](gallery.md).
 
