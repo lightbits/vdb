@@ -36,8 +36,7 @@
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
 #endif
 
-// You can set a custom font for ImGui by defining VDB_FONT
-// as PATH, FONT_SIZE. For example:
+// You can set a custom font for ImGui like this:
 // #define VDB_FONT "C:/Windows/Fonts/times.ttf", 18.0f
 
 // The maximum number of 'breakpoints' or 'windows that you can step through'
@@ -45,21 +44,9 @@
 #define VDB_MAX_WINDOWS 1024
 #endif
 
-
-// DEPENDENCIES
-#define SO_PLATFORM_IMPLEMENTATION
-#define SO_PLATFORM_IMGUI
-#define SO_NOISE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-#include "jo_gif.cpp"
-#include "imgui_draw.cpp"
-#include "imgui.cpp"
-#include "imgui_demo.cpp"
 #include "so_platform_sdl.h"
-#include <float.h> // FLT_MAX
 
-// VIEWPORT MANIPULATION
+
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
 void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
 void vdbOrtho(float left, float right, float bottom, float top); // Map coordinates [x=left,x=right],[y=bottom,y=top] to corresponding edges of the viewport
@@ -67,9 +54,7 @@ void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, fl
 void vdbFreeSphereCamera(float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f, float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
 
 
-// REALLY USEFUL STUFF
 void vdbNote(float x, float y, const char* fmt, ...); // Like printf but displays the text at (x,y) in the current view
-
 
 // MAPPING
 //   Can be used to select elements using the mouse and conditionally
@@ -157,32 +142,50 @@ void vdbSetTexture2D(
     GLenum wrap_s = GL_CLAMP_TO_EDGE,
     GLenum wrap_t = GL_CLAMP_TO_EDGE,
     GLenum internal_format = GL_RGBA);
-void vdbBindTexture2D(int slot);
 void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
+void vdbBindTexture2D(int slot); // Enable a texture for custom drawing
 
-// Left mouse button
-#define vdbLeftDown()       (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.down)
-#define vdbLeftPressed()    (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.pressed)
-#define vdbLeftReleased()   (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.released)
+// MOUSE BUTTONS
+// Down means the button is held down.
+// Pressed means it went down this frame.
+// Released means it went up this frame.
+bool vdbLeftDown();
+bool vdbLeftPressed();
+bool vdbLeftReleased();
+bool vdbRightDown();
+bool vdbRightPressed();
+bool vdbRightReleased();
+bool vdbMiddleDown();
+bool vdbMiddlePressed();
+bool vdbMiddleReleased();
 
-// Right mouse button
-#define vdbRightDown()      (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.down)
-#define vdbRightPressed()   (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.pressed)
-#define vdbRightReleased()  (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.released)
+// KEYBOARD BUTTONS
+// Usage: if (vdbKeyCodeDown(SDL_SCANCODE_A)) { ... }.
+// Keycodes can be found in SDL_scancode.h.
+bool vdbKeyCodeDown(int keycode);
+bool vdbKeyCodePressed(int keycode);
+bool vdbKeyCodeReleased(int keycode);
+// Short-hand functions where you can drop the SDL_SCANCODE_ prefix
+// Usage: if (vdbKeyDown(A))
+#define vdbKeyDown(KEY)     (vdbKeyCodeDown(SDL_SCANCODE_##KEY))
+#define vdbKeyPressed(KEY)  (vdbKeyCodePressed(SDL_SCANCODE_##KEY))
+#define vdbKeyReleased(KEY) (vdbKeyCodeReleased(SDL_SCANCODE_##KEY))
 
-// Middle mouse button
-#define vdbMiddleDown()     (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.down)
-#define vdbMiddlePressed()  (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.pressed)
-#define vdbMiddleReleased() (!ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.released)
+//
+// Implementation starts here
+//
 
-// Keyboard keys. Usage: if (vdbKeyDown(A)) { ... }. Keynames can be found in SDL_scancode.h.
-#define vdbKeyDown(KEY)     (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
-#define vdbKeyPressed(KEY)  (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
-#define vdbKeyReleased(KEY) (!ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
-
-#define _vdbKeyDown(KEY)     (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
-#define _vdbKeyPressed(KEY)  (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
-#define _vdbKeyReleased(KEY) (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
+#define SO_PLATFORM_IMPLEMENTATION
+#define SO_PLATFORM_IMGUI
+#define SO_NOISE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "jo_gif.cpp"
+#include "imgui_draw.cpp"
+#include "imgui.cpp"
+#include "imgui_demo.cpp"
+#include "so_platform_sdl.h"
+#include <float.h> // FLT_MAX
 
 struct vdb_mat4
 {
@@ -296,6 +299,24 @@ static struct vdb_globals
 
     bool first_iteration;
 } vdb__globals;
+
+bool vdbLeftDown()       { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.down; }
+bool vdbLeftPressed()    { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.pressed; }
+bool vdbLeftReleased()   { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.released; }
+bool vdbRightDown()      { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.down; }
+bool vdbRightPressed()   { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.pressed; }
+bool vdbRightReleased()  { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.right.released; }
+bool vdbMiddleDown()     { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.down; }
+bool vdbMiddlePressed()  { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.pressed; }
+bool vdbMiddleReleased() { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.middle.released; }
+
+bool vdbKeyCodeDown(int keycode)     { return !ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[keycode].down; }
+bool vdbKeyCodePressed(int keycode)  { return !ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[keycode].pressed; }
+bool vdbKeyCodeReleased(int keycode) { return !ImGui::GetIO().WantCaptureKeyboard && vdb__globals.input.keys[keycode].released; }
+
+#define _vdbKeyDown(KEY)     (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].down)
+#define _vdbKeyPressed(KEY)  (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].pressed)
+#define _vdbKeyReleased(KEY) (vdb__globals.input.keys[SO_PLATFORM_KEY(KEY)].released)
 
 void vdbStepOnce()
 {
