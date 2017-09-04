@@ -31,8 +31,8 @@ Once you are able to compile and run this program you should be good to go integ
 
 * Learn more about using ImGUI and its features by visiting its [project page](https://github.com/ocornut/imgui/), or by reading its documentation found at the top of the [imgui.h](lib/imgui/imgui.h) header file.
 
-* Look at screenshots and videos of the library in action in the [gallery]().
+* Look at screenshots and videos of the library in action in the [gallery](gallery.md).
 
-* See [example_cmake]() for how to integrate the library into a CMake project.
+* See [example_cmake](example_cmake) for how to integrate the library into a CMake project.
 
-* See [example_ros]() for an example of using the library with ROS, where a node visualizes the output of another node, and also lets you adjust parameters that affect its operation.
+* See [example_ros](example_ros) for an example of using the library with ROS, where a node visualizes the output of another node, and also lets you adjust parameters that affect its operation.
