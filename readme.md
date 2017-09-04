@@ -29,7 +29,7 @@ For a quick start, try to compile and run [test.cpp](test.cpp). This is a self-c
 
 Once you are able to compile and run this program you should be good to go integrate the library into your own project! Here are some tips to get you further:
 
-* Learn more about using ImGUI and its features by visiting its [project page](https://github.com/ocornut/imgui/), or by reading its documentation found at the top of the [imgui.h](lib/imgui/imgui.h) header file.
+* Learn more about using ImGUI and its features by visiting its [project page](https://github.com/ocornut/imgui/), or by reading its documentation found at the top of the [imgui.h](src/imgui.h) header file.
 
 * Look at screenshots and videos of the library in action in the [gallery](gallery.md).
 
