@@ -51,12 +51,12 @@
 #define SO_PLATFORM_IMGUI
 #define SO_NOISE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "lib/stb_image_write.h"
-#include "lib/jo_gif.cpp"
-#include "lib/imgui/imgui_draw.cpp"
-#include "lib/imgui/imgui.cpp"
-#include "lib/imgui/imgui_demo.cpp"
-#include "lib/so_platform_sdl.h"
+#include "stb_image_write.h"
+#include "jo_gif.cpp"
+#include "imgui_draw.cpp"
+#include "imgui.cpp"
+#include "imgui_demo.cpp"
+#include "so_platform_sdl.h"
 #include <float.h> // FLT_MAX
 
 // VIEWPORT MANIPULATION

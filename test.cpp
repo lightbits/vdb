@@ -16,7 +16,7 @@
 //
 // If you have problems:
 // No clue: See if this page helps. https://wiki.libsdl.org/Installation
-#include "vdb.h"
+#include "src/vdb.h"
 
 int main(int, char **)
 {
