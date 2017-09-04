@@ -45,6 +45,7 @@
 #endif
 
 #include "so_platform_sdl.h"
+#include "imgui.h"
 
 
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
