@@ -93,8 +93,8 @@ int main(int, char **)
 
     VDBB("Variable access");
     {
-        vdbSetTexture2D(0, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
-        vdbDrawTexture2D(0);
+        vdbSetTexture(0, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
+        vdbDrawTexture(0);
 
         TextWrapped("You can access variables outside the scope.");
     }

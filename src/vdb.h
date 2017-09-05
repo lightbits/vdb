@@ -136,14 +136,14 @@ void vdbNoBlend();         // -> glDisable(GL_GLEND);
 //   32bit float or 32bit int, as well as anywhere from one to four components (RGBA).
 // EXAMPLE
 //   unsigned char data[128*128*3];
-//   vdbSetTexture2D(0, data, 128, 128, GL_RGB, GL_UNSIGNED_BYTE);
-//   vdbDrawTexture2D(0);
+//   vdbSetTexture(0, data, 128, 128, GL_RGB, GL_UNSIGNED_BYTE);
+//   vdbDrawTexture(0);
 // EXAMPLE
 //                           data_format   data_type
 //   Grayscale 32 bit float: GL_LUMINANCE  GL_FLOAT
 //   RGB       32 bit float: GL_RGB        GL_FLOAT
 //   RGB        8 bit  char: GL_RGB        GL_UNSIGNED_BYTE
-void vdbSetTexture2D(
+void vdbSetTexture(
     int slot,
     void *data,
     int width,
@@ -155,8 +155,8 @@ void vdbSetTexture2D(
     GLenum wrap_s = GL_CLAMP_TO_EDGE,
     GLenum wrap_t = GL_CLAMP_TO_EDGE,
     GLenum internal_format = GL_RGBA);
-void vdbDrawTexture2D(int slot); // Draws the texture to the entire viewport
-void vdbBindTexture2D(int slot); // Enable a texture for custom drawing
+void vdbDrawTexture(int slot); // Draws the texture to the entire viewport
+void vdbBindTexture(int slot); // Enable a texture for custom drawing
 
 // MOUSE BUTTONS
 // Down means the button is held down.
@@ -813,7 +813,7 @@ GLuint vdbTexImage2D(
     return result;
 }
 
-void vdbSetTexture2D(
+void vdbSetTexture(
     int slot,
     void *data,
     int width,
@@ -846,15 +846,15 @@ void vdbSetTexture2D(
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void vdbBindTexture2D(int slot)
+void vdbBindTexture(int slot)
 {
     glBindTexture(GL_TEXTURE_2D, 4040 + slot);
 }
 
-void vdbDrawTexture2D(int slot)
+void vdbDrawTexture(int slot)
 {
     glEnable(GL_TEXTURE_2D);
-    vdbBindTexture2D(slot);
+    vdbBindTexture(slot);
     glBegin(GL_TRIANGLES);
     glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
     glColor4f(1,1,1,1); glTexCoord2f(1,0); glVertex2f(+1,-1);

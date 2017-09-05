@@ -17,8 +17,8 @@ float r, g, b, d;
 VDBB("Threshold");
 {
     threshold(rgb, gray, width, height, r, g, b, d);
-    vdbSetTexture2D(0, gray, width, height, GL_LUMINANCE);
-    vdbDrawTexture2D(0);
+    vdbSetTexture(0, gray, width, height, GL_LUMINANCE);
+    vdbDrawTexture(0);
     SliderFloat("R", &r, 0, 255);
     SliderFloat("G", &g, 0, 255);
     SliderFloat("B", &b, 0, 255);
