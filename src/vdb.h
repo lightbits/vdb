@@ -1,3 +1,6 @@
+#ifndef VBD_HEADER
+#define VBD_HEADER
+
 // The following are settings that can be overwritten by #defining
 // any of the following variables before including the implementation
 // of this file.
@@ -172,10 +175,33 @@ bool vdbKeyCodeReleased(int keycode);
 #define vdbKeyPressed(KEY)  (vdbKeyCodePressed(SDL_SCANCODE_##KEY))
 #define vdbKeyReleased(KEY) (vdbKeyCodeReleased(SDL_SCANCODE_##KEY))
 
+// THE VDBB AND VDBE MACROS
+// Usage:
+// VDBB("Window label");
+// {
+//     // Code inside here will run at 60 fps
+//     // ImGui namespace is automatically included
+// }
+// VDBE();
+//
+bool vdb_init(const char *label);
+bool vdb_preamble(so_input *input);
+void vdb_postamble(so_input input);
+void vdb_saveSettings();
+#define VDBB(LABEL) if (vdb_init(LABEL)) {                  \
+                        so_input vdb_input = {0};           \
+                        while (vdb_preamble(&vdb_input)) {  \
+                            using namespace ImGui;
+
+#define VDBE()              vdb_postamble(vdb_input);       \
+                        }                                   \
+                        vdb_saveSettings();                 \
+                    }
+
 //
 // Implementation starts here
 //
-
+#ifndef VDB_HEADER_ONLY
 #define SO_PLATFORM_IMPLEMENTATION
 #define SO_PLATFORM_IMGUI
 #define SO_NOISE_IMPLEMENTATION
@@ -971,19 +997,32 @@ bool vdb_init(const char *label)
     return true; // can start looping
 }
 
-void vdb_preamble(so_input input)
+bool vdb_preamble(so_input *input)
 {
-    vdb__globals.window_x = input.win_x;
-    vdb__globals.window_y = input.win_y;
-    vdb__globals.window_w = input.width;
-    vdb__globals.window_h = input.height;
-    vdb__globals.mouse = input.mouse;
-    vdb__globals.input = input;
+    if (vdb__globals.break_loop)
+        return false;
+
+    if (vdb__globals.abort)
+    {
+        vdb_saveSettings();
+        ImGui::Shutdown();
+        exit(1);
+    }
+
+    if (!so_loopWindow(input))
+        return false;
+
+    vdb__globals.window_x = input->win_x;
+    vdb__globals.window_y = input->win_y;
+    vdb__globals.window_w = input->width;
+    vdb__globals.window_h = input->height;
+    vdb__globals.mouse = input->mouse;
+    vdb__globals.input = *input;
     vdb__globals.note_index = 0;
 
-    so_imgui_processEvents(input);
+    so_imgui_processEvents(*input);
 
-    vdbViewport(0, 0, input.width, input.height);
+    vdbViewport(0, 0, input->width, input->height);
 
     glDisable(GL_DEPTH_TEST);
 
@@ -1545,22 +1584,5 @@ void vdb_postamble(so_input input)
     }
 }
 
-#define VDBB(LABEL) if (vdb_init(LABEL)) {                  \
-                        so_input vdb_input = {0};           \
-                        while (true) {                      \
-                            if (!so_loopWindow(&vdb_input)) \
-                                vdb__globals.abort = true;  \
-                            if (vdb__globals.break_loop ||  \
-                                vdb__globals.abort)         \
-                                break;                      \
-                            using namespace ImGui;          \
-                            vdb_preamble(vdb_input);
-
-
-#define VDBE()              vdb_postamble(vdb_input);       \
-                        }                                   \
-                        vdb_saveSettings();                 \
-                        if (vdb__globals.abort) {           \
-                            ImGui::Shutdown();              \
-                            exit(1); }                      \
-                    }
+#endif // VDB_HEADER_ONLY
+#endif // VDB_HEADER
