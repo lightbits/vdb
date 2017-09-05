@@ -58,7 +58,9 @@ void vdbViewport(int x, int y, int width, int height);
 // mapped from [left, right] and [bottom, top] to the viewport edges.
 void vdb2D(float left, float right, float bottom, float top);
 
-// The 3D view gives you a camera that you can control freely.
+// The 3D view gives you an orbital camera that you can control freely.
+// You can optionally specify the starting focus point, the field of view,
+// and the near and far clipping planes.
 void vdb3D(float x=0.0f, float y=0.0f, float z=0.0f, float fov=3.14f/4.0f, float near_clip=0.1f, float far_clip=100.0f);
 
 // Like printf but displays the text at (x,y).
