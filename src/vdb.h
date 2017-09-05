@@ -103,10 +103,11 @@ void vdbGridXY(float x_min, float x_max, float y_min, float y_max, int steps);
 
 
 // COLORS
+void vdbColorIndex(int i, float alpha=1.0f); // Calls glColor4f with an indexed color palette
+void vdbColorRamp(float t, float alpha=1.0f); // Calls glColor4f with a continuous color ramp
 struct vdb_color { float r, g, b, a; };
-vdb_color vdbPalette(int i, float a=1.0f);
-vdb_color vdbPaletteRamp(float t, float a=1.0f);
-void vdbColorRamp(float t, float a=1.0f);
+vdb_color vdbPalette(int i, float alpha=1.0f);
+vdb_color vdbPaletteRamp(float t, float alpha=1.0f);
 void glColor3f(vdb_color c);
 void glColor4f(vdb_color c);
 void glClearColor(vdb_color c);
@@ -762,6 +763,11 @@ vdb_color vdbPaletteRamp(float t, float a)
     float b = A3 + B3 * sinf(tp * (C3 * t + D3));
     vdb_color result = { r, g, b, a };
     return result;
+}
+
+void vdbColorIndex(int i, float a)
+{
+    glColor4f(vdbPalette(i, a));
 }
 
 void vdbColorRamp(float t, float a)
