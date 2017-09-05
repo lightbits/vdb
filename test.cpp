@@ -1,5 +1,6 @@
 // HOW TO COMPILE
 //   1) Obtain SDL 2 (https://www.libsdl.org/)
+//   e.g. sudo apt-get install libsdl2-dev
 //
 // WINDOWS
 //   2) In your command line or batch script or whatever
