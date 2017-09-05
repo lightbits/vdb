@@ -982,6 +982,7 @@ bool vdb_init(const char *label)
     vdb__globals.break_loop = false;
     vdb__globals.step_once = false;
     vdb__globals.step_skip = false;
+    vdb__globals.abort = false;
 
     if (vdb__globals.window_hiddens[index])
         return false; // don't start looping
@@ -1048,6 +1049,8 @@ bool vdb_preamble(so_input *input)
     }
 
     ImGui::NewFrame();
+
+    return true;
 }
 
 void vdb_osd_ruler_tool(so_input input)
@@ -1563,8 +1566,10 @@ void vdb_postamble(so_input input)
         else
             vdb__globals.step_once = true;
     }
-    if (_vdbKeyPressed(F5)) vdb__globals.step_over = true;
-
+    if (_vdbKeyPressed(F5))
+    {
+        vdb__globals.step_over = true;
+    }
     if (vdb__globals.step_once)
     {
         vdb__globals.break_loop = true;
