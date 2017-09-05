@@ -14,8 +14,7 @@
 //   2) In your command line or batch script or whatever
 //        g++ test.cpp -o test -framework OpenGL `sdl2-config --cflags —libs`
 //
-// If you have problems:
-// No clue: See if this page helps. https://wiki.libsdl.org/Installation
+// If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include "src/vdb.h"
 
 int main(int, char **)
