@@ -1006,6 +1006,9 @@ bool vdb_init(const char *label)
 
 bool vdb_preamble(so_input *input)
 {
+    if (!so_loopWindow(input))
+        vdb__globals.abort = true;
+
     if (vdb__globals.break_loop)
         return false;
 
@@ -1015,9 +1018,6 @@ bool vdb_preamble(so_input *input)
         ImGui::Shutdown();
         exit(1);
     }
-
-    if (!so_loopWindow(input))
-        return false;
 
     vdb__globals.window_x = input->win_x;
     vdb__globals.window_y = input->win_y;
