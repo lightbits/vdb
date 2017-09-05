@@ -281,7 +281,7 @@ bool so_loopWindow(so_input *input)
                     len++;
                 }
 
-                if (cur_text_utf8 + len + 1 <= sizeof(text_utf8))
+                if (cur_text_utf8 + len + 1 <= (int)sizeof(text_utf8))
                 {
                     for (int i = 0; i < len; i++)
                     {
