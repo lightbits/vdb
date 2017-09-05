@@ -47,7 +47,7 @@ VDBB("World features");
     // Adjust the coordinate space in which we draw the points,
     // so that the bottom and top window edges map to -+range and
     // the left and right window edges map to -+range * AspectRatio.
-    vdbOrtho(-range*vdbAspect(), +range*vdbAspect(), -range, +range);
+    vdbScale(-range*vdbAspect(), +range*vdbAspect(), -range, +range);
 
     glPoints(4.0f); // Start drawing points with 4-pixel radius
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Set current color to white
@@ -85,7 +85,7 @@ VDBB("Potential lines");
     vdbClear(0.16f, 0.16f, 0.1f, 1.0f);
 
     // Draw edge pixels
-    vdbOrtho(0.0f, width, height, 0.0f);
+    vdbScale(0.0f, width, height, 0.0f);
     glPoints(4.0f);
     glColor4f(0.1f, 0.1f, 0.1f, 1.0f);
     for (int i = 0; i < num_edges; i++)
@@ -98,7 +98,7 @@ VDBB("Potential lines");
 
     // Draw line hypotheses as dots with color intensity
     // based on number of votes
-    vdbOrtho(angle_min, angle_max, distance_min, distance_max);
+    vdbScale(angle_min, angle_max, distance_min, distance_max);
     glPoints(8.0f);
     for (int i = 0; i < num_lines; i++)
     {
@@ -125,7 +125,7 @@ VDBB("Potential lines");
     glEnd();
 
     // Draw the hovered-over line in red
-    vdbOrtho(0.0f, width, height, 0.0f);
+    vdbScale(0.0f, width, height, 0.0f);
     float x1, y1, x2, y2;
     get_line_endpoints(hover_angle, hover_distance, &x1, &y1, &x2, &y2);
     glLines(4.0f);
