@@ -1474,12 +1474,14 @@ void vdb_postamble(so_input input)
         if (BeginPopupModal("Protips##vdb", NULL, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_AlwaysAutoResize))
         {
             Text("F10 : Step once");
-            Text("F5 : Step over");
+            Text("F5  : Step over");
             Text("Ctrl+V : Record video");
             Text("Ctrl+R : Show ruler");
             Text("Ctrl+W : Set window size");
             Text("Escape : Close window");
             Text("PrtScr : Take screenshot");
+            Text("");
+            Text("github.com/lightbits/vdb");
             if (_vdbKeyPressed(ESCAPE) || input.left.pressed)
             {
                 CloseCurrentPopup();
