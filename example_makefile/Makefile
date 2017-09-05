@@ -1,4 +1,4 @@
-all:
+all: vdb.o
 	g++ -I../src main.cpp vdb.o `sdl2-config --cflags --libs` -lGL -o app
 
 vdb.o:
