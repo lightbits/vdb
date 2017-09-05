@@ -151,7 +151,7 @@ int main(int, char **)
 
             float x_win, y_win;
             vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
-            vdbOrtho(0.0f, vdb_input.width, vdb_input.height, 0.0f);
+            vdbScale(0.0f, vdb_input.width, vdb_input.height, 0.0f);
             glBegin(GL_TRIANGLES);
             glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
             vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);

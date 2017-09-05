@@ -52,10 +52,10 @@
 
 
 void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
-void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
-void vdbOrtho(float left, float right, float bottom, float top); // Map coordinates [x=left,x=right],[y=bottom,y=top] to corresponding edges of the viewport
+void vdbScale(float left, float right, float bottom, float top); // Scale coordinates to fit into viewport: i.e. map [x=left,x=right] to left and right edges, and [y=bottom,y=top] to bottom and top edges.
 void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
 void vdbFreeSphereCamera(float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f, float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
+void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
 
 
 void vdbNote(float x, float y, const char* fmt, ...); // Like printf but displays the text at (x,y) in the current view
@@ -67,7 +67,7 @@ void vdbNote(float x, float y, const char* fmt, ...); // Like printf but display
 //   information about a specific element, for example, highlighting it
 //   and displaying a tooltip about its value.
 // EXAMPLE
-//   vdbOrtho(x_min, x_max, y_min, y_max);
+//   vdbScale(x_min, x_max, y_min, y_max);
 //   for (int i = 0; i < num_votes; i++)
 //   {
 //       HoughTableEntry e = entries[i];
@@ -417,7 +417,7 @@ void vdbPVM(vdb_mat4 projection, vdb_mat4 view, vdb_mat4 model)
     glLoadMatrixf(vdb__globals.pvm.data);
 }
 
-void vdbOrtho(float left, float right, float bottom, float top)
+void vdbScale(float left, float right, float bottom, float top)
 {
     float ax = 2.0f/(right-left);
     float ay = 2.0f/(top-bottom);
@@ -645,7 +645,7 @@ void vdbUnmap(int *i, float *x, float *y, float *z)
 void vdbClear(float r, float g, float b, float a)
 {
     vdb_mat4 prev = vdb__globals.pvm;
-    vdbOrtho(-1,+1,-1,+1);
+    vdbScale(-1,+1,-1,+1);
     glBegin(GL_TRIANGLES);
     glColor4f(r, g, b, a);
     glVertex2f(-1,-1);
@@ -1039,7 +1039,7 @@ bool vdb_preamble(so_input *input)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+    vdbScale(-1.0f, +1.0f, -1.0f, +1.0f);
 
     // Specify the start of each pixel row in memory to be 1-byte aligned
     // as opposed to 4-byte aligned or something. Useful to allow for arbitrarily
@@ -1321,7 +1321,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
 
     if (record_region)
     {
-        vdbOrtho(0.0f, (float)input.width, 0.0f, (float)input.height);
+        vdbScale(0.0f, (float)input.width, 0.0f, (float)input.height);
         glLineWidth(2.0f);
         glBegin(GL_LINE_LOOP);
         glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -1350,7 +1350,7 @@ void vdb_postamble(so_input input)
     vdb__globals.first_iteration = false;
 
     vdbViewport(0, 0, input.width, input.height);
-    vdbOrtho(-1.0f, +1.0f, -1.0f, +1.0f);
+    vdbScale(-1.0f, +1.0f, -1.0f, +1.0f);
 
     using namespace ImGui;
 
