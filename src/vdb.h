@@ -1197,7 +1197,9 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     RadioButton("Animated GIF", &record_mode, record_mode_gif);
     RadioButton("Image sequence", &record_mode, record_mode_img);
     if (record_mode == record_mode_gif)
+    {
         InputInt("Frame delay (ms)", &gif_frame_delay);
+    }
     Separator();
     InputInt("Frames (0 for no limit)", &frame_limit);
     Separator();
@@ -1215,7 +1217,6 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     if (record_and_step)
     {
         InputInt("Record every...", &record_steps);
-        SameLine();
     }
     Separator();
     if (recording && Button("Stop##recording"))
@@ -1237,7 +1238,6 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
         current_bytes = 0;
         recording = true;
     }
-    SameLine();
 
     bool take_frame = false;
     if (recording)
@@ -1315,6 +1315,14 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
                 jo_gif_end(&record_gif);
             recording = false;
         }
+    }
+
+    if (record_mode != record_mode_gif)
+    {
+        Separator();
+        Text("Tip: Use ffmpeg to convert the images to a video file:");
+        char *ffmpeg_tip = "ffmpeg -framerate 24 -start_number 1 -i video%04d.png -pix_fmt yuv420p video.mp4";
+        InputText("###ffmpeg_tip", ffmpeg_tip, strlen(ffmpeg_tip), ImGuiInputTextFlags_ReadOnly);
     }
 
     End();
