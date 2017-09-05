@@ -111,7 +111,7 @@ int main(int, char **)
 
     VDBB("Full bananacakes");
     {
-        vdbFreeSphereCamera();
+        vdb3D();
         glBegin(GL_TRIANGLES);
         {
             int nx = (int)(vdb_input.width/64.0f);
@@ -151,7 +151,7 @@ int main(int, char **)
 
             float x_win, y_win;
             vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
-            vdbScale(0.0f, vdb_input.width, vdb_input.height, 0.0f);
+            vdb2D(0.0f, vdb_input.width, vdb_input.height, 0.0f);
             glBegin(GL_TRIANGLES);
             glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
             vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);

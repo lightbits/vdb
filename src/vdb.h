@@ -51,13 +51,18 @@
 #include "imgui.h"
 
 
-void vdbViewport(int x, int y, int w, int h); // Define the window region to be used for drawing
-void vdbScale(float left, float right, float bottom, float top); // Scale coordinates to fit into viewport: i.e. map [x=left,x=right] to left and right edges, and [y=bottom,y=top] to bottom and top edges.
-void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
-void vdbFreeSphereCamera(float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f, float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
+// The viewport is the window region (in pixels from bottom-left) used for drawing.
+void vdbViewport(int x, int y, int width, int height);
 
+// The 2D view scales coordinates (i.e. in glVertex) such that x and y are
+// mapped from [left, right] and [bottom, top] to the viewport edges.
+void vdb2D(float left, float right, float bottom, float top);
 
-void vdbNote(float x, float y, const char* fmt, ...); // Like printf but displays the text at (x,y) in the current view
+// The 3D view gives you a camera that you can control freely.
+void vdb3D(float x=0.0f, float y=0.0f, float z=0.0f, float fov=3.14f/4.0f, float near_clip=0.1f, float far_clip=100.0f);
+
+// Like printf but displays the text at (x,y).
+void vdbNote(float x, float y, const char* fmt, ...);
 
 // MAPPING
 //   Can be used to select elements using the mouse and conditionally
@@ -66,7 +71,7 @@ void vdbNote(float x, float y, const char* fmt, ...); // Like printf but display
 //   information about a specific element, for example, highlighting it
 //   and displaying a tooltip about its value.
 // EXAMPLE
-//   vdbScale(x_min, x_max, y_min, y_max);
+//   vdb2D(x_min, x_max, y_min, y_max);
 //   for (int i = 0; i < num_votes; i++)
 //   {
 //       HoughTableEntry e = entries[i];
@@ -76,8 +81,10 @@ void vdbNote(float x, float y, const char* fmt, ...); // Like printf but display
 //           SetTooltip("Votes: %d\nx: %.2f:\ny: %.2f", e.votes, e.x, e.y);
 //       }
 //   }
-bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f); // Returns true if element was hovered over in _previous_ frame
-void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0); // Optionally returns the index of the hovered element, and the coordinates you specified when calling vdbMap
+// Returns true if element was hovered over in the previous frame.
+bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f);
+// Gives the coordinates (x,y,z) and the index (i) of the element that was hovered over.
+void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0);
 
 
 // VIEWPORT CONVERSIONS
@@ -402,7 +409,7 @@ void vdbPVM(vdb_mat4 projection, vdb_mat4 view, vdb_mat4 model)
     glLoadMatrixf(vdb__globals.pvm.data);
 }
 
-void vdbScale(float left, float right, float bottom, float top)
+void vdb2D(float left, float right, float bottom, float top)
 {
     float ax = 2.0f/(right-left);
     float ay = 2.0f/(top-bottom);
@@ -463,15 +470,15 @@ vdb_mat4 vdb_mat_sphere(float x, float y, float z, float htheta, float vtheta, f
 //     vdbView(projection, view, model);
 // }
 
-void vdbSphereCamera(float htheta,
-                     float vtheta,
-                     float radius,
-                     float focus_x,
-                     float focus_y,
-                     float focus_z,
-                     float vfov,
-                     float zn,
-                     float zf)
+void vdb3D(float htheta,
+           float vtheta,
+           float radius,
+           float focus_x,
+           float focus_y,
+           float focus_z,
+           float vfov,
+           float zn,
+           float zf)
 {
     float aspect = vdb__globals.viewport_w/(float)vdb__globals.viewport_h;
     vdb_mat4 p = vdb_mat_perspective(vfov, aspect, zn, zf);
@@ -480,7 +487,7 @@ void vdbSphereCamera(float htheta,
     vdbPVM(p, v, m);
 }
 
-void vdbFreeSphereCamera(float focus_x0, float focus_y0, float focus_z0, float fov, float zn, float zf)
+void vdb3D(float focus_x0, float focus_y0, float focus_z0, float fov, float zn, float zf)
 {
     so_input input = vdb__globals.input;
     static float radius = 1.0f;
@@ -552,7 +559,7 @@ void vdbFreeSphereCamera(float focus_x0, float focus_y0, float focus_z0, float f
     focus_y += 10.0f * (Rfocus_y - focus_y) * dt;
     focus_z += 10.0f * (Rfocus_z - focus_z) * dt;
 
-    vdbSphereCamera(htheta, vtheta, radius, focus_x, focus_y, focus_z, fov, zn, zf);
+    vdb3D(htheta, vtheta, radius, focus_x, focus_y, focus_z, fov, zn, zf);
 }
 
 void vdbNote(float x, float y, const char* fmt, ...)
@@ -630,7 +637,7 @@ void vdbUnmap(int *i, float *x, float *y, float *z)
 void vdbClear(float r, float g, float b, float a)
 {
     vdb_mat4 prev = vdb__globals.pvm;
-    vdbScale(-1,+1,-1,+1);
+    vdb2D(-1,+1,-1,+1);
     glBegin(GL_TRIANGLES);
     glColor4f(r, g, b, a);
     glVertex2f(-1,-1);
@@ -1024,7 +1031,7 @@ bool vdb_preamble(so_input *input)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    vdbScale(-1.0f, +1.0f, -1.0f, +1.0f);
+    vdb2D(-1.0f, +1.0f, -1.0f, +1.0f);
 
     // Specify the start of each pixel row in memory to be 1-byte aligned
     // as opposed to 4-byte aligned or something. Useful to allow for arbitrarily
@@ -1314,7 +1321,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
 
     if (record_region)
     {
-        vdbScale(0.0f, (float)input.width, 0.0f, (float)input.height);
+        vdb2D(0.0f, (float)input.width, 0.0f, (float)input.height);
         glLineWidth(2.0f);
         glBegin(GL_LINE_LOOP);
         glColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -1343,7 +1350,7 @@ void vdb_postamble(so_input input)
     vdb__globals.first_iteration = false;
 
     vdbViewport(0, 0, input.width, input.height);
-    vdbScale(-1.0f, +1.0f, -1.0f, +1.0f);
+    vdb2D(-1.0f, +1.0f, -1.0f, +1.0f);
 
     using namespace ImGui;
 
