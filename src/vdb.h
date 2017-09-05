@@ -55,7 +55,6 @@ void vdbViewport(int x, int y, int w, int h); // Define the window region to be 
 void vdbScale(float left, float right, float bottom, float top); // Scale coordinates to fit into viewport: i.e. map [x=left,x=right] to left and right edges, and [y=bottom,y=top] to bottom and top edges.
 void vdbSphereCamera(float htheta, float vtheta, float radius, float focus_x, float focus_y, float focus_z, float fov, float zn, float zf); // 3D camera looking at focus point
 void vdbFreeSphereCamera(float focus_x=0.0f, float focus_y=0.0f, float focus_z=0.0f, float fov=3.1415926f/4.0f, float zn=0.1f, float zf=100.0f); // Input-controlled 3D camera
-void vdbSquareViewport(); // Letterbox the viewport (call after vdbViewport)
 
 
 void vdbNote(float x, float y, const char* fmt, ...); // Like printf but displays the text at (x,y) in the current view
@@ -358,20 +357,6 @@ void vdbViewport(int x, int y, int w, int h)
     vdb__globals.viewport_w = w;
     vdb__globals.viewport_h = h;
     glViewport(x, y, w, h);
-}
-
-void vdbSquareViewport()
-{
-    int w = vdb__globals.window_w;
-    int h = vdb__globals.window_h;
-    if (w > h)
-    {
-        vdbViewport((w-h)/2, 0, h, h);
-    }
-    else
-    {
-        vdbViewport(0, (h-w)/2, w, w);
-    }
 }
 
 void vdbNDCToWindow(float x, float y, float *wx, float *wy)
