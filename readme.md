@@ -9,7 +9,7 @@
 ## What does it do?
 The library simplifies the tedious process of opening an OpenGL graphics window, and also includes the [Dear ImGui](https://github.com/ocornut/imgui/) library. For example, here is a complete program that opens a graphics window, and lets you change the background color with a slider widget:
 
-```
+```c++
 #include <vdb.h>
 int main(int, char**)
 {

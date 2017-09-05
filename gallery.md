@@ -9,7 +9,7 @@ The first step of the algorithm is to pre-process the image by applying a color 
 
 This means means that the program will run normally until it decodes the image, then it will stop to open a graphical window that runs our interactive visualization code repeatedly, until we decide to move on (by pressing the built-in Continue button).
 
-```
+```c++
 // external variables
 unsigned char *rgb;
 float r, g, b, d;
@@ -35,7 +35,7 @@ Here I'm checking the results from another part of the grid detection algorithm,
 
 I use OpenGL to draw the ten thousands of points extracted from line boundaries, and I use a couple of sliders to make small adjustments to the estimated camera rotation until the grid appears straight.
 
-```
+```c++
 // external variables
 float cam_rotation[3]; // roll, pitch, yaw angles
 float cam_position[3]; // x, y, z position
@@ -79,7 +79,7 @@ Here I check the results from the line extraction step. Each hypothesized line i
 
 The source code for this one is a bit more involved and uses a function called ```vdbMap```. It takes in an X and Y coordinate and returns true if your mouse was closest to this coordinate, out of all other calls to vdbMap over one frame. A common use pattern is as shown here, where you draw a bunch of items per frame, and want to find out which, out of all the items, your mouse was closest to, in order to do some specific draw code.
 
-```
+```c++
 VDBB("Potential lines");
 {
     vdbClear(0.16f, 0.16f, 0.1f, 1.0f);
