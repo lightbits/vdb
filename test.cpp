@@ -109,57 +109,88 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("Full bananacakes");
+    VDBB("Hovering");
     {
-        vdb3D();
-        glBegin(GL_TRIANGLES);
+        struct item_t { float x,y; };
+        const int num_items = 128;
+        static item_t items[num_items];
+
+        srand(12345);
+        for (int i = 0; i < num_items; i++)
         {
-            int nx = (int)(vdb_input.width/64.0f);
-            int ny = (int)(vdb_input.height/64.0f);
+            items[i].x = -1.0f + 2.0f*(rand() % 10000)/10000.0f;
+            items[i].y = -1.0f + 2.0f*(rand() % 10000)/10000.0f;
+        }
+
+        vdb2D(-1, +1, -1, +1);
+        glPoints(8.0f);
+        for (int i = 0; i < num_items; i++)
+        {
+            float x = items[i].x;
+            float y = items[i].y;
+            glColor4f(0.3f, 0.3f, 0.3f, 1.0f);
+            glVertex2f(x, y);
+
+            if (vdbIsPointHovered(x, y))
+                SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
+        }
+        glEnd();
+
+        {
+            float x,y;
+            int i = vdbGetHoveredPoint(&x, &y);
+            glPoints(16.0f);
+            glColor4f(1.0f, 0.9f, 0.2f, 0.5f);
+            glVertex2f(x, y);
+            glEnd();
+
+            if (i < num_items-1)
+            {
+                float x2 = items[i+1].x;
+                float y2 = items[i+1].y;
+                glLines(2.0f);
+                glVertex2f(x, y); glVertex2f(x2, y2);
+                glEnd();
+            }
+        }
+
+        TextWrapped("You can check if an item you just drew is hovered over by the mouse.");
+    }
+    VDBE();
+
+    VDBB("3D");
+    {
+        glEnable(GL_DEPTH_TEST);
+        glClearDepth(1.0f);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        vdb3D();
+        glPoints(6.0f);
+        {
+            int nx = 64;
+            int ny = 64;
             for (int yi = 0; yi <= ny; yi++)
             for (int xi = 0; xi <= nx; xi++)
             {
                 float xt = (float)xi/nx;
                 float yt = (float)yi/ny;
-                float xn = -1.0f + 2.0f*xt;
-                float yn = -1.0f + 2.0f*yt;
-                float dx = 2.0f/nx;
-                float dy = 2.0f/ny;
-                glColor4f(0.2f+0.8f*xt, 0.3f+0.7f*yt, 0.5f+0.5f*sinf(0.3f*vdb_input.t), 1.0f);
-                glVertex2f(xn, yn);
-                glVertex2f(xn+dx, yn);
-                glVertex2f(xn+dx, yn+dy);
-                glVertex2f(xn+dx, yn+dy);
-                glVertex2f(xn, yn+dy);
-                glVertex2f(xn, yn);
+                float t = 0.25f*vdb_input.t;
 
-                if (xi == 7 && yi == 7)
-                    vdbNote(xn+1.0f/nx, yn+1.0f/ny, "My coordinates are: %d %d", xi, yi);
-                if (vdbIsPointHovered(xn+1.0f/nx, yn+1.0f/ny))
-                {
-                    SetTooltip("%.2f %.2f", xn+1.0f/nx, yn+1.0f/ny);
-                }
+                float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
+                h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
+
+                float x = -1.0f + 2.0f*xt;
+                float y = -1.0f + 2.0f*yt;
+                float z = 0.2f*h;
+
+                float c = 0.5f+z;
+                glColor4f(c, 0.5f*c, 0.2f*c, 1.0f);
+                glVertex3f(x, y, z);
             }
         }
         glEnd();
 
-        {
-            float x_src, y_src;
-            vdbGetHoveredPoint(&x_src, &y_src);
-
-            // SetTooltip("%d: %.2f %.2f", i, x_src, y_src);
-
-            float x_win, y_win;
-            vdbModelToWindow(x_src, y_src, 0.0f, 1.0f, &x_win, &y_win);
-            vdb2D(0.0f, vdb_input.width, vdb_input.height, 0.0f);
-            glBegin(GL_TRIANGLES);
-            glColor4f(0.0f, 0.0f, 0.0f, 0.5f);
-            vdbFillCircle(x_win+1.0f, y_win+1.0f, 5.0f);
-            glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            vdbFillCircle(x_win, y_win, 5.0f);
-            glEnd();
-        }
-
+        Text("VDB has a 3D camera!");
         Text("Press the arrow keys to move the camera");
         Text("Press z and x to zoom in and out");
         Text("Hold shift for fast movement");

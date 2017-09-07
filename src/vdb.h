@@ -88,7 +88,7 @@ bool vdbIsPointHovered(float x, float y, float z = 0.0f, float w = 1.0f);
 // Gives the coordinates (x,y,z) of the element that was hovered over
 // and returns its index (its place in the coordinates that were passed
 // to vdbIsPointHovered).
-int vdbGetHoveredPoint(float *x=0, float *y=0);
+int vdbGetHoveredPoint(float *x=0, float *y=0, float *z=0);
 
 
 // VIEWPORT CONVERSIONS
@@ -618,6 +618,7 @@ bool vdbIsPointHovered(float x, float y, float z, float w)
         vdb__globals.map_closest_index = vdb__globals.map_index;
         vdb__globals.map_closest_x = x;
         vdb__globals.map_closest_y = y;
+        vdb__globals.map_closest_z = z;
         vdb__globals.map_closest_distance = distance;
     }
 
@@ -626,11 +627,11 @@ bool vdbIsPointHovered(float x, float y, float z, float w)
     return active_last_frame;
 }
 
-int vdbGetHoveredPoint(float *x, float *y)
+int vdbGetHoveredPoint(float *x, float *y, float *z)
 {
     if (x) *x = vdb__globals.map_closest_x;
     if (y) *y = vdb__globals.map_closest_y;
-    // if (z) vdb__globals.map_closest_z;
+    if (z) vdb__globals.map_closest_z;
     return vdb__globals.map_closest_index;
 }
 
