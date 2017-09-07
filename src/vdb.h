@@ -66,27 +66,29 @@ void vdb3D(float x=0.0f, float y=0.0f, float z=0.0f, float fov=3.14f/4.0f, float
 // Like printf but displays the text at (x,y).
 void vdbNote(float x, float y, const char* fmt, ...);
 
-// MAPPING
+// vdbIsPointHovered and vdbGetHoveredPoint
 //   Can be used to select elements using the mouse and conditionally
 //   execute code if an element is hovered over. Typical usage is in a for
 //   loop drawing a bunch of stuff to the screen, and you want to display
 //   information about a specific element, for example, highlighting it
 //   and displaying a tooltip about its value.
 // EXAMPLE
-//   vdb2D(x_min, x_max, y_min, y_max);
-//   for (int i = 0; i < num_votes; i++)
+//   for (int i = 0; i < count; i++)
 //   {
-//       HoughTableEntry e = entries[i];
-//       glVertex2f(e.x, e.y);
-//       if (vdbMap(e.x, e.y))
+//       item = items[i];
+//       vdbDrawRect(item.x, item.y, item.w, item.h);
+//       if (vdbIsPointHovered(item.center_x, item.center_y))
 //       {
-//           SetTooltip("Votes: %d\nx: %.2f:\ny: %.2f", e.votes, e.x, e.y);
+//           // Item-specific code here. E.g. display a tooltip
+//           SetTooltip("Item index: %d", i);
 //       }
 //   }
 // Returns true if element was hovered over in the previous frame.
-bool vdbMap(float x, float y, float z = 0.0f, float w = 1.0f);
-// Gives the coordinates (x,y,z) and the index (i) of the element that was hovered over.
-void vdbUnmap(int *i=0, float *x=0, float *y=0, float *z=0);
+bool vdbIsPointHovered(float x, float y, float z = 0.0f, float w = 1.0f);
+// Gives the coordinates (x,y,z) of the element that was hovered over
+// and returns its index (its place in the coordinates that were passed
+// to vdbIsPointHovered).
+int vdbGetHoveredPoint(float *x=0, float *y=0);
 
 
 // VIEWPORT CONVERSIONS
@@ -600,7 +602,7 @@ void vdbNote(float x, float y, const char* fmt, ...)
     vdb__globals.note_index++;
 }
 
-bool vdbMap(float x, float y, float z, float w)
+bool vdbIsPointHovered(float x, float y, float z, float w)
 {
     // todo: find closest in z
     float x_win, y_win;
@@ -624,16 +626,12 @@ bool vdbMap(float x, float y, float z, float w)
     return active_last_frame;
 }
 
-void vdbUnmap(int *i, float *x, float *y, float *z)
+int vdbGetHoveredPoint(float *x, float *y)
 {
-    if (i)
-        *i = vdb__globals.map_closest_index;
-    if (x)
-        *x = vdb__globals.map_closest_x;
-    if (y)
-        *y = vdb__globals.map_closest_y;
-    // if (z)
-        // vdb__globals.map_closest_z;
+    if (x) *x = vdb__globals.map_closest_x;
+    if (y) *y = vdb__globals.map_closest_y;
+    // if (z) vdb__globals.map_closest_z;
+    return vdb__globals.map_closest_index;
 }
 
 void vdbClear(float r, float g, float b, float a)

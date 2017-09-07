@@ -135,7 +135,7 @@ int main(int, char **)
 
                 if (xi == 7 && yi == 7)
                     vdbNote(xn+1.0f/nx, yn+1.0f/ny, "My coordinates are: %d %d", xi, yi);
-                if (vdbMap(xn+1.0f/nx, yn+1.0f/ny))
+                if (vdbIsPointHovered(xn+1.0f/nx, yn+1.0f/ny))
                 {
                     SetTooltip("%.2f %.2f", xn+1.0f/nx, yn+1.0f/ny);
                 }
@@ -144,9 +144,9 @@ int main(int, char **)
         glEnd();
 
         {
-            int i;
             float x_src, y_src;
-            vdbUnmap(&i, &x_src, &y_src);
+            vdbGetHoveredPoint(&x_src, &y_src);
+
             // SetTooltip("%d: %.2f %.2f", i, x_src, y_src);
 
             float x_win, y_win;

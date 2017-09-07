@@ -77,7 +77,7 @@ VDBE();
 
 Here I check the results from the line extraction step. Each hypothesized line is drawn as a blue/white dot. If I hover over one of these, the code draws a tooltip with information for that specific line, such as which index it has, how many pixels voted for the line, and the line parameters (angle and distance from origin). I also draw the hovered line in red on top of the pixels (in dark).
 
-The source code for this one is a bit more involved and uses a function called ```vdbMap```. It takes in an X and Y coordinate and returns true if your mouse was closest to this coordinate, out of all other calls to vdbMap over one frame. A common use pattern is as shown here, where you draw a bunch of items per frame, and want to find out which, out of all the items, your mouse was closest to, in order to do some specific draw code.
+The source code for this one is a bit more involved and uses a function called ```vdbIsPointHovered```. It takes in an X and Y coordinate and returns true if your mouse was closest to this coordinate, out of all other calls to vdbIsPointHovered over one frame. A common use pattern is as shown here, where you draw a bunch of items per frame, and want to find out which, out of all the items, your mouse was closest to, in order to do some specific draw code.
 
 ```c++
 VDBB("Potential lines");
@@ -92,10 +92,6 @@ VDBB("Potential lines");
         glVertex2f(edges[i].x, edges[i].y);
     glEnd();
 
-    // Remember which line we hover over for later...
-    float hover_angle = 0.0f;
-    float hover_distance = 0.0f;
-
     // Draw line hypotheses as dots with color intensity
     // based on number of votes
     vdb2D(angle_min, angle_max, distance_min, distance_max);
@@ -107,10 +103,8 @@ VDBB("Potential lines");
         int votes      = lines[i].votes;
 
         // Check if we are hovering over this dot
-        if (vdbMap(angle, distance))
+        if (vdbIsPointHovered(angle, distance))
         {
-            hover_angle = angle;
-            hover_distance = distance;
             SetTooltip("%d %d\n%.2f %.2f", i, votes, angle, distance);
             glColor4f(1.0f, 1.0f, 0.2f, 1.0f);
         }
@@ -125,14 +119,19 @@ VDBB("Potential lines");
     glEnd();
 
     // Draw the hovered-over line in red
-    vdb2D(0.0f, width, height, 0.0f);
-    float x1, y1, x2, y2;
-    get_line_endpoints(hover_angle, hover_distance, &x1, &y1, &x2, &y2);
-    glLines(4.0f);
-    glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
-    glVertex2f(x1, y1);
-    glVertex2f(x2, y2);
-    glEnd();
+    {
+        float angle, distance;
+        vdbGetHoveredPoint(&hover_angle, &hover_distance);
+
+        vdb2D(0.0f, width, height, 0.0f);
+        float x1, y1, x2, y2;
+        get_line_endpoints(angle, distance, &x1, &y1, &x2, &y2);
+        glLines(4.0f);
+        glColor4f(1.0f, 0.2f, 0.2f, 1.0f);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y2);
+        glEnd();
+    }
 }
 VDBE();
 ```
