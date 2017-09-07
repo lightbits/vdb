@@ -38,3 +38,5 @@ Once you are able to compile and run this program you should be good to go integ
 * See [example_cmake](example_cmake) for how to integrate vdb into a CMake-based project.
 
 * See [example_ros](example_ros) for an example of using vdb with ROS, to visualize the results of a node and adjusting its run-time parameters live.
+
+* See also [Why Qt and not ImGui](https://deplinenoise.wordpress.com/2017/03/05/why-qt-and-not-imgui/), because this tool might not be the best choice for you.
