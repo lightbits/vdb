@@ -631,7 +631,7 @@ int vdbGetHoveredPoint(float *x, float *y, float *z)
 {
     if (x) *x = vdb__globals.map_closest_x;
     if (y) *y = vdb__globals.map_closest_y;
-    if (z) vdb__globals.map_closest_z;
+    if (z) *z = vdb__globals.map_closest_z;
     return vdb__globals.map_closest_index;
 }
 

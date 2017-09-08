@@ -197,5 +197,39 @@ int main(int, char **)
     }
     VDBE();
 
+    VDBB("3D hover");
+    {
+        vdb3D();
+        glLines(4.0f);
+        glColor4f(1,1,1, 0.5f);
+        vdbGridXY(-1, +1, -1, +1, 2);
+        glEnd();
+        glPoints(8.0f);
+        srand(128);
+        for (int i = 0; i < 256; i++)
+        {
+            float x = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            float y = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            float z = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            if (vdbIsPointHovered(x,y,z))
+            {
+                SetTooltip("%d", i);
+            }
+            glColor4f(0.5f+0.5f*x,0.5f+0.5f*y,0.5f+0.5f*z,1.0f);
+            glVertex3f(x,y,z);
+        }
+        glEnd();
+
+        glPoints(16.0f);
+        glColor4f(1.0f, 0.9f, 0.2f, 0.5f);
+        float x, y, z;
+        vdbGetHoveredPoint(&x, &y, &z);
+        glVertex3f(x, y, z);
+        glEnd();
+
+        TextWrapped("Hovering also works in 3D");
+    }
+    VDBE();
+
     return 0;
 }
