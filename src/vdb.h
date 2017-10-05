@@ -1314,7 +1314,7 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
     {
         Separator();
         Text("Tip: Use ffmpeg to convert the images to a video file:");
-        char *ffmpeg_tip = "ffmpeg -framerate 24 -start_number 1 -i video%04d.png -pix_fmt yuv420p video.mp4";
+        const char *ffmpeg_tip = "ffmpeg -framerate 24 -start_number 1 -i video%04d.png -pix_fmt yuv420p video.mp4";
         InputText("###ffmpeg_tip", ffmpeg_tip, strlen(ffmpeg_tip), ImGuiInputTextFlags_ReadOnly);
     }
 
