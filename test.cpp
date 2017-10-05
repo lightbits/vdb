@@ -13,21 +13,13 @@
 //
 // OSX
 //   2) In your command line or batch script or whatever
-//        g++ test.cpp -o test -framework OpenGL `sdl2-config --cflags —libs`
+//        g++ test.cpp -o test -framework OpenGL `sdl2-config --cflags --libs`
 //
 // If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include "src/vdb.h"
 
 int main(int, char **)
 {
-    // Controls
-    // F10 : Step once
-    // F5 : Step over
-    // Ctrl+V : Record video
-    // Ctrl+R : Show ruler
-    // Ctrl+W : Set window size
-    // Escape : Close window
-
     VDBB("Hello VDB");
     {
         vdbClear(0.45f, 0.56f, 0.6f, 1.0f);
