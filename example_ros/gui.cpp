@@ -1,4 +1,4 @@
-#include "vdb/vdb.h" // See readme.md for how to bundle vdb with your project
+#include "vdb/vdb.h" // Assumes you copied the vdb source files into this node. See readme.md for help.
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
 
