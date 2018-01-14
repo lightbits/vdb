@@ -336,6 +336,7 @@ static struct vdb_globals
     bool abort;
 
     bool first_iteration;
+    bool recording;
 } vdb__globals;
 
 bool vdbLeftDown()       { return !ImGui::GetIO().WantCaptureMouse && vdb__globals.input.left.down; }
@@ -1217,6 +1218,8 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
         if (record_mode == record_mode_gif)
             jo_gif_end(&record_gif);
         recording = false;
+
+        vdb__globals.recording = false;
     }
     else if (!recording && Button("Start##recording"))
     {
@@ -1230,6 +1233,8 @@ void vdb_osd_video_tool(bool *show_video, so_input input)
         frame_index = 0;
         current_bytes = 0;
         recording = true;
+
+        vdb__globals.recording = true;
     }
 
     bool take_frame = false;
