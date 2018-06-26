@@ -5,7 +5,7 @@
 #include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
 #undef WIN32_LEAN_AND_MEAN // defined by glad
 #endif
-#include <SDL_syswm.h>
+#include "sdl/SDL_syswm.h"
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"

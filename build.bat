@@ -4,9 +4,8 @@
 @echo off
 
 :: Create a .build directory (hidden)
-if not exist ".build" mkdir .build
-attrib +h .build /s /d
-pushd .build
+if not exist "lib" mkdir lib
+pushd lib
 
 :: -Od: Turns off optimizations and speeds up compilation
 :: -Zi: Generates debug symbols

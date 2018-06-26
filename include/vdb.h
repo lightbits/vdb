@@ -31,7 +31,7 @@ void vdbDepthWrite(bool enable);
 void vdbProjection(float *m);
 void vdbMatrix(float *m);
 void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rx,float ry,float rz);
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);
 void vdbViewport(float left, float bottom, float width, float height);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);

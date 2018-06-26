@@ -91,7 +91,7 @@ void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
 }
 
 // M = T*Rz*Ry*Rx
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rx,float ry,float rz)
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
 {
     vdbMat4 T = vdbTranslate(tx,ty,tz);
     vdbMat4 Rx = vdbRotateX(rx);
