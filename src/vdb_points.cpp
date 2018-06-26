@@ -1,6 +1,10 @@
-// see bottom of file
-extern const char *point_shader_vs;
-extern const char *point_shader_fs;
+#if defined(VDB_POINT_SHADER_QUAD)
+#include "_point_shader_quad.cpp"
+#elif defined(VDB_POINT_SHADER_VERTEX)
+#include "_point_shader_vertex.cpp"
+#else
+#error "You must #define either VDB_POINT_SHADER_QUAD or VDB_POINT_SHADER_VERTEX."
+#endif
 
 struct gl_point_buffer_t
 {
@@ -34,6 +38,7 @@ void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points)
 
 void vdbDrawPoints(int slot, float point_size, int circle_segments)
 {
+    SDL_assert(slot >= 0 && slot < vdb_max_point_buffers && "You're trying to draw a point cloud beyond the available slots.");
     typedef void (*vertex_attrib_divisor_t)(GLuint, GLuint);
     static vertex_attrib_divisor_t VertexAttribDivisor = (vertex_attrib_divisor_t)SDL_GL_GetProcAddress("glVertexAttribDivisor");
     SDL_assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
@@ -75,14 +80,17 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
     glUniformMatrix4fv(uniform_model_to_view, 1, GL_FALSE, model_to_view);
     glUniform1f(uniform_point_size, point_size);
 
-    #if POINT_SHADER_QUAD==1
+    #if defined(VDB_POINT_SHADER_QUAD)
+
     static const float quad_position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
     static const float quad_color[] = { 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1 };
     glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, quad_position);
     glEnableVertexAttribArray(attrib_in_position);
     glVertexAttribPointer(attrib_in_color, 4, GL_FLOAT, GL_FALSE, 0, quad_color);
     glEnableVertexAttribArray(attrib_in_color);
-    #else // POINT_SHADER_VERTEX
+
+    #elif defined(VDB_POINT_SHADER_VERTEX)
+
     const int max_circle_segments = 128;
     if (circle_segments > max_circle_segments)
         circle_segments = max_circle_segments;
@@ -100,6 +108,9 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
     }
     glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, circle);
     glEnableVertexAttribArray(attrib_in_position);
+
+    #else
+    #error "You must define either VDB_POINT_SHADER_VERTEX or VDB_POINT_SHADER_QUAD"
     #endif
 
     gl_point_buffer_t buffer = point_buffers[slot];
@@ -122,87 +133,3 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);
 }
-
-#ifdef VDB_POINT_SHADER_QUAD
-//
-// This shader can be used to render the points as pixel-perfect circles,
-// using textured quads. This option might be slower than the vertex version
-// especially if you restrict yourself to low vertex count.
-//
-#pragma once
-#define SHADER(S) "#version 150\n" #S
-const char *point_shader_vs = SHADER(
-in vec2 in_position;
-in vec4 in_color;
-in vec3 instance_position;
-in vec4 instance_color;
-uniform mat4 projection;
-uniform mat4 model_to_view;
-uniform float point_size;
-out vec4 vertex_color;
-out vec2 quad_position;
-void main()
-{
-    quad_position = in_position;
-    vertex_color = instance_color*in_color;
-    vec4 position = model_to_view*vec4(instance_position,1.0) + point_size*vec4(in_position,0.0,0.0);
-    gl_Position = projection*position;
-}
-);
-
-const char *point_shader_fs = SHADER(
-in vec4 vertex_color;
-in vec2 quad_position;
-out vec4 fragment_color;
-void main()
-{
-    fragment_color = vertex_color;
-
-    // NO ALPHA BLENDING
-    if (dot(quad_position,quad_position) > 1.0)
-        discard;
-}
-);
-#undef SHADER
-
-#else // VDB_POINT_SHADER_VERTEX
-//
-// This shader can be used to render the points as colored meshes. This gives
-// you MSAA for free (if enabled), but you end up with non-perfect circles.
-// This option might be faster than the quad shader, especially for low
-// vertex counts.
-//
-#pragma once
-#define SHADER(S) "#version 150\n" #S
-const char *point_shader_vs = SHADER(
-in vec2 in_position;
-in vec3 instance_position;
-in vec4 instance_color;
-uniform mat4 projection;
-uniform mat4 model_to_view;
-uniform float point_size;
-// uniform float reflection; // I used this once to spin the point around every frame
-                             // to make it look like a circle
-out vec4 vertex_color;
-out vec2 quad_position;
-void main()
-{
-    quad_position = in_position;
-    vertex_color = instance_color;
-    vec4 position = model_to_view*vec4(instance_position,1.0) + point_size*vec4(in_position,0.0,0.0);
-    // vec4 position = model_to_view*vec4(instance_position,1.0) + reflection*point_size*vec4(in_position,0.0,0.0);
-    gl_Position = projection*position;
-}
-);
-
-const char *point_shader_fs = SHADER(
-in vec4 vertex_color;
-in vec2 quad_position;
-out vec4 fragment_color;
-void main()
-{
-    fragment_color = vertex_color;
-}
-);
-#undef SHADER
-#endif

@@ -65,6 +65,8 @@ struct vdbGlobals
     bool escape_eaten;
     int note_index;
     bool is_first_frame;
+    bool taa_begun;
+    bool tss_begun;
     vdb_settings_t settings;
 };
 static vdbGlobals vdb = {0};
@@ -123,8 +125,6 @@ bool vdbBeginFrame(const char *label)
     if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); skip_label = label; return false; }
     if (vdb.should_quit) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); vdbCloseWindow(); exit(0); }
 
-
-
     vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
     vdb.escape_eaten = false;
     vdb.note_index = 0;
@@ -159,6 +159,8 @@ bool vdbBeginFrame(const char *label)
 
 void vdbEndFrame()
 {
+    if (vdb.taa_begun) vdbEndTAA();
+    if (vdb.tss_begun) vdbEndTSS();
     if (framegrab.active)
     {
         framegrab_options_t opt = framegrab.options;

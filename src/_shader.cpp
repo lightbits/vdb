@@ -51,7 +51,7 @@ GLuint LoadShaderFromMemory(const char *vs, const char *fs)
     {
         GLint length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        char *info = (char*)(length);
+        char *info = (char*)malloc(length);
         glGetProgramInfoLog(program, length, NULL, info);
         printf("Failed to link program:\n%s", info);
         free(info);
