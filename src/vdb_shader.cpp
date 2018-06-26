@@ -43,5 +43,5 @@ void vdbUniform1i(const char *name, int x)                              { glUnif
 void vdbUniform2i(const char *name, int x, int y)                       { glUniform2i(glGetUniformLocation(vdb_gl_current_program, name), x,y); }
 void vdbUniform3i(const char *name, int x, int y, int z)                { glUniform3i(glGetUniformLocation(vdb_gl_current_program, name), x,y,z); }
 void vdbUniform4i(const char *name, int x, int y, int z, int w)         { glUniform4i(glGetUniformLocation(vdb_gl_current_program, name), x,y,z,w); }
-void vdbUniformMatrix4fv(const char *name, float *x, bool transpose)    { glUniformMatrix3fv(glGetUniformLocation(vdb_gl_current_program, name), 1, transpose, x);}
-void vdbUniformMatrix3fv(const char *name, float *x, bool transpose)    { glUniformMatrix4fv(glGetUniformLocation(vdb_gl_current_program, name), 1, transpose, x);}
+void vdbUniformMatrix4fv(const char *name, float *x, bool transpose)    { glUniformMatrix4fv(glGetUniformLocation(vdb_gl_current_program, name), 1, transpose, x);}
+void vdbUniformMatrix3fv(const char *name, float *x, bool transpose)    { glUniformMatrix3fv(glGetUniformLocation(vdb_gl_current_program, name), 1, transpose, x);}

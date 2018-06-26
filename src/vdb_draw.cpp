@@ -44,10 +44,10 @@ void vdbClearDepth(float d)
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 void vdbLineWidth(float width) { glLineWidth(width); }
-void vdbBeginLines(float width) { glBegin(GL_LINES); }
+void vdbBeginLines() { glBegin(GL_LINES); }
 void vdbLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void vdbLineSize(float width) { glLineWidth(width); }
-void vdbBeginPoints(float radius) { glBegin(GL_POINTS); }
+void vdbBeginPoints() { glBegin(GL_POINTS); }
 void vdbPoints(float radius) { glPointSize(radius); glBegin(GL_POINTS); }
 void vdbTriangles() { glBegin(GL_TRIANGLES); }
 void vdbEnd() { glEnd(); }
