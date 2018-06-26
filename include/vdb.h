@@ -11,7 +11,11 @@ bool vdbIsFirstFrame();
 void vdbNote(float x, float y, const char *fmt, ...);
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
+void vdbLineWidth(float width);
+void vdbBeginLines();
 void vdbLines(float width);
+void vdbPointSize(float radius);
+void vdbBeginPoints();
 void vdbPoints(float radius);
 void vdbTriangles();
 void vdbEnd();
@@ -64,7 +68,7 @@ void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int 
 void vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *height=0, int *channels=0);
 void vdbDrawImage(int slot);
 void vdbBindImage(int slot);
-void vdbUnbindImage(int slot);
+void vdbUnbindImage();
 void vdbBeginTAA(int downscale, float blend_factor);
 void vdbBeginTSS(int width, int height, int upscale, float *dx, float *dy);
 void vdbEndTAA();
@@ -163,3 +167,6 @@ enum vdbKey
     VDB_KEY_RALT = 230, /**< alt gr, option */
     VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
 };
+
+#define VDBB(label) while (vdbBeginFrame(label)) {
+#define VDBE() vdbEndFrame(); }

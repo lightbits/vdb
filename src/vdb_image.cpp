@@ -55,7 +55,7 @@ void vdbBindImage(int slot)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, GetTextureSlotHandle(slot));
 }
-void vdbUnbindImage(int slot)
+void vdbUnbindImage()
 {
     glDisable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);

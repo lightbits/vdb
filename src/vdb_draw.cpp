@@ -43,24 +43,15 @@ void vdbClearDepth(float d)
     glClearDepth(d);
     glClear(GL_DEPTH_BUFFER_BIT);
 }
-void vdbLines(float width)
-{
-    glLineWidth(width);
-    glBegin(GL_LINES);
-}
-void vdbPoints(float radius)
-{
-    glPointSize(radius);
-    glBegin(GL_POINTS);
-}
-void vdbTriangles()
-{
-    glBegin(GL_TRIANGLES);
-}
-void vdbEnd()
-{
-    glEnd();
-}
+void vdbLineWidth(float width) { glLineWidth(width); }
+void vdbBeginLines(float width) { glBegin(GL_LINES); }
+void vdbLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
+void vdbLineSize(float width) { glLineWidth(width); }
+void vdbBeginPoints(float radius) { glBegin(GL_POINTS); }
+void vdbPoints(float radius) { glPointSize(radius); glBegin(GL_POINTS); }
+void vdbTriangles() { glBegin(GL_TRIANGLES); }
+void vdbEnd() { glEnd(); }
+
 void vdbVertex(float x, float y, float z, float w) { glVertex4f(x,y,z,w); }
 void vdbColor(float r, float g, float b, float a) { glColor4f(r,g,b,a); }
 void vdbTexel(float u, float v) { glTexCoord2f(u,v); }
