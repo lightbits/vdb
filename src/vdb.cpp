@@ -308,6 +308,7 @@ static void vdbSwapBuffers(float dt)
 
 static void vdbPollEvents()
 {
+    vdb.mouse.wheel = 0.0f;
     for (int i = 0; i < SDL_NUM_SCANCODES; i++)
     {
         vdb.key_pressed[i] = false;
