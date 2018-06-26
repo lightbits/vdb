@@ -159,7 +159,7 @@ int main(int, char **)
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
 
-        vdbMatrixEulerXYZ(0,0,-1, 0.3f,t,0);
+        vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
         vdbPerspective(3.14f/4.0f, vdbGetWindowWidth(), vdbGetWindowHeight(), 0.1f, 10.0f);
         vdbPoints(6.0f);
         {
@@ -192,7 +192,7 @@ int main(int, char **)
         vdbDepthTest(true);
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
-        vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f);
+        vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
         vdbPerspective(3.14f/4.0f, vdbGetWindowWidth(), vdbGetWindowHeight(), 0.1f, 10.0f);
         vdbLines(4.0f);
         vdbColor(1,1,1, 0.5f);
