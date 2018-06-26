@@ -47,6 +47,13 @@ void vdbLineWidth(float width) { glLineWidth(width); }
 void vdbBeginLines() { glBegin(GL_LINES); }
 void vdbLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
 void vdbLineSize(float width) { glLineWidth(width); }
+void vdbLineRect(float x, float y, float w, float h)
+{
+    vdbVertex(x, y);    vdbVertex(x+w,y);
+    vdbVertex(x+w,y);   vdbVertex(x+w,y+w);
+    vdbVertex(x+w,y+w); vdbVertex(x, y+w);
+    vdbVertex(x, y+w);  vdbVertex(x, y);
+}
 void vdbBeginPoints() { glBegin(GL_POINTS); }
 void vdbPoints(float radius) { glPointSize(radius); glBegin(GL_POINTS); }
 void vdbTriangles() { glBegin(GL_TRIANGLES); }

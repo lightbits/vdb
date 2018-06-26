@@ -314,6 +314,12 @@ static void vdbPollEvents()
         vdb.key_pressed[i] = false;
         vdb.key_released[i] = false;
     }
+    vdb.mouse.left.pressed = false;
+    vdb.mouse.right.pressed = false;
+    vdb.mouse.middle.pressed = false;
+    vdb.mouse.left.released = false;
+    vdb.mouse.right.released = false;
+    vdb.mouse.middle.released = false;
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
