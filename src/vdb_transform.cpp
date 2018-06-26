@@ -207,7 +207,8 @@ vdbVec2 vdbModelToNDC(float x, float y, float z, float w)
     return ndc;
 }
 
-void vdbGetFramebufferSize(int *width, int *height) { if (width) *width = vdb.framebuffer_width; if (height) *height = vdb.framebuffer_height; }
-int  vdbGetFramebufferWidth() { return vdb.framebuffer_width; }
-int  vdbGetFramebufferHeight() { return vdb.framebuffer_height; }
-float vdbGetFramebufferAspect() { return (float)vdb.framebuffer_width/vdb.framebuffer_height; }
+int   vdbGetWindowWidth() { return vdb.window_width; }
+int   vdbGetWindowHeight() { return vdb.window_height; }
+int   vdbGetFramebufferWidth() { return vdb.framebuffer_width; }
+int   vdbGetFramebufferHeight() { return vdb.framebuffer_height; }
+float vdbGetAspectRatio() { return (float)vdb.framebuffer_width/vdb.framebuffer_height; }

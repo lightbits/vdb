@@ -49,3 +49,15 @@
 // This path specifies the path (relative to working directory)
 // where the information is stored.
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
+
+
+// This shader can be used to render points as colored meshes. This gives
+// you MSAA for free (if enabled), but you end up with non-perfect circles.
+// This option might be faster than the quad shader, especially for low
+// vertex counts.
+#define VDB_POINT_SHADER_VERTEX
+
+// This shader can be used to render points as pixel-perfect circles,
+// using textured quads. This option might be slower than the vertex version
+// especially if you restrict yourself to low vertex count.
+// #define VDB_POINT_SHADER_QUAD
