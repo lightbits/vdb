@@ -47,7 +47,7 @@ int vdbGetMouseOverIndex(float *x, float *y, float *z)
     if (z) *z = vdb_map.closest_z;
     return vdb_map.closest_index;
 }
-vdbVec2 vdbGetMousePos() { vdbVec2 result = { (float)vdb.mouse.x, (float)vdb.mouse.y }; return result; }
+vdbVec2 vdbGetMousePos() { vdbVec2 result((float)vdb.mouse.x, (float)vdb.mouse.y); return result; }
 vdbVec2 vdbGetMousePosNDC() { return vdb.mouse.ndc; }
 
 bool vdbMouseLeftPressed()    { return vdb.mouse.left.pressed    && !ImGui::GetIO().WantCaptureMouse; }

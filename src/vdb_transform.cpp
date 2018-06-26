@@ -44,6 +44,65 @@ void vdbMatrix(float *m)
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
+vdbMat4 vdbRotateZ(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,0) = cosf(t); a.at(0,1) = -sinf(t);
+    a.at(1,0) = sinf(t); a.at(1,1) = cosf(t);
+    return a;
+}
+
+vdbMat4 vdbRotateY(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,0) =  cosf(t); a.at(0,2) = sinf(t);
+    a.at(2,0) = -sinf(t); a.at(2,2) = cosf(t);
+    return a;
+}
+
+vdbMat4 vdbRotateX(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(1,1) = cosf(t); a.at(1,2) = -sinf(t);
+    a.at(2,1) = sinf(t); a.at(2,2) = cosf(t);
+    return a;
+}
+
+vdbMat4 vdbTranslate(float x, float y, float z)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,3) = x;
+    a.at(1,3) = y;
+    a.at(2,3) = z;
+    return a;
+}
+
+// M = T*Rx*Ry*Rz
+void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbMat4 T = vdbTranslate(tx,ty,tz);
+    vdbMat4 Rx = vdbRotateX(rx);
+    vdbMat4 Ry = vdbRotateY(ry);
+    vdbMat4 Rz = vdbRotateZ(rz);
+    vdbMat4 M = vdbMul4x4(Ry,Rz);
+            M = vdbMul4x4(Rx, M);
+            M = vdbMul4x4(T, M);
+    vdbMatrix(M.data);
+}
+
+// M = T*Rz*Ry*Rx
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbMat4 T = vdbTranslate(tx,ty,tz);
+    vdbMat4 Rx = vdbRotateX(rx);
+    vdbMat4 Ry = vdbRotateY(ry);
+    vdbMat4 Rz = vdbRotateZ(rz);
+    vdbMat4 M = vdbMul4x4(Ry,Rx);
+            M = vdbMul4x4(Rz, M);
+            M = vdbMul4x4(T, M);
+    vdbMatrix(M.data);
+}
+
 void vdbViewport(float left, float bottom, float width, float height)
 {
     vdb.viewport_left = (int)(left*vdb.framebuffer_width);
@@ -71,12 +130,14 @@ void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_
     vdbProjection(p.data);
 }
 
-void vdbPerspective(float yfov, float width, float height, float z_near, float z_far)
+void vdbPerspective(float yfov, float width, float height, float z_near, float z_far, float x_offset, float y_offset)
 {
     float t = 1.0f/tanf(yfov/2.0f);
     vdbMat4 p = {0};
     p.at(0,0) = t/(width/height);
+    p.at(0,2) = x_offset;
     p.at(1,1) = t;
+    p.at(1,2) = y_offset;
     p.at(2,2) = (z_near+z_far)/(z_near-z_far);
     p.at(3,2) = -1.0f;
     p.at(2,3) = 2.0f*z_near*z_far/(z_near-z_far);
@@ -89,7 +150,7 @@ vdbVec2 vdbWindowToNDC(float xw, float yw)
     float yf = vdb.framebuffer_height*(1.0f - yw/vdb.window_height);
     float xn = -1.0f+2.0f*(xf-vdb.viewport_left)/vdb.viewport_width;
     float yn = -1.0f+2.0f*(yf-vdb.viewport_bottom)/vdb.viewport_height;
-    vdbVec2 result = { xn, yn };
+    vdbVec2 result(xn,yn);
     return result;
 }
 
@@ -99,7 +160,7 @@ vdbVec2 vdbNDCToWindow(float xn, float yn)
     float yf = vdb.viewport_bottom + (0.5f+0.5f*yn)*vdb.viewport_height;
     float xw = vdb.window_width*(xf/vdb.framebuffer_width);
     float yw = vdb.window_height*(1.0f - yf/vdb.framebuffer_height);
-    vdbVec2 result = { xw, yw };
+    vdbVec2 result(xw,yw);
     return result;
 }
 
@@ -128,21 +189,21 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     float x_clip = x_ndc*w_clip;
     float y_clip = y_ndc*w_clip;
     // float z_clip = az*depth + bz;
-    vdbVec4 view = {0};
+    vdbVec4 view(0,0,0,0);
     view.x = (x_clip-bx)/ax;
     view.y = (y_clip-by)/bx;
     view.z = depth;
     view.w = 1.0f;
     vdbVec4 model = vdbMulSE3Inverse(vdb_modelview, view);
-    vdbVec3 result = { model.x, model.y, model.z };
+    vdbVec3 result(model.x,model.y,model.z);
     return result;
 }
 
 vdbVec2 vdbModelToNDC(float x, float y, float z, float w)
 {
-    vdbVec4 model = { x, y, z, w };
+    vdbVec4 model(x,y,z,w);
     vdbVec4 clip = vdbMul4x1(vdb_pvm, model);
-    vdbVec2 ndc = { clip.x/clip.w, clip.y/clip.w };
+    vdbVec2 ndc(clip.x/clip.w, clip.y/clip.w);
     return ndc;
 }
 

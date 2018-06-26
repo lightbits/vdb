@@ -1,5 +1,6 @@
-// You may copy this file into your project and #include it before vdb.h
-// if you want to overwrite the default configuration.
+// COMPILE-TIME OPTIONS FOR VDB
+// You may edit this file in your local copy of vdb if you want to overwrite
+// the default configuration.
 
 // vdbProjection and vdbPushMatrix both take a matrix in float* format,
 // which can either be interpreted as column-major or row-major order.
@@ -14,13 +15,16 @@
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
 //
-#define VDB_MATRIX_COLUMN_MAJOR
-// #define VDB_MATRIX_ROW_MAJOR
+// #define VDB_MATRIX_COLUMN_MAJOR
+#define VDB_MATRIX_ROW_MAJOR
 
+// Height of default font
 #define VDB_FONT_HEIGHT        18.0f
 
+// When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
 #define VDB_FLIP_IMAGE_TEXEL_Y 0
 
+// OpenGL version
 #define VDB_GL_MAJOR           3
 #define VDB_GL_MINOR           1
 

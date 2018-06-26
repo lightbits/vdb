@@ -22,8 +22,8 @@
 #include "_source_sans_pro.cpp"
 #include "_texture.cpp"
 #include "_rendertexture.cpp"
-#include "_defaultconfig.cpp"
 #include "_shader.cpp"
+#include "vdbconfig.h"
 #include "vdb.h"
 
 struct vdbGlobals

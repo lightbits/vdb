@@ -1,8 +1,8 @@
 #pragma once
 
-struct vdbVec2 { float x,y; };
-struct vdbVec3 { float x,y,z; };
-struct vdbVec4 { float x,y,z,w; };
+struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
+struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
+struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 enum vdbKey;
 
 bool vdbBeginFrame(const char *label);
@@ -25,10 +25,12 @@ void vdbDepthTest(bool enable);
 void vdbDepthWrite(bool enable);
 void vdbProjection(float *m);
 void vdbMatrix(float *m);
+void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz); // return T(tx,ty,tz)*Rx(rx)*Ry(ry)*Rz(rz)
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rx,float ry,float rz); // return T(tx,ty,tz)*Rz(rz)*Ry(ry)*Rx(rx)
 void vdbViewport(float left, float bottom, float width, float height);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
-void vdbPerspective(float yfov, float width, float height, float z_near, float z_far);
+void vdbPerspective(float yfov, float width, float height, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
