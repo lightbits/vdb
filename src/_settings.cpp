@@ -11,7 +11,7 @@ struct vdb_settings_t
 
 void vdbSaveSettings(vdb_settings_t s, const char *filename)
 {
-    FILE *f = fopen(filename, "wb");
+    FILE *f = fopen(filename, "wb+");
     if (!f)
     {
         printf("Warning: Failed to save settings.\n");
