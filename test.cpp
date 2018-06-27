@@ -24,8 +24,31 @@
 #include <vdb.h>
 #include <vdb/imgui.h>
 
+float frand()
+{
+    return (rand() % 1024) / 1024.0f;
+}
+
 int main(int, char **)
 {
+    VDBB("mouse position NDC");
+    {
+        vdbClearColor(0.3f,0.5f,0.7f);
+        vdbLines(2.0f);
+        vdbColor(1.0f,1.0f,0.5f);
+        vdbVertex(0.0f, 0.0f);
+        vdbVertex(1.0f, 1.0f);
+        vdbEnd();
+
+        vdbOrtho(-1,+1,-1,+1);
+        vdbVec2 m = vdbGetMousePosNDC();
+        vdbVec2 n = vdbModelToNDC(m.x, m.y);
+        // vdbNote(m.x,m.y,"MousePosNDC: %.2f %.2f", m.x, m.y);
+        ImGui::SetTooltip("MousePosNDC: %.2f %.2f", n.x, n.y);
+
+    }
+    VDBE();
+
     VDBB("Hello VDB");
     {
         vdbClearColor(0.45f, 0.56f, 0.6f, 1.0f);
@@ -227,6 +250,98 @@ int main(int, char **)
         vdbEnd();
 
         ImGui::TextWrapped("Hovering also works in 3D");
+    }
+    VDBE();
+
+    VDBB("point clouds");
+    {
+        const int N = 8;
+        const int num_points = N*N*N;
+        static vdbVec3 position[num_points];
+        static vdbVec4 color[num_points];
+        float *x = (float*)position;
+        if (vdbIsFirstFrame())
+        {
+            for (int i = 0; i < num_points; i++)
+            {
+                float r = (i % N)/(float)N;
+                float g = ((i / N) % N)/(float)N;
+                float b = ((i / N) / N)/(float)N;
+                float x = -1.0f+2.0f*(r + 0.5f/N);
+                float y = -1.0f+2.0f*(g + 0.5f/N);
+                float z = -1.0f+2.0f*(b + 0.5f/N);
+                position[i] = vdbVec3(x,y,z);
+                color[i] = vdbVec4(r,g,0.5f+0.5f*b,1);
+            }
+            vdbLoadPoints(0, position, color, num_points);
+        }
+        // temporal super sampling
+        #if 0
+        {
+            float dx,dy;
+            vdbBeginTSS(160,120,2,&dx,&dy);
+            vdbPerspective(3.14f/4.0f, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight(), 0.1f, 10.0f, dx, dy);
+        }
+        #else
+        // temporal anti-aliasing (really just low-pass filtering)
+        {
+            vdbBeginTAA(0, 0.9f);
+            float pixel_width = 2.0f/vdbGetFramebufferWidth();
+            float pixel_height = 2.0f/vdbGetFramebufferHeight();
+            float dx = pixel_width*(-1.0f + 2.0f*frand());
+            float dy = pixel_height*(-1.0f + 2.0f*frand());
+            vdbPerspective(3.14f/4.0f, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight(), 0.1f, 10.0f, dx, dy);
+        }
+        #endif
+        static float t = 0.0f; t += 1.0f/60.0f;
+        vdbMatrixEulerXYZ(0,0,-5, 0.3f,0.1f*t,0);
+        vdbDepthTest(true);
+        vdbDepthWrite(true);
+        vdbClearDepth(1.0f);
+        vdbClearColor(0,0,0,1);
+        vdbDrawPoints(0, 0.1f, 32);
+    }
+    VDBE();
+
+    VDBB("shader");
+    {
+        #define SHADER(S) "#version 150\n" #S
+        const char *fs = SHADER(
+        uniform vec2 Resolution;
+        out vec4 Color;
+
+        void main()
+        {
+            vec2 uv = gl_FragCoord.xy/Resolution;
+            Color = vec4(uv, 0.5, 1.0);
+        }
+        );
+        #undef SHADER
+
+        if (vdbIsFirstFrame())
+            vdbLoadShader(0, fs);
+        vdbClearColor(1,1,1,1);
+        vdbBeginShader(0);
+        vdbUniform2f("Resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
+        vdbEndShader();
+    }
+    VDBE();
+
+    VDBB("3d");
+    {
+        static float t = 0.0f;
+        t += 1.0f/60.0f;
+        vdbMatrixEulerXYZ(0,0,0,0,0,0.1f*t);
+        vdbOrtho(-2.0f*vdbGetAspectRatio(),+2.0f*vdbGetAspectRatio(),-2.0f,+2.0f);
+        vdbTriangles();
+        vdbVertex(-1, -1, 0);
+        vdbVertex(+1, -1, 0);
+        vdbVertex( 0, +1, 0);
+        vdbEnd();
+
+        if (vdbIsMouseOver(-1,-1)) { vdbNote(-1,-1,"-1,-1"); }
+        if (vdbIsMouseOver(+1,-1)) { vdbNote(+1,-1,"+1,-1"); }
+        if (vdbIsMouseOver( 0,+1)) { vdbNote( 0,+1,"0,+1"); }
     }
     VDBE();
     return 0;

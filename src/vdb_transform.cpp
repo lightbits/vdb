@@ -36,12 +36,13 @@ void vdbMatrix(float *m)
         glLoadTransposeMatrixf(m);
         glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
         #endif
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
     }
     else
     {
+        vdb_modelview = vdbMatIdentity();
         glLoadIdentity();
     }
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
 void vdbPushMatrix(float *m)
@@ -57,7 +58,6 @@ void vdbPushMatrix(float *m)
         glMultTransposeMatrixf(m);
         glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
         #endif
-
         vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
     }
     else
