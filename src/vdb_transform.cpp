@@ -29,18 +29,53 @@ void vdbMatrix(float *m)
     glMatrixMode(GL_MODELVIEW);
     if (m)
     {
-        vdb_modelview = *(vdbMat4*)m;
         #ifdef VDB_MATRIX_ROW_MAJOR
         glLoadMatrixf(m);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
         #else
         glLoadTransposeMatrixf(m);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
         #endif
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
     }
     else
     {
-        vdb_modelview = vdbMatIdentity();
         glLoadIdentity();
     }
+}
+
+void vdbPushMatrix(float *m)
+{
+    glMatrixMode(GL_MODELVIEW);
+    if (m)
+    {
+        glPushMatrix();
+        #ifdef VDB_MATRIX_ROW_MAJOR
+        glMultMatrixf(m);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #else
+        glMultTransposeMatrixf(m);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #endif
+
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    }
+    else
+    {
+        glPushMatrix();
+    }
+}
+
+void vdbPopMatrix()
+{
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
+    #ifdef VDB_MATRIX_ROW_MAJOR
+    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+    #else
+    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+    #endif
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 

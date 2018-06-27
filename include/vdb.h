@@ -29,6 +29,8 @@ void vdbBlendAlpha();
 void vdbDepthTest(bool enable);
 void vdbDepthWrite(bool enable);
 void vdbProjection(float *m);
+void vdbPushMatrix(float *m=NULL);
+void vdbPopMatrix();
 void vdbMatrix(float *m);
 void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
 void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);

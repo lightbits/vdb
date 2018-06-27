@@ -39,14 +39,14 @@ int main(int, char **)
         VDBB("For loops");
         {
             float c[][3] = {
-                { 0.40, 0.76, 0.64 },
-                { 0.99, 0.55, 0.38 },
-                { 0.54, 0.63, 0.82 },
-                { 0.91, 0.54, 0.77 },
-                { 0.64, 0.86, 0.29 },
-                { 1.00, 0.85, 0.19 },
-                { 0.89, 0.77, 0.58 },
-                { 0.70, 0.70, 0.70 },
+                { 0.40f, 0.76f, 0.64f },
+                { 0.99f, 0.55f, 0.38f },
+                { 0.54f, 0.63f, 0.82f },
+                { 0.91f, 0.54f, 0.77f },
+                { 0.64f, 0.86f, 0.29f },
+                { 1.00f, 0.85f, 0.19f },
+                { 0.89f, 0.77f, 0.58f },
+                { 0.70f, 0.70f, 0.70f },
             };
             vdbClearColor(c[i%8][0], c[i%8][1], c[i%8][2], 1.0f);
 
@@ -160,7 +160,7 @@ int main(int, char **)
         vdbClearDepth(1.0f);
 
         vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
-        vdbPerspective(3.14f/4.0f, vdbGetWindowWidth(), vdbGetWindowHeight(), 0.1f, 10.0f);
+        vdbPerspective(3.14f/4.0f, (float)vdbGetWindowWidth(), (float)vdbGetWindowHeight(), 0.1f, 10.0f);
         vdbPoints(6.0f);
         {
             int nx = 64;
@@ -193,7 +193,7 @@ int main(int, char **)
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
         vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
-        vdbPerspective(3.14f/4.0f, vdbGetWindowWidth(), vdbGetWindowHeight(), 0.1f, 10.0f);
+        vdbPerspective(3.14f/4.0f, (float)vdbGetWindowWidth(), (float)vdbGetWindowHeight(), 0.1f, 10.0f);
         vdbLines(4.0f);
         vdbColor(1,1,1, 0.5f);
         vdbVertex(-1,-1,0); vdbVertex(+1,-1,0);
