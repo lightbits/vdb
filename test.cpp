@@ -31,24 +31,6 @@ float frand()
 
 int main(int, char **)
 {
-    VDBB("mouse position NDC");
-    {
-        vdbClearColor(0.3f,0.5f,0.7f);
-        vdbLines(2.0f);
-        vdbColor(1.0f,1.0f,0.5f);
-        vdbVertex(0.0f, 0.0f);
-        vdbVertex(1.0f, 1.0f);
-        vdbEnd();
-
-        vdbOrtho(-1,+1,-1,+1);
-        vdbVec2 m = vdbGetMousePosNDC();
-        vdbVec2 n = vdbModelToNDC(m.x, m.y);
-        // vdbNote(m.x,m.y,"MousePosNDC: %.2f %.2f", m.x, m.y);
-        ImGui::SetTooltip("MousePosNDC: %.2f %.2f", n.x, n.y);
-
-    }
-    VDBE();
-
     VDBB("Hello VDB");
     {
         vdbClearColor(0.45f, 0.56f, 0.6f, 1.0f);
@@ -342,6 +324,21 @@ int main(int, char **)
         if (vdbIsMouseOver(-1,-1)) { vdbNote(-1,-1,"-1,-1"); }
         if (vdbIsMouseOver(+1,-1)) { vdbNote(+1,-1,"+1,-1"); }
         if (vdbIsMouseOver( 0,+1)) { vdbNote( 0,+1,"0,+1"); }
+    }
+    VDBE();
+
+    VDBB("mouse position NDC");
+    {
+        vdbClearColor(0.3f,0.5f,0.7f);
+        vdbLines(2.0f);
+        vdbColor(1.0f,1.0f,0.5f);
+        vdbVertex(0.0f, 0.0f);
+        vdbVertex(1.0f, 1.0f);
+        vdbEnd();
+
+        vdbOrtho(-1,+1,-1,+1);
+        vdbVec2 m = vdbGetMousePosNDC();
+        vdbNote(m.x,m.y,"MousePosNDC: %.2f %.2f", m.x, m.y);
     }
     VDBE();
     return 0;
