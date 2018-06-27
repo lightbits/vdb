@@ -116,10 +116,27 @@ bool vdbBeginFrame(const char *label)
     }
 
     vdbPollEvents();
-    vdb.settings.window_x = vdb.window_x;
-    vdb.settings.window_y = vdb.window_y;
-    vdb.settings.window_w = vdb.window_width;
-    vdb.settings.window_h = vdb.window_height;
+
+    static int save_settings_counter = 60;
+    if (save_settings_counter >= 0)
+        save_settings_counter--;
+    if (vdb.settings.window_x != vdb.window_x ||
+        vdb.settings.window_y != vdb.window_y ||
+        vdb.settings.window_w != vdb.window_width ||
+        vdb.settings.window_h != vdb.window_height)
+    {
+        vdb.settings.window_x = vdb.window_x;
+        vdb.settings.window_y = vdb.window_y;
+        vdb.settings.window_w = vdb.window_width;
+        vdb.settings.window_h = vdb.window_height;
+        // if the settings changed and we haven't saved in a while (to
+        // spare disk usage) then we save to disk.
+        if (save_settings_counter < 0)
+        {
+            save_settings_counter = 60;
+            vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME);
+        }
+    }
 
     if (vdb.key_pressed[SDL_SCANCODE_F10]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); return false; }
     if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); skip_label = label; return false; }
