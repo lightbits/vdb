@@ -11,7 +11,7 @@ pushd lib
 :: -Zi: Generates debug symbols
 :: -WX: Treat warnings as errors
 :: -MD: Use DLL run-time library
-set INC=-I..\src\sdl\ -I..\include\ -I..\include\vdb\
+set INC=-I..\include\ -I..\include\vdb\ -I..\include\sdl\
 set CF=%INC% -Zi -nologo -O2 -WX -W3 -wd4100 -wd4189 -wd4996 -wd4055
 
 :: -subsystem:console: Open a console

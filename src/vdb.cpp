@@ -1,11 +1,11 @@
 #define SDL_ASSERT_LEVEL 2
-#include "sdl/SDL.h"
+#include "SDL.h"
 #include "glad/glad.c"
 #ifdef _WIN32
 #include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
 #undef WIN32_LEAN_AND_MEAN // defined by glad
 #endif
-#include "sdl/SDL_syswm.h"
+#include "SDL_syswm.h"
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"
@@ -13,8 +13,8 @@
 #include "imgui/imgui_impl_sdl_gl3.cpp"
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image.h"
-#include "stb/stb_image_write.h"
+#include "stb_image.h"
+#include "stb_image_write.h"
 #include "_glstate.cpp"
 #include "_glerror.cpp"
 #include "_settings.cpp"
