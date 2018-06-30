@@ -209,7 +209,7 @@ void vdbSketchModePresent()
     // draw overlay
     {
         int alpha = (int)(fabsf(brightness)*255);
-        ImU32 col = brightness < 0.0f ? IM_COL32(255,255,255,alpha) : IM_COL32(0,0,0,alpha);
+        ImU32 col = brightness > 0.0f ? IM_COL32(255,255,255,alpha) : IM_COL32(0,0,0,alpha);
         user_draw_list->AddRectFilled(ImVec2(0,0), ImGui::GetIO().DisplaySize, col);
     }
 
