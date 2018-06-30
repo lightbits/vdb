@@ -165,9 +165,10 @@ bool vdbBeginFrame(const char *label)
         bool redo = vdbKeyDown(VDB_KEY_LCTRL) && vdbKeyPressed(VDB_KEY_Y);
         bool clear = vdbKeyPressed(VDB_KEY_D);
         bool click = vdbMouseLeftDown();
+        bool brightness = vdbKeyDown(VDB_KEY_LALT);
         float x = vdbGetMousePos().x;
         float y = vdbGetMousePos().y;
-        vdbSketchMode(undo, redo, clear, click, x, y);
+        vdbSketchMode(undo, redo, clear, brightness, click, x, y);
         ImGui::GetIO().WantCaptureKeyboard = true;
         ImGui::GetIO().WantCaptureMouse = true;
     }

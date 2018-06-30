@@ -10,6 +10,7 @@ struct vdb_sketch_mode_t
     line_t lines[vdb_max_sketch_lines];
     int num_lines;
     bool is_drawing;
+    float brightness;
 };
 static vdb_sketch_mode_t vdb_sketch;
 
@@ -44,6 +45,7 @@ static ImVec2 vdb_sketch_palette_pos[] = {
 void vdbSketchMode(bool undo_button,
                    bool redo_button,
                    bool clear_button,
+                   bool brightness_button,
                    bool mouse_left_down,
                    float mouse_x, float mouse_y)
 {
@@ -52,6 +54,7 @@ void vdbSketchMode(bool undo_button,
 
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
+    float &brightness = vdb_sketch.brightness;
     vdb_sketch_mode_t::line_t *lines = vdb_sketch.lines;
 
     if (clear_button)
@@ -84,6 +87,7 @@ void vdbSketchMode(bool undo_button,
                 num_lines++;
         }
     }
+    static bool is_dragging = false;
     if (mouse_left_down)
     {
         int intersected_color = -1;
@@ -97,7 +101,21 @@ void vdbSketchMode(bool undo_button,
                 intersected_color = i;
             }
         }
-        if (intersected_color >= 0)
+        if (brightness_button)
+        {
+            static float start_x = 0.0f;
+            static float start_y = 0.0f;
+            if (!is_dragging)
+            {
+                start_x = mouse_x;
+                start_y = mouse_y;
+                is_dragging = true;
+            }
+            brightness = (mouse_x-start_x)/100.0f;
+            if (brightness < -1.0f) brightness = -1.0f;
+            if (brightness > +1.0f) brightness = +1.0f;
+        }
+        else if (intersected_color >= 0)
         {
             current_color = intersected_color;
         }
@@ -152,12 +170,17 @@ void vdbSketchMode(bool undo_button,
         redo_num_lines = num_lines;
         is_drawing = false;
     }
+    else if (is_dragging)
+    {
+        is_dragging = false;
+    }
 }
 
 void vdbSketchModePresent()
 {
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
+    float &brightness = vdb_sketch.brightness;
     vdb_sketch_mode_t::line_t *lines = vdb_sketch.lines;
 
     static bool init = true;
@@ -182,6 +205,13 @@ void vdbSketchModePresent()
     ImGui::PopStyleVar();
     ImGui::PopStyleColor();
     int n = (is_drawing) ? num_lines+1 : num_lines;
+
+    // draw overlay
+    {
+        int alpha = (int)(fabsf(brightness)*255);
+        ImU32 col = brightness < 0.0f ? IM_COL32(255,255,255,alpha) : IM_COL32(0,0,0,alpha);
+        user_draw_list->AddRectFilled(ImVec2(0,0), ImGui::GetIO().DisplaySize, col);
+    }
 
     static float noise_x1[vdb_max_sketch_lines];
     static float noise_y1[vdb_max_sketch_lines];
