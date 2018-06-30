@@ -23,8 +23,13 @@
 #include "_texture.cpp"
 #include "_rendertexture.cpp"
 #include "_shader.cpp"
+#include "_sketch_mode.cpp"
 #include "vdbconfig.h"
 #include "vdb.h"
+
+#define HOTKEY_FRAMEGRAB   vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LALT]
+#define HOTKEY_WINDOW_SIZE vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LALT]
+#define HOTKEY_SKETCH_MODE vdb.key_pressed[SDL_SCANCODE_D] && vdb.key_down[SDL_SCANCODE_LALT]
 
 struct vdbGlobals
 {
@@ -67,6 +72,7 @@ struct vdbGlobals
     bool is_first_frame;
     bool taa_begun;
     bool tss_begun;
+    bool sketch_mode_active;
     vdb_settings_t settings;
 };
 static vdbGlobals vdb = {0};
@@ -151,6 +157,21 @@ bool vdbBeginFrame(const char *label)
 
     ImGui_ImplSdlGL3_NewFrame(vdb.window);
 
+    if (HOTKEY_SKETCH_MODE) vdb.sketch_mode_active = !vdb.sketch_mode_active;
+
+    if (vdb.sketch_mode_active)
+    {
+        bool undo = vdbKeyDown(VDB_KEY_LCTRL) && vdbKeyPressed(VDB_KEY_Z);
+        bool redo = vdbKeyDown(VDB_KEY_LCTRL) && vdbKeyPressed(VDB_KEY_Y);
+        bool clear = vdbKeyPressed(VDB_KEY_D);
+        bool click = vdbMouseLeftDown();
+        float x = vdbGetMousePos().x;
+        float y = vdbGetMousePos().y;
+        vdbSketchMode(undo, redo, clear, click, x, y);
+        ImGui::GetIO().WantCaptureKeyboard = true;
+        ImGui::GetIO().WantCaptureMouse = true;
+    }
+
     glDisable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -178,6 +199,10 @@ void vdbEndFrame()
 {
     if (vdb.taa_begun) vdbEndTAA();
     if (vdb.tss_begun) vdbEndTSS();
+
+    if (vdb.sketch_mode_active)
+        vdbSketchModePresent();
+
     if (framegrab.active)
     {
         framegrab_options_t opt = framegrab.options;
@@ -212,7 +237,7 @@ void vdbEndFrame()
             StopFramegrab();
             vdb.escape_eaten = true;
         }
-        else if (vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LCTRL])
+        else if (HOTKEY_FRAMEGRAB)
         {
             StopFramegrab();
         }
@@ -426,7 +451,7 @@ static void vdbExitDialog()
 
 static void vdbSizeDialog()
 {
-    if (vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LCTRL])
+    if (HOTKEY_WINDOW_SIZE)
     {
         ImGui::OpenPopup("Set window size##popup");
     }
@@ -467,10 +492,9 @@ static void vdbSizeDialog()
 static void vdbFramegrabDialog()
 {
     using namespace ImGui;
-    bool screenshot_button = vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LCTRL];
     bool enter_button = vdb.key_pressed[SDL_SCANCODE_RETURN];
     bool escape_button = vdb.key_pressed[SDL_SCANCODE_ESCAPE];
-    if (screenshot_button)
+    if (HOTKEY_FRAMEGRAB)
     {
         OpenPopup("Take screenshot##popup");
     }
