@@ -1,13 +1,45 @@
 enum { vdb_max_sketch_lines = 1024*256 };
 struct vdb_sketch_mode_t
 {
-    struct line_t { int color; bool connected; float x1,y1,x2,y2; };
+    struct line_t
+    {
+        int color;
+        bool connected;
+        float x1,y1,x2,y2;
+    };
     line_t lines[vdb_max_sketch_lines];
     int num_lines;
     bool is_drawing;
-    int current_palette;
 };
 static vdb_sketch_mode_t vdb_sketch;
+
+static int vdb_sketch_palette[] = {
+    (int)(255*0.60f), (int)(255*0.60f), (int)(255*0.60f),
+    (int)(255*0.29f), (int)(255*0.50f), (int)(255*0.67f),
+    (int)(255*0.71f), (int)(255*0.05f), (int)(255*0.10f),
+    (int)(255*0.91f), (int)(255*0.76f), (int)(255*0.41f),
+    (int)(255*0.44f), (int)(255*0.64f), (int)(255*0.40f),
+    (int)(255*1.00f), (int)(255*1.00f), (int)(255*1.00f),
+    (int)(255*0.62f), (int)(255*0.78f), (int)(255*0.89f),
+    (int)(255*0.92f), (int)(255*0.60f), (int)(255*0.61f),
+    (int)(255*1.00f), (int)(255*0.90f), (int)(255*0.64f),
+    (int)(255*0.71f), (int)(255*0.84f), (int)(255*0.67f)
+};
+
+enum { vdb_sketch_num_colors = sizeof(vdb_sketch_palette)/(3*sizeof(int)) };
+
+static ImVec2 vdb_sketch_palette_pos[] = {
+    ImVec2(12.0f + 0*24.0f, 12.0f + 0*24.0f),
+    ImVec2(12.0f + 1*24.0f, 12.0f + 0*24.0f),
+    ImVec2(12.0f + 2*24.0f, 12.0f + 0*24.0f),
+    ImVec2(12.0f + 3*24.0f, 12.0f + 0*24.0f),
+    ImVec2(12.0f + 4*24.0f, 12.0f + 0*24.0f),
+    ImVec2(12.0f + 0*24.0f, 12.0f + 1*24.0f),
+    ImVec2(12.0f + 1*24.0f, 12.0f + 1*24.0f),
+    ImVec2(12.0f + 2*24.0f, 12.0f + 1*24.0f),
+    ImVec2(12.0f + 3*24.0f, 12.0f + 1*24.0f),
+    ImVec2(12.0f + 4*24.0f, 12.0f + 1*24.0f)
+};
 
 void vdbSketchMode(bool undo_button,
                    bool redo_button,
@@ -20,7 +52,6 @@ void vdbSketchMode(bool undo_button,
 
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
-    int &current_palette = vdb_sketch.current_palette;
     vdb_sketch_mode_t::line_t *lines = vdb_sketch.lines;
 
     if (clear_button)
@@ -55,7 +86,22 @@ void vdbSketchMode(bool undo_button,
     }
     if (mouse_left_down)
     {
-        if (!is_drawing && num_lines < vdb_max_sketch_lines)
+        int intersected_color = -1;
+        for (int i = 0; i < vdb_sketch_num_colors; i++)
+        {
+            float dx = vdb_sketch_palette_pos[i].x - mouse_x;
+            float dy = vdb_sketch_palette_pos[i].y - mouse_y;
+            float dist = sqrtf(dx*dx + dy*dy);
+            if (dist < 16.0f)
+            {
+                intersected_color = i;
+            }
+        }
+        if (intersected_color >= 0)
+        {
+            current_color = intersected_color;
+        }
+        else if (!is_drawing && num_lines < vdb_max_sketch_lines)
         {
             lines[num_lines].x1 = mouse_x;
             lines[num_lines].y1 = mouse_y;
@@ -106,21 +152,12 @@ void vdbSketchMode(bool undo_button,
         redo_num_lines = num_lines;
         is_drawing = false;
     }
-
-    // if (vdbKeyPressed(VDB_KEY_1)) current_color = 0;
-    // if (vdbKeyPressed(VDB_KEY_2)) current_color = 1;
-    // if (vdbKeyPressed(VDB_KEY_3)) current_color = 2;
-    // if (vdbKeyPressed(VDB_KEY_4)) current_color = 3;
-    // if (vdbKeyPressed(VDB_KEY_5)) current_color = 4;
-    // if (vdbKeyPressed(VDB_KEY_P)) current_palette = (current_palette+1)%2;
-    current_color = 3;
 }
 
 void vdbSketchModePresent()
 {
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
-    int &current_palette = vdb_sketch.current_palette;
     vdb_sketch_mode_t::line_t *lines = vdb_sketch.lines;
 
     static bool init = true;
@@ -144,23 +181,6 @@ void vdbSketchModePresent()
     ImGui::End();
     ImGui::PopStyleVar();
     ImGui::PopStyleColor();
-
-    static int palette_dark[] = {
-        (int)(255*0.60f), (int)(255*0.60f), (int)(255*0.60f),
-        (int)(255*0.29f), (int)(255*0.50f), (int)(255*0.67f),
-        (int)(255*0.71f), (int)(255*0.05f), (int)(255*0.10f),
-        (int)(255*0.91f), (int)(255*0.76f), (int)(255*0.41f),
-        (int)(255*0.44f), (int)(255*0.64f), (int)(255*0.40f)
-    };
-
-    static int palette_bright[] = {
-        (int)(255*1.00f), (int)(255*1.00f), (int)(255*1.00f),
-        (int)(255*0.62f), (int)(255*0.78f), (int)(255*0.89f),
-        (int)(255*0.92f), (int)(255*0.60f), (int)(255*0.61f),
-        (int)(255*1.00f), (int)(255*0.90f), (int)(255*0.64f),
-        (int)(255*0.71f), (int)(255*0.84f), (int)(255*0.67f)
-    };
-
     int n = (is_drawing) ? num_lines+1 : num_lines;
 
     static float noise_x1[vdb_max_sketch_lines];
@@ -201,10 +221,20 @@ void vdbSketchModePresent()
         {
             next_a = b;
         }
-        int color = lines[i].color;
-        int cr = (current_palette == 0) ? palette_dark[3*color + 0] : palette_bright[3*color + 0];
-        int cg = (current_palette == 0) ? palette_dark[3*color + 1] : palette_bright[3*color + 1];
-        int cb = (current_palette == 0) ? palette_dark[3*color + 2] : palette_bright[3*color + 2];
+        int cr = vdb_sketch_palette[3*lines[i].color + 0];
+        int cg = vdb_sketch_palette[3*lines[i].color + 1];
+        int cb = vdb_sketch_palette[3*lines[i].color + 2];
         user_draw_list->AddLine(a, b, IM_COL32(cr,cg,cb,255), 2.0f);
+    }
+
+    for (int i = 0; i < vdb_sketch_num_colors; i++)
+    {
+        int cr = vdb_sketch_palette[3*i + 0];
+        int cg = vdb_sketch_palette[3*i + 1];
+        int cb = vdb_sketch_palette[3*i + 2];
+        ImVec2 center = vdb_sketch_palette_pos[i];
+        ImVec2 a = ImVec2(center.x-10.0f, center.y-10.0f);
+        ImVec2 b = ImVec2(center.x+10.0f, center.y+10.0f);
+        user_draw_list->AddRectFilled(a, b, IM_COL32(cr,cg,cb,255));
     }
 }
