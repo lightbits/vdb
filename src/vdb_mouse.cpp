@@ -49,14 +49,14 @@ int vdbGetMouseOverIndex(float *x, float *y, float *z)
 }
 vdbVec2 vdbGetMousePos() { vdbVec2 result((float)vdb.mouse.x, (float)vdb.mouse.y); return result; }
 vdbVec2 vdbGetMousePosNDC() { return vdb.mouse.ndc; }
-float vdbMouseWheel() { return vdb.mouse.wheel; }
+float vdbGetMouseWheel() { return vdb.mouse.wheel; }
 
-bool vdbMouseLeftPressed()    { return vdb.mouse.left.pressed    && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseLeftDown()       { return vdb.mouse.left.down       && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseLeftReleased()   { return vdb.mouse.left.released   && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseRightPressed()   { return vdb.mouse.right.pressed   && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseRightDown()      { return vdb.mouse.right.down      && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseRightReleased()  { return vdb.mouse.right.released  && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseMiddlePressed()  { return vdb.mouse.middle.pressed  && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseMiddleDown()     { return vdb.mouse.middle.down     && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbMouseMiddleReleased() { return vdb.mouse.middle.released && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseLeftPressed()    { return vdb.mouse.left.pressed    && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseLeftDown()       { return vdb.mouse.left.down       && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseLeftReleased()   { return vdb.mouse.left.released   && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseRightPressed()   { return vdb.mouse.right.pressed   && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseRightDown()      { return vdb.mouse.right.down      && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseRightReleased()  { return vdb.mouse.right.released  && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseMiddlePressed()  { return vdb.mouse.middle.pressed  && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseMiddleDown()     { return vdb.mouse.middle.down     && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseMiddleReleased() { return vdb.mouse.middle.released && !ImGui::GetIO().WantCaptureMouse; }

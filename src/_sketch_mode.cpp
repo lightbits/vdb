@@ -10,17 +10,19 @@ struct vdb_sketch_mode_t
     line_t lines[vdb_max_sketch_lines];
     int num_lines;
     bool is_drawing;
+    int current_color;
     float brightness;
+    float cursor_x,cursor_y;
 };
 static vdb_sketch_mode_t vdb_sketch;
 
 static int vdb_sketch_palette[] = {
-    (int)(255*0.60f), (int)(255*0.60f), (int)(255*0.60f),
+    (int)(255*1.00f), (int)(255*1.00f), (int)(255*1.00f),
     (int)(255*0.29f), (int)(255*0.50f), (int)(255*0.67f),
     (int)(255*0.71f), (int)(255*0.05f), (int)(255*0.10f),
     (int)(255*0.91f), (int)(255*0.76f), (int)(255*0.41f),
     (int)(255*0.44f), (int)(255*0.64f), (int)(255*0.40f),
-    (int)(255*1.00f), (int)(255*1.00f), (int)(255*1.00f),
+    (int)(255*0.10f), (int)(255*0.10f), (int)(255*0.10f),
     (int)(255*0.62f), (int)(255*0.78f), (int)(255*0.89f),
     (int)(255*0.92f), (int)(255*0.60f), (int)(255*0.61f),
     (int)(255*1.00f), (int)(255*0.90f), (int)(255*0.64f),
@@ -47,15 +49,19 @@ void vdbSketchMode(bool undo_button,
                    bool clear_button,
                    bool brightness_button,
                    bool mouse_left_down,
-                   float mouse_x, float mouse_y)
+                   float mouse_x,
+                   float mouse_y)
 {
     static int redo_num_lines = 0;
-    static int current_color = 3;
 
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
     float &brightness = vdb_sketch.brightness;
+    int &current_color = vdb_sketch.current_color;
     vdb_sketch_mode_t::line_t *lines = vdb_sketch.lines;
+
+    vdb_sketch.cursor_x = mouse_x;
+    vdb_sketch.cursor_y = mouse_y;
 
     if (clear_button)
     {
@@ -87,6 +93,7 @@ void vdbSketchMode(bool undo_button,
                 num_lines++;
         }
     }
+
     static bool is_dragging = false;
     if (mouse_left_down)
     {
@@ -147,6 +154,7 @@ void vdbSketchMode(bool undo_button,
             float speed = sqrtf(dx3*dx3 + dy3*dy3) / (1.0f/60.0f);
             float delta = (dx1*dx2 + dy1*dy2) / sqrtf(dx1*dx1 + dy1*dy1);
             float threshold = sqrtf(speed)/1.5f;
+            if (threshold < 2.0f) threshold = 2.0f;
             if (delta > threshold || delta < -threshold)
             {
                 num_lines++;
@@ -178,6 +186,7 @@ void vdbSketchMode(bool undo_button,
 
 void vdbSketchModePresent()
 {
+    float thickness = 2.0f;
     bool &is_drawing = vdb_sketch.is_drawing;
     int &num_lines = vdb_sketch.num_lines;
     float &brightness = vdb_sketch.brightness;
@@ -254,7 +263,7 @@ void vdbSketchModePresent()
         int cr = vdb_sketch_palette[3*lines[i].color + 0];
         int cg = vdb_sketch_palette[3*lines[i].color + 1];
         int cb = vdb_sketch_palette[3*lines[i].color + 2];
-        user_draw_list->AddLine(a, b, IM_COL32(cr,cg,cb,255), 2.0f);
+        user_draw_list->AddLine(a, b, IM_COL32(cr,cg,cb,255), thickness);
     }
 
     for (int i = 0; i < vdb_sketch_num_colors; i++)
@@ -262,9 +271,19 @@ void vdbSketchModePresent()
         int cr = vdb_sketch_palette[3*i + 0];
         int cg = vdb_sketch_palette[3*i + 1];
         int cb = vdb_sketch_palette[3*i + 2];
+        ImU32 color = IM_COL32(cr,cg,cb,255);
         ImVec2 center = vdb_sketch_palette_pos[i];
         ImVec2 a = ImVec2(center.x-10.0f, center.y-10.0f);
         ImVec2 b = ImVec2(center.x+10.0f, center.y+10.0f);
-        user_draw_list->AddRectFilled(a, b, IM_COL32(cr,cg,cb,255));
+        user_draw_list->AddRectFilled(a, b, color);
+    }
+
+    {
+        int cr = vdb_sketch_palette[3*vdb_sketch.current_color + 0];
+        int cg = vdb_sketch_palette[3*vdb_sketch.current_color + 1];
+        int cb = vdb_sketch_palette[3*vdb_sketch.current_color + 2];
+        ImU32 color = IM_COL32(cr,cg,cb,255);
+        ImVec2 cursor = ImVec2(vdb_sketch.cursor_x, vdb_sketch.cursor_y);
+        user_draw_list->AddCircleFilled(cursor, thickness, color);
     }
 }

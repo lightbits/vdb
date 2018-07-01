@@ -161,11 +161,11 @@ bool vdbBeginFrame(const char *label)
 
     if (vdb.sketch_mode_active)
     {
-        bool undo = vdbKeyDown(VDB_KEY_LCTRL) && vdbKeyPressed(VDB_KEY_Z);
-        bool redo = vdbKeyDown(VDB_KEY_LCTRL) && vdbKeyPressed(VDB_KEY_Y);
-        bool clear = vdbKeyPressed(VDB_KEY_D);
-        bool click = vdbMouseLeftDown();
-        bool brightness = vdbKeyDown(VDB_KEY_LALT);
+        bool undo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbIsKeyPressed(VDB_KEY_Z);
+        bool redo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbIsKeyPressed(VDB_KEY_Y);
+        bool clear = vdbIsKeyPressed(VDB_KEY_D);
+        bool click = vdbIsMouseLeftDown();
+        bool brightness = vdbIsKeyDown(VDB_KEY_LALT);
         float x = vdbGetMousePos().x;
         float y = vdbGetMousePos().y;
         vdbSketchMode(undo, redo, clear, brightness, click, x, y);
