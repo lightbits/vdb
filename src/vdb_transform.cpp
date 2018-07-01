@@ -1,8 +1,8 @@
 #include "_matrix.cpp"
 
-static vdbMat4 vdb_projection = {0};
-static vdbMat4 vdb_modelview = {0};
-static vdbMat4 vdb_pvm = {0};
+static vdbMat4 vdb_projection = vdbMatIdentity();
+static vdbMat4 vdb_modelview = vdbMatIdentity();
+static vdbMat4 vdb_pvm = vdbMatIdentity();
 
 void vdbResetTransform()
 {
@@ -233,7 +233,7 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     // float z_clip = az*depth + bz;
     vdbVec4 view(0,0,0,0);
     view.x = (x_clip-bx)/ax;
-    view.y = (y_clip-by)/bx;
+    view.y = (y_clip-by)/ay;
     view.z = depth;
     view.w = 1.0f;
     vdbVec4 model = vdbMulSE3Inverse(vdb_modelview, view);
