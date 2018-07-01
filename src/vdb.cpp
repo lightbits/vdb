@@ -151,8 +151,7 @@ bool vdbBeginFrame(const char *label)
     vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
     vdb.escape_eaten = false;
     vdb.note_index = 0;
-    vdbOrtho(-1.0f,+1.0f,-1.0f,+1.0f);
-    vdbMatrix(NULL);
+    vdbResetTransform();
     vdbResetMouseOverState();
 
     ImGui_ImplSdlGL3_NewFrame(vdb.window);

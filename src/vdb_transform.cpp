@@ -4,6 +4,13 @@ static vdbMat4 vdb_projection = {0};
 static vdbMat4 vdb_modelview = {0};
 static vdbMat4 vdb_pvm = {0};
 
+void vdbResetTransform()
+{
+    vdb_projection = vdbMatIdentity();
+    vdb_modelview = vdbMatIdentity();
+    vdb_pvm = vdbMatIdentity();
+}
+
 void vdbProjection(float *m)
 {
     glMatrixMode(GL_PROJECTION);
