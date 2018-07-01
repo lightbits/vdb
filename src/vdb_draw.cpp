@@ -24,7 +24,7 @@ void vdbNoteV(float x, float y, const char *fmt, va_list args)
     char name[1024];
     sprintf(name, "vdb_tooltip_%d", vdb.note_index);
     ImGui::SetNextWindowPos(ImVec2(win.x, win.y));
-    ImGui::Begin(name, 0, ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin(name, 0, ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::TextV(fmt, args);
     ImGui::End();
     vdb.note_index++;
