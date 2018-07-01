@@ -1,4 +1,5 @@
 #pragma once
+#include <stdarg.h>
 
 struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
@@ -8,6 +9,7 @@ enum vdbKey;
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();
+void vdbNoteV(float x, float y, const char *fmt, va_list args);
 void vdbNote(float x, float y, const char *fmt, ...);
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
