@@ -1,3 +1,16 @@
+void vdbInverseColor(bool enable)
+{
+    if (enable)
+    {
+        glLogicOp(GL_XOR);
+        glEnable(GL_COLOR_LOGIC_OP);
+        glColor4ub(0x80, 0x80, 0x80, 0x00);
+    }
+    else
+    {
+        glDisable(GL_COLOR_LOGIC_OP);
+    }
+}
 void vdbNoteV(float x, float y, const char *fmt, va_list args)
 {
     // Transform position to window coordinates

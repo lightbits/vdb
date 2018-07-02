@@ -263,7 +263,28 @@ void vdbSketchModePresent()
         int cr = vdb_sketch_palette[3*lines[i].color + 0];
         int cg = vdb_sketch_palette[3*lines[i].color + 1];
         int cb = vdb_sketch_palette[3*lines[i].color + 2];
-        user_draw_list->AddLine(a, b, IM_COL32(cr,cg,cb,255), thickness);
+        ImU32 color = IM_COL32(cr,cg,cb,255);
+        #if 0
+        // polyline approach (miter joins)
+        if (lines[i].connected)
+        {
+            user_draw_list->PathLineTo(b);
+        }
+        else
+        {
+            user_draw_list->PathClear();
+            user_draw_list->PathLineTo(a);
+            user_draw_list->PathLineTo(b);
+        }
+        if (i == n-1 || !lines[i+1].connected)
+        {
+            user_draw_list->PathLineTo(b);
+            user_draw_list->PathStroke(color, false, thickness);
+        }
+        #else
+        // one-line-at-a-time approach
+        user_draw_list->AddLine(a, b, color, thickness);
+        #endif
     }
 
     for (int i = 0; i < vdb_sketch_num_colors; i++)

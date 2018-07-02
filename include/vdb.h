@@ -25,6 +25,7 @@ void vdbEnd();
 void vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void vdbColor(float r, float g, float b, float a=1.0f);
 void vdbTexel(float u, float v);
+void vdbInverseColor(bool enable);
 void vdbBlendNone();
 void vdbBlendAdd();
 void vdbBlendAlpha();
