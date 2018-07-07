@@ -148,11 +148,15 @@ bool vdbBeginFrame(const char *label)
     if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); skip_label = label; return false; }
     if (vdb.should_quit) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); vdbCloseWindow(); exit(0); }
 
-    vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
-    vdb.escape_eaten = false;
-    vdb.note_index = 0;
     vdbResetTransform();
     vdbResetMouseOverState();
+    vdb.escape_eaten = false;
+    vdb.note_index = 0;
+    vdb.viewport_left = 0;
+    vdb.viewport_bottom = 0;
+    vdb.viewport_width = vdb.framebuffer_width;
+    vdb.viewport_height = vdb.framebuffer_height;
+    vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
 
     ImGui_ImplSdlGL3_NewFrame(vdb.window);
 
@@ -185,10 +189,6 @@ bool vdbBeginFrame(const char *label)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_DEPTH_TEST);
     glViewport(0, 0, vdb.framebuffer_width, vdb.framebuffer_height);
-    vdb.viewport_left = 0;
-    vdb.viewport_bottom = 0;
-    vdb.viewport_width = vdb.framebuffer_width;
-    vdb.viewport_height = vdb.framebuffer_height;
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
