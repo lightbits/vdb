@@ -454,6 +454,7 @@ static void vdbSizeDialog()
     if (HOTKEY_WINDOW_SIZE)
     {
         ImGui::OpenPopup("Set window size##popup");
+        ImGui::CaptureKeyboardFromApp(true);
     }
     if (ImGui::BeginPopupModal("Set window size##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -497,6 +498,7 @@ static void vdbFramegrabDialog()
     if (HOTKEY_FRAMEGRAB)
     {
         OpenPopup("Take screenshot##popup");
+        ImGui::CaptureKeyboardFromApp(true);
     }
     if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {

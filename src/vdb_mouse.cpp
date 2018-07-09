@@ -49,7 +49,7 @@ int vdbGetMouseOverIndex(float *x, float *y, float *z)
 }
 vdbVec2 vdbGetMousePos() { vdbVec2 result((float)vdb.mouse.x, (float)vdb.mouse.y); return result; }
 vdbVec2 vdbGetMousePosNDC() { return vdb.mouse.ndc; }
-float vdbGetMouseWheel() { return vdb.mouse.wheel; }
+float vdbGetMouseWheel() { return ImGui::GetIO().WantCaptureMouse ? 0.0f : vdb.mouse.wheel; }
 
 bool vdbIsMouseLeftPressed()    { return vdb.mouse.left.pressed    && !ImGui::GetIO().WantCaptureMouse; }
 bool vdbIsMouseLeftDown()       { return vdb.mouse.left.down       && !ImGui::GetIO().WantCaptureMouse; }
