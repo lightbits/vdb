@@ -101,10 +101,13 @@ bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
     static const char *prev_label = NULL;
-    vdb.is_first_frame = (label != prev_label);
+    static bool is_first_frame = true;
+    vdb.is_first_frame = is_first_frame;
     prev_label = label;
     if (skip_label == label)
         return false;
+    is_first_frame = false; // todo: first frame detection is janky.
+                            // consider e.g. a for loop with single-stepping
 
     if (!vdb.initialized)
     {
@@ -144,8 +147,8 @@ bool vdbBeginFrame(const char *label)
         }
     }
 
-    if (vdb.key_pressed[SDL_SCANCODE_F10]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); return false; }
-    if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); skip_label = label; return false; }
+    if (vdb.key_pressed[SDL_SCANCODE_F10]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); is_first_frame = true; return false; }
+    if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); is_first_frame = true; skip_label = label; return false; }
     if (vdb.should_quit) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); vdbCloseWindow(); exit(0); }
 
     vdbResetTransform();
