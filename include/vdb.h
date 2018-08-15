@@ -31,7 +31,7 @@ void vdbBlendAdd();
 void vdbBlendAlpha();
 void vdbDepthTest(bool enable);
 void vdbDepthWrite(bool enable);
-void vdbProjection(float *m);
+void vdbProjection(float *m=0);
 void vdbPushMatrix(float *m=0);
 void vdbPopMatrix();
 void vdbMatrix(float *m);
