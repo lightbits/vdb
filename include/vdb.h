@@ -54,6 +54,7 @@ bool vdbIsMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();
 vdbVec2 vdbGetMousePosNDC();
+vdbVec3 vdbGetMousePosModel(float depth=-1.0f);
 bool vdbIsKeyPressed(vdbKey key);
 bool vdbIsKeyDown(vdbKey key);
 bool vdbIsKeyReleased(vdbKey key);
