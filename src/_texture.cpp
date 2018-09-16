@@ -54,11 +54,6 @@ GLuint TexImage2D(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
-    if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
-    {
-        glGenerateMipmap(GL_TEXTURE_2D); // todo
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    }
     glTexImage2D(GL_TEXTURE_2D, 0,
                  internal_format,
                  width,
@@ -67,6 +62,8 @@ GLuint TexImage2D(
                  data_format,
                  data_type,
                  data);
+    if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
+        glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
     return result;
 }
