@@ -22,7 +22,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <vdb.h>
-#include <vdb/imgui.h>
+#include <imgui.h>
 
 float frand()
 {
