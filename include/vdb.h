@@ -6,6 +6,7 @@ struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 enum vdbKey;
 
+void vdbDetachGLContext();
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();

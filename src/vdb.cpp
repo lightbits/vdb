@@ -97,6 +97,12 @@ static void vdbFramegrabDialog();
 
 bool vdbIsFirstFrame() { return vdb.is_first_frame; }
 
+void vdbDetachGLContext()
+{
+    assert(vdb.window);
+    SDL_GL_MakeCurrent(vdb.window, NULL);
+}
+
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
@@ -123,6 +129,10 @@ bool vdbBeginFrame(const char *label)
         // Assuming user uploads images that are one-byte packed?
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
+
+    SDL_GLContext current = SDL_GL_GetCurrentContext();
+    if (current != vdb.context)
+        SDL_GL_MakeCurrent(vdb.window, vdb.context);
 
     vdbPollEvents();
 
