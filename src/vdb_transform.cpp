@@ -52,6 +52,12 @@ void vdbMatrix(float *m)
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
+void vdbGetMatrix(float *m)
+{
+    SDL_assert(m);
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+}
+
 void vdbPushMatrix(float *m)
 {
     glMatrixMode(GL_MODELVIEW);
@@ -120,7 +126,7 @@ vdbMat4 vdbTranslate(float x, float y, float z)
 }
 
 // M = T*Rx*Ry*Rz
-void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+vdbMat4 vdbEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
 {
     vdbMat4 T = vdbTranslate(tx,ty,tz);
     vdbMat4 Rx = vdbRotateX(rx);
@@ -129,11 +135,11 @@ void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
     vdbMat4 M = vdbMul4x4(Ry,Rz);
             M = vdbMul4x4(Rx, M);
             M = vdbMul4x4(T, M);
-    vdbMatrix(M.data);
+    return M;
 }
 
 // M = T*Rz*Ry*Rx
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
+vdbMat4 vdbEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
 {
     vdbMat4 T = vdbTranslate(tx,ty,tz);
     vdbMat4 Rx = vdbRotateX(rx);
@@ -142,7 +148,27 @@ void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
     vdbMat4 M = vdbMul4x4(Ry,Rx);
             M = vdbMul4x4(Rz, M);
             M = vdbMul4x4(T, M);
-    vdbMatrix(M.data);
+    return M;
+}
+
+void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
+}
+
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
+{
+    vdbMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
+}
+
+void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbPushMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
+}
+
+void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
+{
+    vdbPushMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
 }
 
 void vdbViewport(float left, float bottom, float width, float height)
