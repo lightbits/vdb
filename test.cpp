@@ -1,9 +1,14 @@
 // HOW TO COMPILE
-//   Obtain SDL 2 (https://www.libsdl.org/)
-//   e.g. sudo apt-get install libsdl2-dev
+// You will need SDL2 (http://www.libsdl.org):
+// Linux:
+//   apt-get install libsdl2-dev
+// Mac OS X:
+//   brew install sdl2
+// MSYS2:
+//   pacman -S mingw-w64-i686-SDL
 //
-//   Then, run the build script for your platform to generate a library version of vdb.
-//   (make for MINGW/UNIX/OSX and build.bat for MSVC)
+// Then, run the build script for your platform to generate a library version of vdb.
+// (build.bat for Windows, build.sh for Linux and Mac OSX).
 //
 // WINDOWS
 //   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" vdb.lib
