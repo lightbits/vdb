@@ -16,7 +16,7 @@
 //
 // OSX
 //   In your command line
-//        g++ test.cpp -Iinclude -Ilib -o test -lvdb -framework OpenGL `sdl2-config --cflags --libs` -ldl
+//        g++ test.cpp -Iinclude -Llib -o test -lvdb -framework OpenGL `sdl2-config --cflags --libs` -ldl
 //
 // If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include <stdlib.h>
