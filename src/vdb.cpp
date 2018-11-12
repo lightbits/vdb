@@ -106,10 +106,10 @@ void vdbDetachGLContext()
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
-    static const char *prev_label = NULL;
+    // static const char *prev_label = NULL;
     static bool is_first_frame = true;
     vdb.is_first_frame = is_first_frame;
-    prev_label = label;
+    // prev_label = label;
     if (skip_label == label)
         return false;
     is_first_frame = false; // todo: first frame detection is janky.

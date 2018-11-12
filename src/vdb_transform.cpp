@@ -246,10 +246,10 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
 
     float ax = vdb_projection.at(0,0);
     float ay = vdb_projection.at(1,1);
-    float az = vdb_projection.at(2,2);
+    // float az = vdb_projection.at(2,2);
     float bx = vdb_projection.at(0,3);
     float by = vdb_projection.at(1,3);
-    float bz = vdb_projection.at(2,3);
+    // float bz = vdb_projection.at(2,3);
     float cw = vdb_projection.at(3,2);
     float aw = vdb_projection.at(3,3);
 

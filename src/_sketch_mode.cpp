@@ -111,11 +111,9 @@ void vdbSketchMode(bool undo_button,
         if (brightness_button)
         {
             static float start_x = 0.0f;
-            static float start_y = 0.0f;
             if (!is_dragging)
             {
                 start_x = mouse_x;
-                start_y = mouse_y;
                 is_dragging = true;
             }
             brightness = (mouse_x-start_x)/100.0f;

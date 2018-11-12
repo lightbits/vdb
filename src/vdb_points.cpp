@@ -55,7 +55,9 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
     static bool shader_loaded = false;
     static GLuint program = 0;
     static GLint attrib_in_position = 0;
+    #if defined(VDB_POINT_SHADER_QUAD)
     static GLint attrib_in_color = 0;
+    #endif
     static GLint attrib_instance_position = 0;
     static GLint attrib_instance_color = 0;
     // static GLint uniform_reflection = 0;
@@ -66,7 +68,9 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
     {
         program = LoadShaderFromMemory(point_shader_vs, point_shader_fs);
         attrib_in_position = glGetAttribLocation(program, "in_position");
+        #if defined(VDB_POINT_SHADER_QUAD)
         attrib_in_color = glGetAttribLocation(program, "in_color");
+        #endif
         attrib_instance_position = glGetAttribLocation(program, "instance_position");
         attrib_instance_color = glGetAttribLocation(program, "instance_color");
         // uniform_reflection = glGetUniformLocation(program, "reflection");

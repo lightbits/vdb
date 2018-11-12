@@ -12,11 +12,11 @@
 //
 // LINUX
 //   In your command line
-//        g++ test.cpp -I"/path/to/vdb/include" -o test -L"/path/to/vdb/lib" -lvdb
+//        g++ test.cpp -Iinclude -o test -Llib -lvdb `sdl2-config --cflags --libs` -lGL -ldl
 //
 // OSX
 //   In your command line
-//        g++ test.cpp -I"/path/to/vdb/include" -o test -L"/path/to/vdb/lib" -lvdb
+//        g++ test.cpp -Iinclude -Ilib -o test -lvdb -framework OpenGL `sdl2-config --cflags --libs` -ldl
 //
 // If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include <stdlib.h>

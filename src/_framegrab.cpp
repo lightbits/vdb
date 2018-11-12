@@ -37,6 +37,12 @@ static void RecordVideoToFfmpeg(const char *filename, float fps, int crf, int fr
 // terminal that the application ran from (in the PATH variable). If you're on Windows, you will want
 // to change your PATH environment variable to point to the folder holding the ffmpeg executable.
 
+#ifdef _MSC_VER
+#define popen _popen
+#define pclose _pclose
+#else
+#endif
+
 struct framegrab_options_t
 {
     const char *filename;
@@ -142,7 +148,7 @@ static void FramegrabSaveOutput(unsigned char *data, int width, int height, int 
                           width, height, // -s
                           opt.ffmpeg_crf, // -crf
                           opt.filename);
-            ffmpeg = _popen(cmd, "wb");
+            ffmpeg = popen(cmd, "wb");
         }
 
         fwrite(data, width*height*channels, 1, ffmpeg);
@@ -155,7 +161,7 @@ static void FramegrabSaveOutput(unsigned char *data, int width, int height, int 
         if (framegrab.should_stop)
         {
             framegrab.active = false;
-            _pclose(ffmpeg);
+            pclose(ffmpeg);
             ffmpeg = 0;
         }
     }
