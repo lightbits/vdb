@@ -6,17 +6,14 @@
 //   (make for MINGW/UNIX/OSX and build.bat for MSVC)
 //
 // WINDOWS
-//   In your command line
-//        cl test.cpp -I"C:\path\to\vdb\include" /MD /link /LIBPATH:"C:\path\to\vdb\lib" vdb.lib
-//   Make sure SDL2.dll is in the executable directory
+//   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" vdb.lib
+//   Ensure that SDL2.dll is in the executable directory
 //
-// LINUX
-//   In your command line
-//        g++ test.cpp -Iinclude -o test -Llib -lvdb `sdl2-config --cflags --libs` -lGL -ldl
+// On Linux and similar Unixes
+//   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -lGL -ldl
 //
-// OSX
-//   In your command line
-//        g++ test.cpp -Iinclude -Llib -o test -lvdb -framework OpenGL `sdl2-config --cflags --libs` -ldl
+// On Mac OSX
+//   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -framework OpenGL -framework CoreFoundation
 //
 // If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include <stdlib.h>

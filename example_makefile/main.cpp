@@ -1,4 +1,3 @@
-#define VDB_HEADER_ONLY
 #include <vdb.h>
 
 int main(int, char**)
