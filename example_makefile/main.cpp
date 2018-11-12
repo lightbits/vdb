@@ -1,10 +1,11 @@
 #include <vdb.h>
+#include <vdb/imgui.h>
 
 int main(int, char**)
 {
     VDBB("Test");
     {
-        ShowTestWindow();
+        ImGui::ShowTestWindow();
     }
     VDBE();
     return 0;
