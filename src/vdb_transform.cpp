@@ -9,6 +9,10 @@ void vdbResetTransform()
     vdb_projection = vdbMatIdentity();
     vdb_modelview = vdbMatIdentity();
     vdb_pvm = vdbMatIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 }
 
 void vdbProjection(float *m)
