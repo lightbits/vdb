@@ -48,6 +48,60 @@ static vdbMat4 vdbMatIdentity()
     return result;
 }
 
+static vdbMat4 vdbMatRotateZ(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,0) = cosf(t); a.at(0,1) = -sinf(t);
+    a.at(1,0) = sinf(t); a.at(1,1) = cosf(t);
+    return a;
+}
+
+static vdbMat4 vdbMatRotateY(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,0) =  cosf(t); a.at(0,2) = sinf(t);
+    a.at(2,0) = -sinf(t); a.at(2,2) = cosf(t);
+    return a;
+}
+
+static vdbMat4 vdbMatRotateX(float t)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(1,1) = cosf(t); a.at(1,2) = -sinf(t);
+    a.at(2,1) = sinf(t); a.at(2,2) = cosf(t);
+    return a;
+}
+
+static vdbMat4 vdbMatTranslate(float x, float y, float z)
+{
+    vdbMat4 a = vdbMatIdentity();
+    a.at(0,3) = x;
+    a.at(1,3) = y;
+    a.at(2,3) = z;
+    return a;
+}
+
+// M = Rx*Ry*Rz
+static vdbMat4 vdbMatRotateXYZ(float rx,float ry,float rz)
+{
+    vdbMat4 Rx = vdbMatRotateX(rx);
+    vdbMat4 Ry = vdbMatRotateY(ry);
+    vdbMat4 Rz = vdbMatRotateZ(rz);
+    vdbMat4 M = vdbMul4x4(Ry,Rz);
+            M = vdbMul4x4(Rx, M);
+    return M;
+}
+
+// M = Rz*Ry*Rx
+static vdbMat4 vdbMatRotateZYX(float rz,float ry,float rx)
+{
+    vdbMat4 Rx = vdbMatRotateX(rx);
+    vdbMat4 Ry = vdbMatRotateY(ry);
+    vdbMat4 Rz = vdbMatRotateZ(rz);
+    vdbMat4 M = vdbMul4x4(Ry,Rx);
+            M = vdbMul4x4(Rz, M);
+    return M;
+}
 
 #if 0
 static vdbVec4 vdbMulInverse()

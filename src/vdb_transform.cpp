@@ -35,7 +35,30 @@ void vdbProjection(float *m)
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
-void vdbMatrix(float *m)
+void vdbGetMatrix(float *m)
+{
+    SDL_assert(m && "pointer passed to vdbGetMatrix was NULL");
+    glGetFloatv(GL_MODELVIEW_MATRIX, m);
+}
+
+void vdbMultMatrix(float *m)
+{
+    SDL_assert(m && "pointer passed to vdbMultMatrix was NULL");
+    if (m)
+    {
+        glMatrixMode(GL_MODELVIEW);
+        #ifdef VDB_MATRIX_ROW_MAJOR
+        glMultMatrixf(m);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #else
+        glMultTransposeMatrixf(m);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #endif
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    }
+}
+
+void vdbLoadMatrix(float *m)
 {
     glMatrixMode(GL_MODELVIEW);
     if (m)
@@ -56,51 +79,19 @@ void vdbMatrix(float *m)
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
-void vdbGetMatrix(float *m)
-{
-    SDL_assert(m);
-    glGetFloatv(GL_MODELVIEW_MATRIX, m);
-}
+static int vdb_push_pop_matrix_index = 0;
 
-void vdbMultMatrix(float *m)
+void vdbPushMatrix()
 {
+    vdb_push_pop_matrix_index++;
     glMatrixMode(GL_MODELVIEW);
-    if (m)
-    {
-        #ifdef VDB_MATRIX_ROW_MAJOR
-        glMultMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
-        #else
-        glMultTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
-        #endif
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
-    }
-}
-
-void vdbPushMatrix(float *m)
-{
-    glMatrixMode(GL_MODELVIEW);
-    if (m)
-    {
-        glPushMatrix();
-        #ifdef VDB_MATRIX_ROW_MAJOR
-        glMultMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
-        #else
-        glMultTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
-        #endif
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
-    }
-    else
-    {
-        glPushMatrix();
-    }
+    glPushMatrix();
 }
 
 void vdbPopMatrix()
 {
+    vdb_push_pop_matrix_index--;
+    SDL_assert(vdb_push_pop_matrix_index >= 0 && "Mismatched vdb{Push/Pop}Matrix calls");
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
@@ -112,84 +103,9 @@ void vdbPopMatrix()
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
-vdbMat4 vdbRotateZ(float t)
-{
-    vdbMat4 a = vdbMatIdentity();
-    a.at(0,0) = cosf(t); a.at(0,1) = -sinf(t);
-    a.at(1,0) = sinf(t); a.at(1,1) = cosf(t);
-    return a;
-}
-
-vdbMat4 vdbRotateY(float t)
-{
-    vdbMat4 a = vdbMatIdentity();
-    a.at(0,0) =  cosf(t); a.at(0,2) = sinf(t);
-    a.at(2,0) = -sinf(t); a.at(2,2) = cosf(t);
-    return a;
-}
-
-vdbMat4 vdbRotateX(float t)
-{
-    vdbMat4 a = vdbMatIdentity();
-    a.at(1,1) = cosf(t); a.at(1,2) = -sinf(t);
-    a.at(2,1) = sinf(t); a.at(2,2) = cosf(t);
-    return a;
-}
-
-vdbMat4 vdbTranslate(float x, float y, float z)
-{
-    vdbMat4 a = vdbMatIdentity();
-    a.at(0,3) = x;
-    a.at(1,3) = y;
-    a.at(2,3) = z;
-    return a;
-}
-
-// M = T*Rx*Ry*Rz
-vdbMat4 vdbEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
-{
-    vdbMat4 T = vdbTranslate(tx,ty,tz);
-    vdbMat4 Rx = vdbRotateX(rx);
-    vdbMat4 Ry = vdbRotateY(ry);
-    vdbMat4 Rz = vdbRotateZ(rz);
-    vdbMat4 M = vdbMul4x4(Ry,Rz);
-            M = vdbMul4x4(Rx, M);
-            M = vdbMul4x4(T, M);
-    return M;
-}
-
-// M = T*Rz*Ry*Rx
-vdbMat4 vdbEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
-{
-    vdbMat4 T = vdbTranslate(tx,ty,tz);
-    vdbMat4 Rx = vdbRotateX(rx);
-    vdbMat4 Ry = vdbRotateY(ry);
-    vdbMat4 Rz = vdbRotateZ(rz);
-    vdbMat4 M = vdbMul4x4(Ry,Rx);
-            M = vdbMul4x4(Rz, M);
-            M = vdbMul4x4(T, M);
-    return M;
-}
-
-void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
-{
-    vdbMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
-}
-
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
-{
-    vdbMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
-}
-
-void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
-{
-    vdbPushMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
-}
-
-void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
-{
-    vdbPushMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
-}
+void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y,z).data); }
+void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
+void vdbRotateZYX(float z, float y, float x) { vdbMultMatrix(vdbMatRotateZYX(z,y,x).data); }
 
 void vdbViewport(float left, float bottom, float width, float height)
 {

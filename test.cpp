@@ -167,7 +167,7 @@ int main(int, char **)
         vdbClearDepth(1.0f);
 
         vdbCameraTurntable(vdbVec3(0,0,0), 1.0f);
-        vdbPushMatrixEulerXYZ(0,0,0, -3.14f/2.0f,0,0);
+        vdbRotateXYZ(-3.14f/2.0f,0,0);
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbPoints(6.0f);
         {
@@ -192,7 +192,6 @@ int main(int, char **)
             }
         }
         vdbEnd();
-        vdbPopMatrix();
     }
     VDBE();
 
@@ -201,7 +200,8 @@ int main(int, char **)
         vdbDepthTest(true);
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
-        vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
+        vdbTranslate(0,0,-3);
+        vdbRotateXYZ(-0.9f,0,0.7f + 0.3f*vdbGetMousePosNDC().x);
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbLines(4.0f);
         vdbColor(1,1,1, 0.5f);
@@ -280,7 +280,8 @@ int main(int, char **)
         }
         #endif
         static float t = 0.0f; t += 1.0f/60.0f;
-        vdbMatrixEulerXYZ(0,0,-5, 0.3f,0.1f*t,0);
+        vdbTranslate(0,0,-5);
+        vdbRotateXYZ(0.3f,0.1f*t,0);
         vdbDepthTest(true);
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
@@ -317,7 +318,7 @@ int main(int, char **)
     {
         static float t = 0.0f;
         t += 1.0f/60.0f;
-        vdbMatrixEulerXYZ(0,0,0,0,0,0.1f*t);
+        vdbRotateXYZ(0,0,0.1f*t);
         vdbOrtho(-2.0f*vdbGetAspectRatio(),+2.0f*vdbGetAspectRatio(),-2.0f,+2.0f);
         vdbTriangles();
         vdbVertex(-1, -1, 0);

@@ -52,6 +52,7 @@ void vdbCameraTurntable(vdbVec3 look_at, float init_radius)
     ImGui::End();
     #endif
 
-    vdbMatrixEulerXYZ(0.0f,0.0f,-radius, -angle_x,-angle_y,0.0f);
+    vdbTranslate(0.0f, 0.0f, -radius);
+    vdbRotateXYZ(-angle_x, -angle_y, 0.0f);
 }
 

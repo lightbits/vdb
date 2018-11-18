@@ -92,6 +92,7 @@ void vdbEndFrame();
 bool vdbIsFirstFrame();
 void vdbNoteV(float x, float y, const char *fmt, va_list args);
 void vdbNote(float x, float y, const char *fmt, ...);
+
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
 void vdbLineWidth(float width);
@@ -106,6 +107,7 @@ void vdbEnd();
 void vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void vdbColor(float r, float g, float b, float a=1.0f);
 void vdbTexel(float u, float v);
+
 void vdbInverseColor(bool enable);
 void vdbBlendNone();
 void vdbBlendAdd();
@@ -120,32 +122,35 @@ void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_
 void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
 void vdbPushMatrix(float *m=0);
 void vdbPopMatrix();
-void vdbMatrix(float *m);
+void vdbLoadMatrix(float *m);
 void vdbMultMatrix(float *m);
 void vdbGetMatrix(float *m);
-void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);
-void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
-void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);
+void vdbTranslate(float x, float y, float z);
+void vdbRotateXYZ(float x, float y, float z);
+void vdbRotateZYX(float z, float y, float x);
 void vdbCameraTurntable(vdbVec3 look_at, float init_radius);
 
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
 vdbVec2 vdbModelToNDC(float x, float y, float z=0.0f, float w=1.0f);
+
+float vdbGetAspectRatio();
 int vdbGetFramebufferWidth();
 int vdbGetFramebufferHeight();
-float vdbGetAspectRatio();
 int vdbGetWindowWidth();
 int vdbGetWindowHeight();
+
+bool vdbIsKeyPressed(vdbKey key);
+bool vdbIsKeyDown(vdbKey key);
+bool vdbIsKeyReleased(vdbKey key);
+
 bool vdbIsMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();
 vdbVec2 vdbGetMousePosNDC();
 vdbVec3 vdbGetMousePosModel(float depth=-1.0f);
-bool vdbIsKeyPressed(vdbKey key);
-bool vdbIsKeyDown(vdbKey key);
-bool vdbIsKeyReleased(vdbKey key);
+float vdbGetMouseWheel();
 bool vdbIsMouseLeftPressed();
 bool vdbIsMouseLeftDown();
 bool vdbIsMouseLeftReleased();
@@ -155,7 +160,7 @@ bool vdbIsMouseRightReleased();
 bool vdbIsMouseMiddlePressed();
 bool vdbIsMouseMiddleDown();
 bool vdbIsMouseMiddleReleased();
-float vdbGetMouseWheel();
+
 void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points);
 void vdbDrawPoints(int slot, float point_size, int circle_segments);
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
