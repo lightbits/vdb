@@ -11,7 +11,7 @@ void vdbCameraTurntable(vdbVec3 look_at, float init_radius)
 
     static float K_ref = 50.0f;
     static float K_track = 10.0f;
-    static float K_radius = 10.0f;
+    static float K_radius = 5.0f;
 
     float aspect = vdbGetAspectRatio();
     static bool dragging = false;
