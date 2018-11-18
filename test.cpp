@@ -167,7 +167,7 @@ int main(int, char **)
         vdbClearDepth(1.0f);
 
         vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
-        vdbPerspective(3.14f/4.0f, (float)vdbGetWindowWidth(), (float)vdbGetWindowHeight(), 0.1f, 10.0f);
+        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbPoints(6.0f);
         {
             int nx = 64;
@@ -200,7 +200,7 @@ int main(int, char **)
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
         vdbMatrixEulerXYZ(0,0,-3, -0.9f,0.0f,0.7f + 0.3f*vdbGetMousePosNDC().x);
-        vdbPerspective(3.14f/4.0f, (float)vdbGetWindowWidth(), (float)vdbGetWindowHeight(), 0.1f, 10.0f);
+        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbLines(4.0f);
         vdbColor(1,1,1, 0.5f);
         vdbVertex(-1,-1,0); vdbVertex(+1,-1,0);
@@ -264,7 +264,7 @@ int main(int, char **)
         {
             float dx,dy;
             vdbBeginTSS(160,120,2,&dx,&dy);
-            vdbPerspective(3.14f/4.0f, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight(), 0.1f, 10.0f, dx, dy);
+            vdbPerspective(3.14f/4.0f, 0.1f, 10.0f, dx, dy);
         }
         #else
         // temporal anti-aliasing (really just low-pass filtering)
@@ -274,7 +274,7 @@ int main(int, char **)
             float pixel_height = 2.0f/vdbGetFramebufferHeight();
             float dx = pixel_width*(-1.0f + 2.0f*frand());
             float dy = pixel_height*(-1.0f + 2.0f*frand());
-            vdbPerspective(3.14f/4.0f, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight(), 0.1f, 10.0f, dx, dy);
+            vdbPerspective(3.14f/4.0f, 0.1f, 10.0f, dx, dy);
         }
         #endif
         static float t = 0.0f; t += 1.0f/60.0f;

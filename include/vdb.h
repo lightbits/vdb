@@ -124,7 +124,7 @@ void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float r
 void vdbViewport(float left, float bottom, float width, float height);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
-void vdbPerspective(float yfov, float width, float height, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
+void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);

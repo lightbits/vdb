@@ -202,11 +202,11 @@ void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_
     vdbProjection(p.data);
 }
 
-void vdbPerspective(float yfov, float width, float height, float z_near, float z_far, float x_offset, float y_offset)
+void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float y_offset)
 {
     float t = 1.0f/tanf(yfov/2.0f);
     vdbMat4 p = {0};
-    p.at(0,0) = t/(width/height);
+    p.at(0,0) = t/(vdbGetAspectRatio());
     p.at(0,2) = x_offset;
     p.at(1,1) = t;
     p.at(1,2) = y_offset;
