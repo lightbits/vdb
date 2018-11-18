@@ -62,6 +62,22 @@ void vdbGetMatrix(float *m)
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
 }
 
+void vdbMultMatrix(float *m)
+{
+    glMatrixMode(GL_MODELVIEW);
+    if (m)
+    {
+        #ifdef VDB_MATRIX_ROW_MAJOR
+        glMultMatrixf(m);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #else
+        glMultTransposeMatrixf(m);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        #endif
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    }
+}
+
 void vdbPushMatrix(float *m)
 {
     glMatrixMode(GL_MODELVIEW);
@@ -153,26 +169,6 @@ vdbMat4 vdbEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
             M = vdbMul4x4(Rz, M);
             M = vdbMul4x4(T, M);
     return M;
-}
-
-void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
-{
-    vdbMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
-}
-
-void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
-{
-    vdbMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
-}
-
-void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
-{
-    vdbPushMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
-}
-
-void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
-{
-    vdbPushMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
 }
 
 void vdbViewport(float left, float bottom, float width, float height)

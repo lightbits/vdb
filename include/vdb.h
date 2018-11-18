@@ -112,19 +112,23 @@ void vdbBlendAdd();
 void vdbBlendAlpha();
 void vdbDepthTest(bool enable);
 void vdbDepthWrite(bool enable);
+
+void vdbViewport(float left, float bottom, float width, float height);
 void vdbProjection(float *m=0);
+void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
+void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
+void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
 void vdbPushMatrix(float *m=0);
 void vdbPopMatrix();
 void vdbMatrix(float *m);
+void vdbMultMatrix(float *m);
 void vdbGetMatrix(float *m);
 void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
 void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);
 void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz);
 void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx);
-void vdbViewport(float left, float bottom, float width, float height);
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
-void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
+void vdbCameraTurntable(vdbVec3 look_at, float init_radius);
+
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
