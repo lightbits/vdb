@@ -171,6 +171,26 @@ vdbMat4 vdbEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
     return M;
 }
 
+void vdbMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
+}
+
+void vdbMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
+{
+    vdbMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
+}
+
+void vdbPushMatrixEulerXYZ(float tx,float ty,float tz, float rx,float ry,float rz)
+{
+    vdbPushMatrix(vdbEulerXYZ(tx,ty,tz,rx,ry,rz).data);
+}
+
+void vdbPushMatrixEulerZYX(float tx,float ty,float tz, float rz,float ry,float rx)
+{
+    vdbPushMatrix(vdbEulerZYX(tx,ty,tz,rz,ry,rx).data);
+}
+
 void vdbViewport(float left, float bottom, float width, float height)
 {
     vdb.viewport_left = (int)(left*vdb.framebuffer_width);
