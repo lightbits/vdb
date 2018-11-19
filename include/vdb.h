@@ -147,8 +147,8 @@ bool vdbIsKeyReleased(vdbKey key);
 
 bool vdbIsMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
-vdbVec2 vdbGetMousePos();
-vdbVec2 vdbGetMousePosNDC();
+vdbVec2 vdbGetMousePos();    // upper-left: (0,0). bottom-right: (WindowWidth, WindowHeight)
+vdbVec2 vdbGetMousePosNDC(); // bottom-left: (-1,-1). top-right: (+1,+1)
 vdbVec3 vdbGetMousePosModel(float depth=-1.0f);
 float vdbGetMouseWheel();
 bool vdbIsMouseLeftPressed();

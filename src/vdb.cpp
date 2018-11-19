@@ -15,6 +15,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
 #include "stb_image_write.h"
+#include "vdb.h"
+#include "vdbconfig.h"
 #include "_glstate.cpp"
 #include "_glerror.cpp"
 #include "_settings.cpp"
@@ -24,12 +26,12 @@
 #include "_rendertexture.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
-#include "vdbconfig.h"
-#include "vdb.h"
+#include "_ruler_mode.cpp"
 
 #define HOTKEY_FRAMEGRAB   vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LALT]
 #define HOTKEY_WINDOW_SIZE vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LALT]
 #define HOTKEY_SKETCH_MODE vdb.key_pressed[SDL_SCANCODE_D] && vdb.key_down[SDL_SCANCODE_LALT]
+#define HOTKEY_RULER_MODE  vdb.key_pressed[SDL_SCANCODE_R] && vdb.key_down[SDL_SCANCODE_LALT]
 
 struct vdbGlobals
 {
@@ -73,6 +75,7 @@ struct vdbGlobals
     bool taa_begun;
     bool tss_begun;
     bool sketch_mode_active;
+    bool ruler_mode_active;
     vdb_settings_t settings;
 };
 static vdbGlobals vdb = {0};
@@ -190,6 +193,20 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureMouse = true;
     }
 
+    if (HOTKEY_RULER_MODE) vdb.ruler_mode_active = !vdb.ruler_mode_active;
+
+    if (vdb.ruler_mode_active)
+    {
+        if (vdb.key_pressed[SDL_SCANCODE_ESCAPE])
+        {
+            vdb.ruler_mode_active = false;
+            vdb.escape_eaten = true;
+        }
+        vdbRulerMode(vdbIsMouseLeftDown(), vdbGetMousePos());
+        ImGui::GetIO().WantCaptureKeyboard = true;
+        ImGui::GetIO().WantCaptureMouse = true;
+    }
+
     glDisable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -216,6 +233,9 @@ void vdbEndFrame()
 
     if (vdb.sketch_mode_active)
         vdbSketchModePresent();
+
+    if (vdb.ruler_mode_active)
+        vdbRulerModePresent();
 
     if (framegrab.active)
     {
