@@ -8,6 +8,50 @@ struct vdbMat4
     #endif
 };
 
+static vdbVec4 operator-(vdbVec4 a)              { return vdbVec4(-a.x, -a.y, -a.z, -a.w); }
+static vdbVec4 operator+(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
+static vdbVec4 operator-(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
+static vdbVec4 operator*(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x*b.x, a.y*b.y, a.z*b.z, a.w*b.w); }
+static vdbVec4 operator*(vdbVec4 a, float b)     { return vdbVec4(a.x*b, a.y*b, a.z*b, a.w*b); }
+static vdbVec4 operator*(float b, vdbVec4 a)     { return vdbVec4(a.x*b, a.y*b, a.z*b, a.w*b); }
+static vdbVec4 operator/(vdbVec4 a, float b)     { return vdbVec4(a.x/b, a.y/b, a.z/b, a.w/b); }
+static vdbVec4 operator/(float b, vdbVec4 a)     { return vdbVec4(a.x/b, a.y/b, a.z/b, a.w/b); }
+static float vdbVecLength(vdbVec4 v)             { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z + v.w*v.w); }
+static float vdbVecDot(vdbVec4 a, vdbVec4 b)     { return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w; }
+static vdbVec4 vdbVecNormalize(vdbVec4 v)
+{
+    float length = vdbVecLength(v);
+    if (length == 0.0f)
+        return vdbVec4(0.0f,0.0f,0.0f,0.0f);
+    else
+        return v*(1.0f/length);
+}
+
+static vdbVec3 operator-(vdbVec3 a)              { return vdbVec3(-a.x, -a.y, -a.z); }
+static vdbVec3 operator+(vdbVec3 a, vdbVec3 b)   { return vdbVec3(a.x + b.x, a.y + b.y, a.z + b.z); }
+static vdbVec3 operator-(vdbVec3 a, vdbVec3 b)   { return vdbVec3(a.x - b.x, a.y - b.y, a.z - b.z); }
+static vdbVec3 operator*(vdbVec3 a, vdbVec3 b)   { return vdbVec3(a.x*b.x, a.y*b.y, a.z*b.z); }
+static vdbVec3 operator*(vdbVec3 a, float b)     { return vdbVec3(a.x*b, a.y*b, a.z*b); }
+static vdbVec3 operator*(float b, vdbVec3 a)     { return vdbVec3(a.x*b, a.y*b, a.z*b); }
+static vdbVec3 operator/(vdbVec3 a, float b)     { return vdbVec3(a.x/b, a.y/b, a.z/b); }
+static vdbVec3 operator/(float b, vdbVec3 a)     { return vdbVec3(a.x/b, a.y/b, a.z/b); }
+static float vdbVecLength(vdbVec3 v)             { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z); }
+static float vdbVecDot(vdbVec3 a, vdbVec3 b)     { return a.x*b.x + a.y*b.y + a.z*b.z; }
+static vdbVec3 vdbVecNormalize(vdbVec3 v)
+{
+    float length = vdbVecLength(v);
+    if (length == 0.0f)
+        return vdbVec3(0.0f,0.0f,0.0f);
+    else
+        return v*(1.0f/length);
+}
+static vdbVec3 vdbVecCross(vdbVec3 a, vdbVec3 b)
+{
+    return vdbVec3(a.y*b.z - a.z*b.y,
+                   a.z*b.x - a.x*b.z,
+                   a.x*b.y - a.y*b.x);
+}
+
 static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
                            float a10, float a11, float a12, float a13,
                            float a20, float a21, float a22, float a23,
@@ -31,7 +75,7 @@ static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
     return a;
 }
 
-static vdbMat4 vdbAdd4x4(vdbMat4 a, vdbMat4 b)
+static vdbMat4 operator+(vdbMat4 a, vdbMat4 b)
 {
     vdbMat4 c = {0};
     for (int i = 0; i < 4*4; i++)
@@ -39,6 +83,24 @@ static vdbMat4 vdbAdd4x4(vdbMat4 a, vdbMat4 b)
     return c;
 }
 
+static vdbMat4 operator*(vdbMat4 a, float b)
+{
+    vdbMat4 c = {0};
+    for (int i = 0; i < 4*4; i++)
+        c.data[i] = a.data[i]*b;
+    return c;
+}
+
+static vdbMat4 operator/(vdbMat4 a, float b)
+{
+    vdbMat4 c = {0};
+    for (int i = 0; i < 4*4; i++)
+        c.data[i] = a.data[i]/b;
+    return c;
+}
+
+static vdbMat4 operator*(float b, vdbMat4 a) { return a*b; }
+static vdbMat4 operator/(float b, vdbMat4 a) { return a/b; }
 static vdbMat4 vdbMul4x4(vdbMat4 a, vdbMat4 b)
 {
     vdbMat4 c = {0};
@@ -51,6 +113,7 @@ static vdbMat4 vdbMul4x4(vdbMat4 a, vdbMat4 b)
     }
     return c;
 }
+static vdbMat4 operator*(vdbMat4 a, vdbMat4 b) { return vdbMul4x4(a,b); }
 
 static vdbVec4 vdbMul4x1(vdbMat4 a, vdbVec4 b)
 {
@@ -59,6 +122,17 @@ static vdbVec4 vdbMul4x1(vdbMat4 a, vdbVec4 b)
     c.y = b.x*a.at(1,0) + b.y*a.at(1,1) + b.z*a.at(1,2) + b.w*a.at(1,3);
     c.z = b.x*a.at(2,0) + b.y*a.at(2,1) + b.z*a.at(2,2) + b.w*a.at(2,3);
     c.w = b.x*a.at(3,0) + b.y*a.at(3,1) + b.z*a.at(3,2) + b.w*a.at(3,3);
+    return c;
+}
+static vdbVec4 operator*(vdbMat4 a, vdbVec4 b) { return vdbMul4x1(a,b); }
+
+static vdbVec4 vdbMulTranspose4x1(vdbMat4 a, vdbVec4 b)
+{
+    vdbVec4 c(0.0f,0.0f,0.0f,0.0f);
+    c.x = b.x*a.at(0,0) + b.y*a.at(1,0) + b.z*a.at(2,0) + b.w*a.at(3,0);
+    c.y = b.x*a.at(0,1) + b.y*a.at(1,1) + b.z*a.at(2,1) + b.w*a.at(3,1);
+    c.z = b.x*a.at(0,2) + b.y*a.at(1,2) + b.z*a.at(2,2) + b.w*a.at(3,2);
+    c.w = b.x*a.at(0,3) + b.y*a.at(1,3) + b.z*a.at(2,3) + b.w*a.at(3,3);
     return c;
 }
 
@@ -140,8 +214,26 @@ static vdbMat4 vdbMatSkew(vdbVec3 v)
       0 , -v.z,  v.y,  0,
      v.z,   0 , -v.x,  0,
     -v.y,  v.x,   0 ,  0,
-      0 ,   0 ,   0 ,  1
+      0 ,   0 ,   0 ,  0
     );
+}
+
+static vdbMat4 vdbMatOrthogonalize(vdbMat4 R)
+// Orthogonalizes the upper-left 3x3 matrix of R.
+{
+    vdbVec3 x = vdbVec3(R.at(0,0), R.at(1,0), R.at(2,0));
+    vdbVec3 y = vdbVec3(R.at(0,1), R.at(1,1), R.at(2,1));
+    float e = vdbVecDot(x, y);
+    vdbVec3 ny = vdbVecNormalize((y - 0.5f*e*x)/(1.0f-0.25f*e*e));
+    vdbVec3 nx = vdbVecNormalize((x - 0.5f*e*ny));
+    vdbVec3 nz = vdbVecCross(nx, ny);
+    vdbMat4 result = vdbInitMat4(
+        nx.x,       ny.x,      nz.x,      R.at(0,3),
+        nx.y,       ny.y,      nz.y,      R.at(1,3),
+        nx.z,       ny.z,      nz.z,      R.at(2,3),
+        R.at(3,0),  R.at(3,1), R.at(3,2), R.at(3,3)
+    );
+    return result;
 }
 
 #if 0

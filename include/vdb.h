@@ -128,6 +128,7 @@ void vdbGetMatrix(float *m);
 void vdbTranslate(float x, float y, float z);
 void vdbRotateXYZ(float x, float y, float z);
 void vdbRotateZYX(float z, float y, float x);
+void vdbCameraTrackball();
 void vdbCameraTurntable(vdbVec3 look_at, float init_radius);
 
 vdbVec2 vdbNDCToWindow(float xn, float yn);
