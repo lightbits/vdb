@@ -51,4 +51,5 @@ vdb_settings_t vdbLoadSettingsOrDefault(const char *filename)
     }
     free(line);
     fclose(f);
+    return settings;
 }
