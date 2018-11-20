@@ -84,7 +84,7 @@ void vdbCameraTrackball()
         }
         if (!vdbIsMouseLeftDown())
         {
-            R0 = R;
+            R0 = vdbMatOrthogonalize(R);
             dragging = false;
         }
     }
