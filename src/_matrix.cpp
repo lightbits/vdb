@@ -8,6 +8,37 @@ struct vdbMat4
     #endif
 };
 
+static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
+                           float a10, float a11, float a12, float a13,
+                           float a20, float a21, float a22, float a23,
+                           float a30, float a31, float a32, float a33)
+{
+    #ifdef VDB_MATRIX_COLUMN_MAJOR
+    vdbMat4 a = {
+        a00, a01, a02, a03,
+        a10, a11, a12, a13,
+        a20, a21, a22, a23,
+        a30, a31, a32, a33
+    };
+    #else
+    vdbMat4 a = {
+        a00, a10, a20, a30,
+        a01, a11, a21, a31,
+        a02, a12, a22, a32,
+        a03, a13, a23, a33
+    };
+    #endif
+    return a;
+}
+
+static vdbMat4 vdbAdd4x4(vdbMat4 a, vdbMat4 b)
+{
+    vdbMat4 c = {0};
+    for (int i = 0; i < 4*4; i++)
+        c.data[i] = a.data[i] + b.data[i];
+    return c;
+}
+
 static vdbMat4 vdbMul4x4(vdbMat4 a, vdbMat4 b)
 {
     vdbMat4 c = {0};
@@ -101,6 +132,16 @@ static vdbMat4 vdbMatRotateZYX(float rz,float ry,float rx)
     vdbMat4 M = vdbMul4x4(Ry,Rx);
             M = vdbMul4x4(Rz, M);
     return M;
+}
+
+static vdbMat4 vdbMatSkew(vdbVec3 v)
+{
+    return vdbInitMat4(
+      0 , -v.z,  v.y,  0,
+     v.z,   0 , -v.x,  0,
+    -v.y,  v.x,   0 ,  0,
+      0 ,   0 ,   0 ,  1
+    );
 }
 
 #if 0
