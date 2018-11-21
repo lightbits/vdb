@@ -36,6 +36,23 @@ void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, void *data, int idx), void *data, int num_points)
+{
+    vdbVec3 *position = (vdbVec3*)malloc(num_points*sizeof(vdbVec3));
+    vdbVec4 *color = (vdbVec4*)malloc(num_points*sizeof(vdbVec4));
+    for (int idx = 0; idx < num_points; idx++)
+    {
+        color[idx].x = 1.0f;
+        color[idx].y = 1.0f;
+        color[idx].z = 1.0f;
+        color[idx].w = 1.0f;
+        vertex_getter(position + idx, color + idx, data, idx);
+    }
+    vdbLoadPoints(slot, position, color, num_points);
+    free(position);
+    free(color);
+}
+
 typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
 GLVERTEXATTRIBDIVISORPROC VertexAttribDivisor;
 

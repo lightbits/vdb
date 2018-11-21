@@ -184,6 +184,7 @@ void vdbLineRect(float x, float y, float size_x, float size_y);
 void vdbFillRect(float x, float y, float size_x, float size_y);
 
 void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points);
+void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, void *data, int idx), void *data, int num_points);
 void vdbDrawPoints(int slot, float point_size, int circle_segments);
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
