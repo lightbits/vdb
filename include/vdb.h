@@ -98,7 +98,6 @@ void vdbClearDepth(float d);
 void vdbLineWidth(float width);
 void vdbBeginLines();
 void vdbLines(float width);
-void vdbLineRect(float x, float y, float w, float h);
 void vdbPointSize(float radius);
 void vdbBeginPoints();
 void vdbPoints(float radius);
