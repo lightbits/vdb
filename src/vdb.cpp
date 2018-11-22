@@ -207,6 +207,7 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureMouse = true;
     }
 
+    glDisable(GL_COLOR_LOGIC_OP);
     glDisable(GL_SCISSOR_TEST);
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
