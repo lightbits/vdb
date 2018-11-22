@@ -166,17 +166,6 @@ bool vdbIsMouseMiddlePressed();
 bool vdbIsMouseMiddleDown();
 bool vdbIsMouseMiddleReleased();
 
-#if 0
-int vdbGetNumPaletteColors();
-void vdbSetPalette(vdbVec4 *colors, int num_colors);
-void vdbSetPaletteNamed(const char *name);
-void vdbSetPaletteRangeF(float f_min, float f_max);
-vdbVec4 vdbPaletteI(int i, float a=1.0f);     // get color at index i of current palette
-vdbVec4 vdbPaletteF(float f, float a=1.0f);   // short for vdbPaletteI(int(clamp(f,0,1)*vdbGetNumPaletteColors()), a)
-void vdbColorPaletteI(int i, float a=1.0f);   // short for vdbColor(vdbPaletteI(i, a))
-void vdbColorPaletteF(float f, float a=1.0f); // short for vdbColor(vdbPaletteF(i, a))
-#endif
-
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
 void vdbLineCube(float size_x, float size_y, float size_z);
 void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);

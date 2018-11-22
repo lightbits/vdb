@@ -187,3 +187,7 @@ void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
     vdbFillArc_(base, p1, p2, n);
     vdbEnd();
 }
+
+// void vdbDrawAxes(vdbVec3 center, vdbVec3 x, vdbVec3 y, vdbVec3 z, float scale=1.0f);
+// void vdbDrawTextV(float x, float y, const char *fmt, va_list args);
+// void vdbDrawText(float x, float y, const char *fmt, ...);
