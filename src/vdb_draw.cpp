@@ -17,23 +17,6 @@ void vdbNoteV(float x, float y, const char *fmt, va_list args)
     vdbVec2 ndc = vdbModelToNDC(x,y,0.0f,1.0f);
     vdbVec2 win = vdbNDCToWindow(ndc.x,ndc.y);
 
-    // Clamp tooltip to window
-    // (Doesn't work yet)
-    #if 0
-    {
-        char text[1024];
-        sprintf(text, fmt, args);
-
-        ImVec2 size = ImGui::CalcTextSize(text);
-
-        if (x_win + size.x + 20.0f > vdb.window_w)
-            x_win = vdb.window_w - size.x - 20.0f;
-
-        if (y_win + size.y + 20.0f > vdb.window_h)
-            y_win = vdb.window_h - size.y - 20.0f;
-    }
-    #endif
-
     char name[1024];
     sprintf(name, "vdb_tooltip_%d", vdb.note_index);
     ImGui::SetNextWindowPos(ImVec2(win.x, win.y));

@@ -2,28 +2,42 @@ void vdbCameraTrackball()
 {
     static vdbMat4 R0 = vdbMatRotateXYZ(0.0f,0.0f,0.0f);
     static vdbVec4 T0 = vdbVec4(0.0f,0.0f,0.0f,1.0f);
-    static float r = 1.0f;
     static vdbMat4 R = R0; // world to camera
     static vdbVec4 T = T0; // camera relative world in world
+    static float zoom = 1.0f;
 
     float speed = 1.0f;
     if (vdbIsKeyDown(VDB_KEY_LSHIFT)) speed = 0.5f;
-    if (vdbIsKeyDown(VDB_KEY_Z)) r -= speed*r*(1.0f/60.0f);
-    if (vdbIsKeyDown(VDB_KEY_X)) r += speed*r*(1.0f/60.0f);
-    r -= 10.0f*vdbGetMouseWheel()*r*(1.0f/60.0f);
+
+    // tracking gain constants
+    static float K_zoom = 5.0f;
+    static float K_translate = 5.0f;
+    static float ref_zoom = zoom;
+
+    // zooming
     {
+        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= speed*ref_zoom*(1.0f/60.0f);
+        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += speed*ref_zoom*(1.0f/60.0f);
+        ref_zoom -= 10.0f*vdbGetMouseWheel()*ref_zoom*(1.0f/60.0f);
+        zoom += K_zoom*(ref_zoom - zoom)*(1.0f/60.0f);
+    }
+
+    // translation
+    {
+        static vdbVec4 ref_T = T;
         float x = 0.0f;
         float y = 0.0f;
         float z = 0.0f;
-        if (vdbIsKeyDown(VDB_KEY_A)) x = -speed*r;
-        if (vdbIsKeyDown(VDB_KEY_D)) x = +speed*r;
-        if (vdbIsKeyDown(VDB_KEY_W)) z = -speed*r;
-        if (vdbIsKeyDown(VDB_KEY_S)) z = +speed*r;
-        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -speed*r;
-        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +speed*r;
+        if (vdbIsKeyDown(VDB_KEY_A))     x = -speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_D))     x = +speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_W))     z = -speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_S))     z = +speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +speed*ref_zoom;
         vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
-        T = T + in_world_vel*(1.0f/60.0f);
+        ref_T = ref_T + in_world_vel*(1.0f/60.0f);
+        T = T + K_translate*(ref_T - T)*(1.0f/60.0f);
     }
 
     float radius = 1.0f;
@@ -31,16 +45,18 @@ void vdbCameraTrackball()
 
     static bool dragging = false;
     static float mouse_x_start = 0.0f, mouse_y_start = 0.0f;
+    float mouse_x = vdbGetMousePosNDC().x*aspect;
+    float mouse_y = vdbGetMousePosNDC().y;
     if (!dragging && vdbIsMouseLeftDown())
     {
-        mouse_x_start = vdbGetMousePosNDC().x*aspect;
-        mouse_y_start = vdbGetMousePosNDC().y;
+        mouse_x_start = mouse_x;
+        mouse_y_start = mouse_y;
         dragging = true;
     }
     if (dragging)
     {
-        float mouse_x_end = vdbGetMousePosNDC().x*aspect;
-        float mouse_y_end = vdbGetMousePosNDC().y;
+        float mouse_x_end = mouse_x;
+        float mouse_y_end = mouse_y;
 
         // this has a problem when the two points are colinear
         // fixed by clamping angle
@@ -89,7 +105,7 @@ void vdbCameraTrackball()
         }
     }
     vdbVec4 Tc = -(R*T);
-    vdbMat4 M = vdbMatTranslate(Tc.x,Tc.y,Tc.z - r)*R;
+    vdbMat4 M = vdbMatTranslate(Tc.x,Tc.y,Tc.z - zoom)*R;
     vdbMultMatrix(M.data);
 }
 
