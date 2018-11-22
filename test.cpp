@@ -33,43 +33,6 @@ float frand()
 
 int main(int, char **)
 {
-    VDBB("3D");
-    {
-        static float t = 0.0f; t += 1.0f/60.0f;
-        vdbDepthTest(true);
-        vdbDepthWrite(true);
-        vdbClearDepth(1.0f);
-
-        // vdbCameraTurntable(vdbVec3(0,0,0), 1.0f);
-        vdbCameraTrackball();
-        vdbRotateXYZ(-3.14f/2.0f,0,0);
-        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
-        vdbPoints(6.0f);
-        {
-            int nx = 64;
-            int ny = 64;
-            for (int yi = 0; yi <= ny; yi++)
-            for (int xi = 0; xi <= nx; xi++)
-            {
-                float xt = (float)xi/nx;
-                float yt = (float)yi/ny;
-
-                float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
-                h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
-
-                float x = -1.0f + 2.0f*xt;
-                float y = -1.0f + 2.0f*yt;
-                float z = 0.2f*h;
-
-                float c = 0.5f+z;
-                vdbColor(c, 0.5f*c, 0.2f*c, 1.0f);
-                vdbVertex(x, y, z);
-            }
-        }
-        vdbEnd();
-    }
-    VDBE();
-
     VDBB("Hello VDB");
     {
         vdbClearColor(0.45f, 0.56f, 0.6f, 1.0f);
