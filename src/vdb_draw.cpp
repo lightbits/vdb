@@ -105,6 +105,24 @@ void vdbLineRect(float x, float y, float w, float h)
     vdbEnd();
 }
 
+void vdbLineCircle_(float x, float y, float radius, int segments)
+{
+    const float two_pi = 6.28318530718f;
+    for (int i = 0; i < segments; i++)
+    {
+        float t0 = two_pi*i/(float)segments;
+        float t1 = two_pi*(i+1)/(float)segments;
+        vdbVertex(x + radius*cosf(t0),y + radius*sinf(t0));
+        vdbVertex(x + radius*cosf(t1),y + radius*sinf(t1));
+    }
+}
+void vdbLineCircle(float x, float y, float radius, int segments)
+{
+    vdbBeginLines();
+    vdbLineCircle_(x, y, radius, segments);
+    vdbEnd();
+}
+
 void vdbLineGrid_(float x_min, float x_max, float y_min, float y_max, int n)
 {
     for (int i = 0; i <= n; i++)

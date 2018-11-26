@@ -170,6 +170,7 @@ void vdbLineCube(float size_x, float size_y, float size_z);
 void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
 void vdbLineRect(float x, float y, float size_x, float size_y);
 void vdbFillRect(float x, float y, float size_x, float size_y);
+void vdbLineCircle(float x, float y, float radius, int segments=16);
 
 void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points);
 void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, void *data, int idx), void *data, int num_points);
