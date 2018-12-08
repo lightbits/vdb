@@ -13,6 +13,7 @@
 // WINDOWS
 //   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" vdb.lib
 //   Ensure that SDL2.dll is in the executable directory
+//   You may need to also link against opengl32.lib user32.lib gdi32.lib shell32.lib
 //
 // On Linux and similar Unixes
 //   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -lGL -ldl
