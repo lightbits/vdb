@@ -350,16 +350,29 @@ int main(int, char **)
 
     VDBB("render textures");
     {
-        vdbBeginRenderTexture(0, 60, 40, VDB_RGBA32F);
-        vdbViewport(0.0f, 0.0f, 1.0f, 1.0f);
-        vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
+        static int tile = 0;
+        int tiles_x = 16;
+        int tiles_y = 16;
+        int tile_w = 64;
+        int tile_h = 64;
+        int tile_x = tile % tiles_x;
+        int tile_y = tile / tiles_x;
+
+        vdbBeginRenderTexture(0, tiles_x*tile_w, tiles_y*tile_h, VDB_RGBA8U);
+        vdbViewporti(tile_x*tile_w, tile_y*tile_h, tile_w, tile_h);
+        if (tile == 0)
+            vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
         vdbTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
         vdbEndRenderTexture(0);
-        vdbDrawRenderTexture(0, VDB_NEAREST);
+        vdbDrawRenderTexture(0);
+
+        tile++;
+        if (tile == tiles_x*tiles_y)
+            tile = 0;
     }
     VDBE();
     return 0;
