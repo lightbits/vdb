@@ -68,16 +68,12 @@ int main(int, char **)
 
     VDBB("Hello OpenGL");
     {
-        vdbInverseColor(true);
-
         vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
         vdbTriangles();
-        vdbVertex(-0.5f, -0.5f); vdbColor(1.0f, 0.5f, 0.5f, 1.0f);
-        vdbVertex(+0.5f, -0.5f); vdbColor(0.5f, 1.0f, 0.5f, 1.0f);
-        vdbVertex(+0.0f, +0.5f); vdbColor(0.5f, 0.5f, 1.0f, 1.0f);
+        vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
+        vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
+        vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
-
-        vdbInverseColor(false);
 
         ImGui::Text("Inside the loop you can draw stuff with OpenGL.");
     }
@@ -349,6 +345,21 @@ int main(int, char **)
         vdbOrtho(-1,+1,-1,+1);
         vdbVec2 m = vdbGetMousePosNDC();
         vdbNote(m.x,m.y,"MousePosNDC: %.2f %.2f", m.x, m.y);
+    }
+    VDBE();
+
+    VDBB("render textures");
+    {
+        vdbBeginRenderTexture(0, 60, 40, VDB_RGBA32F);
+        vdbViewport(0.0f, 0.0f, 1.0f, 1.0f);
+        vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
+        vdbTriangles();
+        vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
+        vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
+        vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
+        vdbEnd();
+        vdbEndRenderTexture(0);
+        vdbDrawRenderTexture(0, VDB_NEAREST);
     }
     VDBE();
     return 0;

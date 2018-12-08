@@ -86,6 +86,10 @@ enum vdbKey
     VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
 };
 
+enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
+enum vdbTextureFilter { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
+enum vdbTextureWrap { VDB_CLAMP, VDB_REPEAT };
+
 void vdbDetachGLContext();
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
@@ -118,6 +122,7 @@ void vdbBlendAlpha();
 void vdbDepthTest(bool enable);
 void vdbDepthWrite(bool enable);
 
+void vdbViewporti(int left, int bottom, int width, int height);
 void vdbViewport(float left, float bottom, float width, float height);
 void vdbProjection(float *m=0);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
@@ -198,6 +203,10 @@ void vdbUniform3i(const char *name, int x, int y, int z);
 void vdbUniform4i(const char *name, int x, int y, int z, int w);
 void vdbUniformMatrix4fv(const char *name, float *x, bool transpose=false);
 void vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
+
+void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
+void vdbEndRenderTexture(int slot);
+void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR);
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }

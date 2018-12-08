@@ -77,6 +77,8 @@ struct vdbGlobals
     bool sketch_mode_active;
     bool ruler_mode_active;
     vdb_settings_t settings;
+
+    render_texture_t *current_render_texture;
 };
 static vdbGlobals vdb = {0};
 
@@ -89,6 +91,7 @@ static vdbGlobals vdb = {0};
 #include "vdb_points.cpp"
 #include "vdb_image.cpp"
 #include "vdb_filter.cpp"
+#include "vdb_render_texture.cpp"
 
 static void vdbCloseWindow();
 static void vdbSetWindowSize(int width, int height, bool topmost);

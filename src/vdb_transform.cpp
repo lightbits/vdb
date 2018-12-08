@@ -107,14 +107,26 @@ void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y
 void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
 void vdbRotateZYX(float z, float y, float x) { vdbMultMatrix(vdbMatRotateZYX(z,y,x).data); }
 
+void vdbViewporti(int left, int bottom, int width, int height)
+{
+    glViewport(left, bottom, (GLsizei)width, (GLsizei)height);
+    vdb.viewport_left = left;
+    vdb.viewport_bottom = bottom;
+    vdb.viewport_width = width;
+    vdb.viewport_height = height;
+}
+
 void vdbViewport(float left, float bottom, float width, float height)
 {
-    vdb.viewport_left = (int)(left*vdb.framebuffer_width);
-    vdb.viewport_width = (int)(width*vdb.framebuffer_width);
-    vdb.viewport_bottom = (int)(bottom*vdb.framebuffer_height);
-    vdb.viewport_height = (int)(height*vdb.framebuffer_height);
-    glViewport(vdb.viewport_left, vdb.viewport_bottom,
-               vdb.viewport_width, vdb.viewport_height);
+    int fb_width = vdb.framebuffer_width;
+    int fb_height = vdb.framebuffer_height;
+    if (vdb.current_render_texture)
+    {
+        fb_width = vdb.current_render_texture->width;
+        fb_height = vdb.current_render_texture->height;
+    }
+    vdbViewporti((int)(left*fb_width), (int)(bottom*fb_height),
+                 (int)(width*fb_width), (int)(height*fb_height));
 }
 
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top)
