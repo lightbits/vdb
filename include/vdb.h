@@ -128,7 +128,7 @@ void vdbProjection(float *m=0);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
 void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
-void vdbPushMatrix(float *m=0);
+void vdbPushMatrix();
 void vdbPopMatrix();
 void vdbLoadMatrix(float *m);
 void vdbMultMatrix(float *m);
