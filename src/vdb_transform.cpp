@@ -107,6 +107,28 @@ void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y
 void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
 void vdbRotateZYX(float z, float y, float x) { vdbMultMatrix(vdbMatRotateZYX(z,y,x).data); }
 
+int vdbGetWindowWidth() { return vdb.window_width; }
+int vdbGetWindowHeight() { return vdb.window_height; }
+
+int vdbGetFramebufferWidth()
+{
+    if (vdb.current_render_texture)
+        return vdb.current_render_texture->width;
+    else
+        return vdb.framebuffer_width;
+}
+int vdbGetFramebufferHeight()
+{
+    if (vdb.current_render_texture)
+        return vdb.current_render_texture->height;
+    else
+        return vdb.framebuffer_height;
+}
+float vdbGetAspectRatio()
+{
+    return (float)vdbGetFramebufferWidth()/vdbGetFramebufferHeight();
+}
+
 void vdbViewporti(int left, int bottom, int width, int height)
 {
     glViewport(left, bottom, (GLsizei)width, (GLsizei)height);
@@ -118,13 +140,8 @@ void vdbViewporti(int left, int bottom, int width, int height)
 
 void vdbViewport(float left, float bottom, float width, float height)
 {
-    int fb_width = vdb.framebuffer_width;
-    int fb_height = vdb.framebuffer_height;
-    if (vdb.current_render_texture)
-    {
-        fb_width = vdb.current_render_texture->width;
-        fb_height = vdb.current_render_texture->height;
-    }
+    int fb_width = vdbGetFramebufferWidth();
+    int fb_height = vdbGetFramebufferHeight();
     vdbViewporti((int)(left*fb_width), (int)(bottom*fb_height),
                  (int)(width*fb_width), (int)(height*fb_height));
 }
@@ -222,9 +239,3 @@ vdbVec2 vdbModelToNDC(float x, float y, float z, float w)
     vdbVec2 ndc(clip.x/clip.w, clip.y/clip.w);
     return ndc;
 }
-
-int   vdbGetWindowWidth() { return vdb.window_width; }
-int   vdbGetWindowHeight() { return vdb.window_height; }
-int   vdbGetFramebufferWidth() { return vdb.framebuffer_width; }
-int   vdbGetFramebufferHeight() { return vdb.framebuffer_height; }
-float vdbGetAspectRatio() { return (float)vdb.framebuffer_width/vdb.framebuffer_height; }
