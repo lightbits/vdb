@@ -45,7 +45,6 @@ void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat for
         DisableRenderTexture(rt);
     }
 
-    vdb.current_render_texture = rt;
     EnableRenderTexture(rt);
 }
 
@@ -53,7 +52,6 @@ void vdbEndRenderTexture(int slot)
 {
     SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     DisableRenderTexture(render_textures + slot);
-    vdb.current_render_texture = NULL;
 
     // todo: if LINEAR_MIPMAP, regenerate mipmaps
 }

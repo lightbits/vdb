@@ -15,6 +15,7 @@ struct render_texture_t
 
 void EnableRenderTexture(render_texture_t *rt)
 {
+    vdb.current_render_texture = rt;
     glGetIntegerv(GL_VIEWPORT, rt->last_viewport);
     glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo);
     vdbViewporti(0, 0, rt->width, rt->height);
@@ -24,6 +25,7 @@ void DisableRenderTexture(render_texture_t *rt)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     vdbViewporti(rt->last_viewport[0], rt->last_viewport[1], rt->last_viewport[2], rt->last_viewport[3]);
+    vdb.current_render_texture = NULL;
 }
 
 void FreeRenderTexture(render_texture_t *rt)
