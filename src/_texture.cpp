@@ -1,5 +1,14 @@
 #pragma once
 
+GLenum TextureFormatToGL(vdbTextureFormat format)
+{
+    if (format == VDB_RGBA32F) return GL_RGBA32F;
+    else if (format == VDB_RGBA8U) return GL_RGBA8;
+
+    SDL_assert(false && "Unrecognized vdbTextureFormat");
+    return GL_RGBA;
+}
+
 // TEXTURES
 //   Can be assigned to a 'slot' which can then be bound to render it on meshes.
 //   OpenGL supports many texture formats aside from unsigned 8 bit values, for example,

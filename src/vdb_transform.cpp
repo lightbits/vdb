@@ -112,18 +112,16 @@ int vdbGetWindowHeight() { return vdb.window_height; }
 
 int vdbGetFramebufferWidth()
 {
-    if (vdb.current_render_texture)
-        return vdb.current_render_texture->width;
-    else
-        return vdb.framebuffer_width;
+    if (vdb.current_render_texture) return vdb.current_render_texture->width;
+    else return vdb.framebuffer_width;
 }
+
 int vdbGetFramebufferHeight()
 {
-    if (vdb.current_render_texture)
-        return vdb.current_render_texture->height;
-    else
-        return vdb.framebuffer_height;
+    if (vdb.current_render_texture) return vdb.current_render_texture->height;
+    else return vdb.framebuffer_height;
 }
+
 float vdbGetAspectRatio()
 {
     return (float)vdbGetFramebufferWidth()/vdbGetFramebufferHeight();

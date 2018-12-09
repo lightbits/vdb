@@ -23,10 +23,10 @@
 #include "_framegrab.cpp"
 #include "_source_sans_pro.cpp"
 #include "_texture.cpp"
-#include "_rendertexture.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
+#include "_rendertexture.cpp"
 
 #define HOTKEY_FRAMEGRAB   vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LALT]
 #define HOTKEY_WINDOW_SIZE vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LALT]
@@ -76,12 +76,12 @@ struct vdbGlobals
     bool tss_begun;
     bool sketch_mode_active;
     bool ruler_mode_active;
-    vdb_settings_t settings;
-
     render_texture_t *current_render_texture;
+    vdb_settings_t settings;
 };
 static vdbGlobals vdb = {0};
 
+#include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
 #include "vdb_camera.cpp"
 #include "vdb_draw.cpp"
@@ -91,7 +91,6 @@ static vdbGlobals vdb = {0};
 #include "vdb_points.cpp"
 #include "vdb_image.cpp"
 #include "vdb_filter.cpp"
-#include "vdb_render_texture.cpp"
 
 static void vdbCloseWindow();
 static void vdbSetWindowSize(int width, int height, bool topmost);

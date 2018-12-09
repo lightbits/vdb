@@ -1,13 +1,19 @@
 enum { max_render_textures = 1024 };
 static render_texture_t render_textures[max_render_textures];
 
-GLenum vdbTextureFormatToGL(vdbTextureFormat format)
+void EnableRenderTexture(render_texture_t *rt)
 {
-    if (format == VDB_RGBA32F) return GL_RGBA32F;
-    else if (format == VDB_RGBA8U) return GL_RGBA8;
+    glGetIntegerv(GL_VIEWPORT, rt->last_viewport);
+    glBindFramebuffer(GL_FRAMEBUFFER, rt->fbo);
+    vdbViewporti(0, 0, rt->width, rt->height);
+    vdb.current_render_texture = rt;
+}
 
-    SDL_assert(false && "Unrecognized vdbTextureFormat");
-    return GL_RGBA;
+void DisableRenderTexture(render_texture_t *rt)
+{
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    vdbViewporti(rt->last_viewport[0], rt->last_viewport[1], rt->last_viewport[2], rt->last_viewport[3]);
+    vdb.current_render_texture = NULL;
 }
 
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits, int stencil_bits)
@@ -34,7 +40,7 @@ void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat for
     {
         GLenum data_format = GL_RGBA;
         GLenum data_type = GL_UNSIGNED_BYTE;
-        GLenum internal_format = vdbTextureFormatToGL(format);
+        GLenum internal_format = TextureFormatToGL(format);
         bool enable_depth = (depth_bits > 0);
 
         *rt = MakeRenderTexture(width, height, GL_LINEAR, GL_LINEAR, enable_depth, data_format, data_type, internal_format);
