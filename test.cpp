@@ -133,7 +133,7 @@ int main(int, char **)
             vdbColor(0.3f, 0.3f, 0.3f, 1.0f);
             vdbVertex(x, y);
 
-            if (vdbIsMouseOver(x, y))
+            if (vdbWasMouseOver(x, y))
                 ImGui::SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
         }
         vdbEnd();
@@ -220,7 +220,7 @@ int main(int, char **)
             float x = -1.0f + 2.0f*(rand()%1000)/1000.0f;
             float y = -1.0f + 2.0f*(rand()%1000)/1000.0f;
             float z = -1.0f + 2.0f*(rand()%1000)/1000.0f;
-            if (vdbIsMouseOver(x,y,z))
+            if (vdbWasMouseOver(x,y,z))
             {
                 ImGui::SetTooltip("%d", i);
             }
@@ -327,9 +327,9 @@ int main(int, char **)
         vdbVertex( 0, +1, 0);
         vdbEnd();
 
-        if (vdbIsMouseOver(-1,-1)) { vdbNote(-1,-1,"-1,-1"); }
-        if (vdbIsMouseOver(+1,-1)) { vdbNote(+1,-1,"+1,-1"); }
-        if (vdbIsMouseOver( 0,+1)) { vdbNote( 0,+1,"0,+1"); }
+        if (vdbWasMouseOver(-1,-1)) { vdbNote(-1,-1,"-1,-1"); }
+        if (vdbWasMouseOver(+1,-1)) { vdbNote(+1,-1,"+1,-1"); }
+        if (vdbWasMouseOver( 0,+1)) { vdbNote( 0,+1,"0,+1"); }
     }
     VDBE();
 

@@ -154,21 +154,21 @@ bool vdbIsKeyPressed(vdbKey key);
 bool vdbIsKeyDown(vdbKey key);
 bool vdbIsKeyReleased(vdbKey key);
 
-bool vdbIsMouseOver(float x, float y, float z=0.0f, float w=1.0f);
+bool vdbWasMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();    // upper-left: (0,0). bottom-right: (WindowWidth, WindowHeight)
 vdbVec2 vdbGetMousePosNDC(); // bottom-left: (-1,-1). top-right: (+1,+1)
 vdbVec3 vdbGetMousePosModel(float depth=-1.0f);
 float vdbGetMouseWheel();
-bool vdbIsMouseLeftPressed();
+bool vdbWasMouseLeftPressed();
+bool vdbWasMouseRightPressed();
+bool vdbWasMouseMiddlePressed();
+bool vdbWasMouseLeftReleased();
+bool vdbWasMouseRightReleased();
+bool vdbWasMouseMiddleReleased();
 bool vdbIsMouseLeftDown();
-bool vdbIsMouseLeftReleased();
-bool vdbIsMouseRightPressed();
 bool vdbIsMouseRightDown();
-bool vdbIsMouseRightReleased();
-bool vdbIsMouseMiddlePressed();
 bool vdbIsMouseMiddleDown();
-bool vdbIsMouseMiddleReleased();
 
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
 void vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
