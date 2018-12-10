@@ -171,7 +171,7 @@ bool vdbIsMouseMiddleDown();
 bool vdbIsMouseMiddleReleased();
 
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
-void vdbLineCube(float size_x, float size_y, float size_z);
+void vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
 void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
 void vdbLineRect(float x, float y, float size_x, float size_y);
 void vdbFillRect(float x, float y, float size_x, float size_y);
@@ -206,7 +206,11 @@ void vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
 
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void vdbEndRenderTexture(int slot);
-void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR);
+void vdbBindRenderTexture(int slot);
+void vdbUnbindRenderTexture();
+void vdbDrawRenderTexture(int slot);
+
+void vdbSetTextureParameters(vdbTextureFilter filter, vdbTextureWrap wrap, bool generate_mipmaps); // applies to the currently bound texture (e.g. from BindRenderTexture or BindImage)
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }

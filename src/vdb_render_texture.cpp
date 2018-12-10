@@ -62,10 +62,23 @@ void vdbEndRenderTexture(int slot)
     // todo: if LINEAR_MIPMAP, regenerate mipmaps
 }
 
-void vdbDrawRenderTexture(int slot, vdbTextureFilter filter)
+void vdbBindRenderTexture(int slot)
 {
     SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
-    SDL_assert(filter != VDB_LINEAR_MIPMAP && "Mipmapping not supported with render textures");
+    glEnable(GL_TEXTURE_2D);
+    glActiveTexture(GL_TEXTURE0); // todo: let user specify this
+    glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
+}
+
+void vdbUnbindRenderTexture()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
+void vdbDrawRenderTexture(int slot)
+{
+    SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     StoreGLState();
 
     glEnable(GL_BLEND);
@@ -75,10 +88,6 @@ void vdbDrawRenderTexture(int slot, vdbTextureFilter filter)
     glEnable(GL_TEXTURE_2D);
 
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
-    GLenum mag_filter = filter == VDB_NEAREST ? GL_NEAREST : GL_LINEAR;
-    GLenum min_filter = filter == VDB_NEAREST ? GL_NEAREST : GL_LINEAR;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glBegin(GL_TRIANGLES);
     glColor4f(1,1,1,1);
     glTexCoord2f(0,0);glVertex2f(-1,-1);
