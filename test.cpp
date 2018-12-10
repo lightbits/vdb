@@ -167,7 +167,7 @@ int main(int, char **)
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
 
-        vdbCameraTurntable(vdbVec3(0,0,0), 1.0f);
+        vdbCameraTurntable();
         vdbRotateXYZ(-3.14f/2.0f,0,0);
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbPoints(6.0f);

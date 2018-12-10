@@ -109,7 +109,7 @@ void vdbCameraTrackball()
     vdbMultMatrix(M.data);
 }
 
-void vdbCameraTurntable(vdbVec3 look_at, float init_radius)
+void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 {
     static float angle_x = 0.0f;
     static float angle_y = 0.0f;
