@@ -150,9 +150,9 @@ int vdbGetFramebufferHeight();
 int vdbGetWindowWidth();
 int vdbGetWindowHeight();
 
-bool vdbIsKeyPressed(vdbKey key);
+bool vdbWasKeyPressed(vdbKey key);
+bool vdbWasKeyReleased(vdbKey key);
 bool vdbIsKeyDown(vdbKey key);
-bool vdbIsKeyReleased(vdbKey key);
 
 bool vdbWasMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
