@@ -1,5 +1,5 @@
-#include "_supersample.cpp"
-#include "_temporalblend.cpp"
+#include "_super_sample.cpp"
+#include "_temporal_blend.cpp"
 
 void vdbEndTAA() { vdb.taa_begun = false; TemporalBlend::End(); }
 void vdbBeginTAA(int downscale, float blend_factor)

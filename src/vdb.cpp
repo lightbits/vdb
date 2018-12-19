@@ -17,8 +17,8 @@
 #include "stb_image_write.h"
 #include "vdb.h"
 #include "vdbconfig.h"
-#include "_glstate.cpp"
-#include "_glerror.cpp"
+#include "_gl_state.cpp"
+#include "_gl_error.cpp"
 #include "_settings.cpp"
 #include "_framegrab.cpp"
 #include "_source_sans_pro.cpp"
@@ -26,7 +26,7 @@
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
-#include "_rendertexture.cpp"
+#include "_render_texture.cpp"
 
 #define HOTKEY_FRAMEGRAB   vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LALT]
 #define HOTKEY_WINDOW_SIZE vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LALT]
