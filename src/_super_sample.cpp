@@ -53,7 +53,7 @@ namespace TemporalSuperSample
     // . . dy 0
     // . .  . .
     // . .  . 1
-    //
+    // Note: the result is divided by z afterwards.
     void GetSubpixelOffset(int w, int h, int n, float *dx, float *dy)
     {
         int idx,idy;
