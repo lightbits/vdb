@@ -134,6 +134,7 @@ bool vdbBeginFrame(const char *label)
 
         // Assuming user uploads images that are one-byte packed?
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        CheckGLError();
     }
 
     SDL_GLContext current = SDL_GL_GetCurrentContext();
@@ -178,6 +179,7 @@ bool vdbBeginFrame(const char *label)
     vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
 
     ImGui_ImplSdlGL3_NewFrame(vdb.window);
+    CheckGLError();
 
     if (HOTKEY_SKETCH_MODE) vdb.sketch_mode_active = !vdb.sketch_mode_active;
 
@@ -225,6 +227,7 @@ bool vdbBeginFrame(const char *label)
     glViewport(0, 0, vdb.framebuffer_width, vdb.framebuffer_height);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+    CheckGLError();
 
     return true;
 }
@@ -289,8 +292,7 @@ void vdbEndFrame()
     }
 
     vdbSwapBuffers(1.0f/60.0f);
-    if (CheckGLError())
-        exit(1);
+    CheckGLError();
 }
 
 static void vdbCloseWindow()
@@ -341,6 +343,7 @@ static void vdbOpenWindow(int x, int y, int width, int height)
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, VDB_GL_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, VDB_GL_MINOR);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, VDB_ALPHABITS);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, VDB_DEPTHBITS);
@@ -374,6 +377,12 @@ static void vdbOpenWindow(int x, int y, int width, int height)
     // too fast, it will sleep the remaining time. Leave swap_interval
     // at 0 when using this.
     vdb.has_vsync = (SDL_GL_GetSwapInterval() == 1);
+
+    // printf("Vendor        : %s\n", glGetString(GL_VENDOR));
+    // printf("Renderer      : %s\n", glGetString(GL_RENDERER));
+    // printf("Version       : %s\n", glGetString(GL_VERSION));
+    // printf("Extensions    : %s\n", glGetString(GL_EXTENSIONS));
+    CheckGLError();
 }
 
 static void vdbSwapBuffers(float dt)

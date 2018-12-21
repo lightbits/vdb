@@ -51,12 +51,12 @@ render_texture_t MakeRenderTexture(int width, int height,
 
     glGenFramebuffers(1, &result.fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, result.fbo);
-    CheckGLError("Creating framebuffer object");
+    CheckGLError();
 
     for (int i = 0; i < num_color_attachments; i++)
     {
         GLuint color = TexImage2D(NULL, width, height, data_format, data_type, mag_filter, min_filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, internal_color_format);
-        CheckGLError("Creating color texture for render target");
+        CheckGLError();
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color, 0);
         result.color[i] = color;
     }
@@ -77,7 +77,7 @@ render_texture_t MakeRenderTexture(int width, int height,
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     assert(status == GL_FRAMEBUFFER_COMPLETE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    CheckGLError("Creating framebuffer");
+    CheckGLError();
 
     return result;
 }

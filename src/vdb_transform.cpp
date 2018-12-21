@@ -13,6 +13,7 @@ void vdbResetTransform()
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    CheckGLError();
 }
 
 void vdbProjection(float *m)
