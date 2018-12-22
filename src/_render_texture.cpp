@@ -1,13 +1,11 @@
 #pragma once
 
-#define RT_MAX_COLOR_ATTACHMENTS 32
-
 struct render_texture_t
 {
-    GLuint fbo; // pass to glBindFramebuffer(GL_FRAMEBUFFER, fbo)
-    GLuint color[RT_MAX_COLOR_ATTACHMENTS]; // pass to glBindTexture(GL_TEXTURE_2D, color)
+    GLuint fbo; // usage: glBindFramebuffer(GL_FRAMEBUFFER, fbo)
+    GLuint *color; // usage: glBindTexture(GL_TEXTURE_2D, color[i])
     GLuint depth;
-    int width, height; // pass to glViewport(0,0,width,height)
+    int width, height; // usage: glViewport(0, 0, width, height)
     int num_color_attachments;
     GLint last_viewport[4];
 };
@@ -16,11 +14,12 @@ void FreeRenderTexture(render_texture_t *rt)
 {
     if (rt->fbo)   glDeleteFramebuffers(1, &rt->fbo);
     if (rt->depth) glDeleteRenderbuffers(1, &rt->depth);
-    for (int i = 0; i < rt->num_color_attachments; i++)
+    if (rt->color)
     {
-        if (rt->color[i])
+        for (int i = 0; i < rt->num_color_attachments; i++)
             glDeleteTextures(1, &rt->color[i]);
-        rt->color[i] = 0;
+        free(rt->color);
+        rt->color = NULL;
     }
     rt->num_color_attachments = 0;
     rt->width = 0;
@@ -41,8 +40,7 @@ render_texture_t MakeRenderTexture(int width, int height,
     static GLint max_color_attachments = 0;
     if (!max_color_attachments)
         glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &max_color_attachments);
-    assert(num_color_attachments <= max_color_attachments && "Number of requested color attachments exceeded GL_MAX_COLOR_ATTACHMENTS");
-    assert(num_color_attachments <= RT_MAX_COLOR_ATTACHMENTS && "Number of requested color attachments exceeded hardcoded constant");
+    assert(num_color_attachments <= max_color_attachments && "Number of requested color attachments exceeds device capabilities");
 
     render_texture_t result = {0};
     result.width = width;
@@ -53,6 +51,7 @@ render_texture_t MakeRenderTexture(int width, int height,
     glBindFramebuffer(GL_FRAMEBUFFER, result.fbo);
     CheckGLError();
 
+    result.color = new GLuint[num_color_attachments];
     for (int i = 0; i < num_color_attachments; i++)
     {
         GLuint color = TexImage2D(NULL, width, height, data_format, data_type, mag_filter, min_filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, internal_color_format);
