@@ -97,9 +97,9 @@ void vdbEndFrame();
 bool vdbIsFirstFrame();
 
 // vdb_immediate.cpp
+void vdbInverseColor(bool enable);
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
-void vdbInverseColor(bool enable);
 void vdbBlendNone();
 void vdbBlendAdd();
 void vdbBlendAlpha();
@@ -146,19 +146,21 @@ void vdbGetMatrix(float *m);
 void vdbTranslate(float x, float y, float z);
 void vdbRotateXYZ(float x, float y, float z);
 void vdbRotateZYX(float z, float y, float x);
-void vdbCameraTrackball();
-void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
 
+// vdb_transform.cpp
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
 vdbVec2 vdbModelToNDC(float x, float y, float z=0.0f, float w=1.0f);
-
 float vdbGetAspectRatio();
 int vdbGetFramebufferWidth();
 int vdbGetFramebufferHeight();
 int vdbGetWindowWidth();
 int vdbGetWindowHeight();
+
+// vdb_camera.cpp
+void vdbCameraTrackball();
+void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
 
 // vdb_keyboard.cpp
 bool vdbWasKeyPressed(vdbKey key);

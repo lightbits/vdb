@@ -1,5 +1,46 @@
 #pragma once
 
+void vdbInverseColor(bool enable)
+{
+    if (enable)
+    {
+        glLogicOp(GL_XOR);
+        glEnable(GL_COLOR_LOGIC_OP);
+        glColor4ub(0x80, 0x80, 0x80, 0x00);
+    }
+    else
+    {
+        glDisable(GL_COLOR_LOGIC_OP);
+    }
+}
+
+void vdbClearColor(float r, float g, float b, float a)
+{
+    glClearColor(r,g,b,a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void vdbClearDepth(float d)
+{
+    glClearDepth(d);
+    glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void vdbBlendNone()  { glDisable(GL_BLEND); }
+void vdbBlendAdd()   { glEnable(GL_BLEND); glBlendFunc(GL_ONE, GL_ONE); }
+void vdbBlendAlpha() { glEnable(GL_BLEND); glBlendEquation(GL_FUNC_ADD); glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE); }
+
+void vdbDepthTest(bool enabled)
+{
+    if (enabled) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+}
+void vdbDepthWrite(bool enabled)
+{
+    if (enabled) { glDepthMask(GL_TRUE); glDepthRange(0.0f, 1.0f); }
+    else { glDepthMask(GL_FALSE); }
+}
+
 #if VDB_USE_FIXED_FUNCTION_PIPELINE==1
 // This path uses the fixed-function pipeline of legacy OpenGL.
 // It is available only in compatibility profiles of OpenGL, which
