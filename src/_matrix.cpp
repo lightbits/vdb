@@ -2,9 +2,9 @@ struct vdbMat4
 {
     float data[4*4];
     #if defined(VDB_MATRIX_COLUMN_MAJOR)
-    float &at(int row, int col) { return data[col + row*4]; }
+    float &operator()(int row, int col) { return data[col + row*4]; }
     #else
-    float &at(int row, int col) { return data[row + col*4]; }
+    float &operator()(int row, int col) { return data[row + col*4]; }
     #endif
 };
 
@@ -115,9 +115,9 @@ static vdbMat4 vdbMul4x4(vdbMat4 a, vdbMat4 b)
     for (int row = 0; row < 4; row++)
     for (int col = 0; col < 4; col++)
     {
-        c.at(row,col) = 0.0f;
+        c(row,col) = 0.0f;
         for (int i = 0; i < 4; i++)
-            c.at(row,col) += a.at(row,i)*b.at(i,col);
+            c(row,col) += a(row,i)*b(i,col);
     }
     return c;
 }
@@ -126,10 +126,10 @@ static vdbMat4 operator*(vdbMat4 a, vdbMat4 b) { return vdbMul4x4(a,b); }
 static vdbVec4 vdbMul4x1(vdbMat4 a, vdbVec4 b)
 {
     vdbVec4 c(0.0f,0.0f,0.0f,0.0f);
-    c.x = b.x*a.at(0,0) + b.y*a.at(0,1) + b.z*a.at(0,2) + b.w*a.at(0,3);
-    c.y = b.x*a.at(1,0) + b.y*a.at(1,1) + b.z*a.at(1,2) + b.w*a.at(1,3);
-    c.z = b.x*a.at(2,0) + b.y*a.at(2,1) + b.z*a.at(2,2) + b.w*a.at(2,3);
-    c.w = b.x*a.at(3,0) + b.y*a.at(3,1) + b.z*a.at(3,2) + b.w*a.at(3,3);
+    c.x = b.x*a(0,0) + b.y*a(0,1) + b.z*a(0,2) + b.w*a(0,3);
+    c.y = b.x*a(1,0) + b.y*a(1,1) + b.z*a(1,2) + b.w*a(1,3);
+    c.z = b.x*a(2,0) + b.y*a(2,1) + b.z*a(2,2) + b.w*a(2,3);
+    c.w = b.x*a(3,0) + b.y*a(3,1) + b.z*a(3,2) + b.w*a(3,3);
     return c;
 }
 static vdbVec4 operator*(vdbMat4 a, vdbVec4 b) { return vdbMul4x1(a,b); }
@@ -137,20 +137,20 @@ static vdbVec4 operator*(vdbMat4 a, vdbVec4 b) { return vdbMul4x1(a,b); }
 static vdbVec4 vdbMulTranspose4x1(vdbMat4 a, vdbVec4 b)
 {
     vdbVec4 c(0.0f,0.0f,0.0f,0.0f);
-    c.x = b.x*a.at(0,0) + b.y*a.at(1,0) + b.z*a.at(2,0) + b.w*a.at(3,0);
-    c.y = b.x*a.at(0,1) + b.y*a.at(1,1) + b.z*a.at(2,1) + b.w*a.at(3,1);
-    c.z = b.x*a.at(0,2) + b.y*a.at(1,2) + b.z*a.at(2,2) + b.w*a.at(3,2);
-    c.w = b.x*a.at(0,3) + b.y*a.at(1,3) + b.z*a.at(2,3) + b.w*a.at(3,3);
+    c.x = b.x*a(0,0) + b.y*a(1,0) + b.z*a(2,0) + b.w*a(3,0);
+    c.y = b.x*a(0,1) + b.y*a(1,1) + b.z*a(2,1) + b.w*a(3,1);
+    c.z = b.x*a(0,2) + b.y*a(1,2) + b.z*a(2,2) + b.w*a(3,2);
+    c.w = b.x*a(0,3) + b.y*a(1,3) + b.z*a(2,3) + b.w*a(3,3);
     return c;
 }
 
 static vdbVec4 vdbMulSE3Inverse(vdbMat4 a, vdbVec4 b)
 {
-    vdbVec4 c(b.x-a.at(0,3)*b.w, b.y-a.at(1,3)*b.w, b.z-a.at(2,3)*b.w, b.w);
+    vdbVec4 c(b.x-a(0,3)*b.w, b.y-a(1,3)*b.w, b.z-a(2,3)*b.w, b.w);
     vdbVec4 d(0.0f,0.0f,0.0f,0.0f);
-    d.x = c.x*a.at(0,0) + c.y*a.at(1,0) + c.z*a.at(2,0);
-    d.y = c.x*a.at(0,1) + c.y*a.at(1,1) + c.z*a.at(2,1);
-    d.z = c.x*a.at(0,2) + c.y*a.at(1,2) + c.z*a.at(2,2);
+    d.x = c.x*a(0,0) + c.y*a(1,0) + c.z*a(2,0);
+    d.y = c.x*a(0,1) + c.y*a(1,1) + c.z*a(2,1);
+    d.z = c.x*a(0,2) + c.y*a(1,2) + c.z*a(2,2);
     d.w = c.w;
     return d;
 }
@@ -164,33 +164,33 @@ static vdbMat4 vdbMatIdentity()
 static vdbMat4 vdbMatRotateZ(float t)
 {
     vdbMat4 a = vdbMatIdentity();
-    a.at(0,0) = cosf(t); a.at(0,1) = -sinf(t);
-    a.at(1,0) = sinf(t); a.at(1,1) = cosf(t);
+    a(0,0) = cosf(t); a(0,1) = -sinf(t);
+    a(1,0) = sinf(t); a(1,1) = cosf(t);
     return a;
 }
 
 static vdbMat4 vdbMatRotateY(float t)
 {
     vdbMat4 a = vdbMatIdentity();
-    a.at(0,0) =  cosf(t); a.at(0,2) = sinf(t);
-    a.at(2,0) = -sinf(t); a.at(2,2) = cosf(t);
+    a(0,0) =  cosf(t); a(0,2) = sinf(t);
+    a(2,0) = -sinf(t); a(2,2) = cosf(t);
     return a;
 }
 
 static vdbMat4 vdbMatRotateX(float t)
 {
     vdbMat4 a = vdbMatIdentity();
-    a.at(1,1) = cosf(t); a.at(1,2) = -sinf(t);
-    a.at(2,1) = sinf(t); a.at(2,2) = cosf(t);
+    a(1,1) = cosf(t); a(1,2) = -sinf(t);
+    a(2,1) = sinf(t); a(2,2) = cosf(t);
     return a;
 }
 
 static vdbMat4 vdbMatTranslate(float x, float y, float z)
 {
     vdbMat4 a = vdbMatIdentity();
-    a.at(0,3) = x;
-    a.at(1,3) = y;
-    a.at(2,3) = z;
+    a(0,3) = x;
+    a(1,3) = y;
+    a(2,3) = z;
     return a;
 }
 
@@ -229,17 +229,17 @@ static vdbMat4 vdbMatSkew(vdbVec3 v)
 static vdbMat4 vdbMatOrthogonalize(vdbMat4 R)
 // Orthogonalizes the upper-left 3x3 matrix of R.
 {
-    vdbVec3 x = vdbVec3(R.at(0,0), R.at(1,0), R.at(2,0));
-    vdbVec3 y = vdbVec3(R.at(0,1), R.at(1,1), R.at(2,1));
+    vdbVec3 x = vdbVec3(R(0,0), R(1,0), R(2,0));
+    vdbVec3 y = vdbVec3(R(0,1), R(1,1), R(2,1));
     float e = vdbVecDot(x, y);
     vdbVec3 ny = vdbVecNormalize((y - 0.5f*e*x)/(1.0f-0.25f*e*e));
     vdbVec3 nx = vdbVecNormalize((x - 0.5f*e*ny));
     vdbVec3 nz = vdbVecCross(nx, ny);
     vdbMat4 result = vdbInitMat4(
-        nx.x,       ny.x,      nz.x,      R.at(0,3),
-        nx.y,       ny.y,      nz.y,      R.at(1,3),
-        nx.z,       ny.z,      nz.z,      R.at(2,3),
-        R.at(3,0),  R.at(3,1), R.at(3,2), R.at(3,3)
+        nx.x,       ny.x,      nz.x,      R(0,3),
+        nx.y,       ny.y,      nz.y,      R(1,3),
+        nx.z,       ny.z,      nz.z,      R(2,3),
+        R(3,0),  R(3,1), R(3,2), R(3,3)
     );
     return result;
 }

@@ -4,6 +4,11 @@ static vdbMat4 vdb_projection = vdbMatIdentity();
 static vdbMat4 vdb_modelview = vdbMatIdentity();
 static vdbMat4 vdb_pvm = vdbMatIdentity();
 
+#if VDB_USE_FIXED_FUNCTION_PIPELINE==1
+// This path uses the fixed-function pipeline of legacy OpenGL.
+// It is available only in compatibility profiles of OpenGL, which
+// itself is not available on certain drivers (Mesa, for one).
+
 void vdbResetTransform()
 {
     vdb_projection = vdbMatIdentity();
@@ -104,6 +109,12 @@ void vdbPopMatrix()
     vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
 }
 
+#else
+
+#error "Not implemented"
+
+#endif
+
 void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y,z).data); }
 void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
 void vdbRotateZYX(float z, float y, float x) { vdbMultMatrix(vdbMatRotateZYX(z,y,x).data); }
@@ -148,10 +159,10 @@ void vdbViewport(float left, float bottom, float width, float height)
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top)
 {
     vdbMat4 p = vdbMatIdentity();
-    p.at(0,0) = 2.0f/(x_right-x_left);
-    p.at(0,3) = (x_left+x_right)/(x_left-x_right);
-    p.at(1,1) = 2.0f/(y_top-y_bottom);
-    p.at(1,3) = (y_bottom+y_top)/(y_bottom-y_top);
+    p(0,0) = 2.0f/(x_right-x_left);
+    p(0,3) = (x_left+x_right)/(x_left-x_right);
+    p(1,1) = 2.0f/(y_top-y_bottom);
+    p(1,3) = (y_bottom+y_top)/(y_bottom-y_top);
     vdbProjection(p.data);
 }
 
@@ -166,13 +177,13 @@ void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float
 {
     float t = 1.0f/tanf(yfov/2.0f);
     vdbMat4 p = {0};
-    p.at(0,0) = t/(vdbGetAspectRatio());
-    p.at(0,2) = x_offset;
-    p.at(1,1) = t;
-    p.at(1,2) = y_offset;
-    p.at(2,2) = (z_near+z_far)/(z_near-z_far);
-    p.at(3,2) = -1.0f;
-    p.at(2,3) = 2.0f*z_near*z_far/(z_near-z_far);
+    p(0,0) = t/(vdbGetAspectRatio());
+    p(0,2) = x_offset;
+    p(1,1) = t;
+    p(1,2) = y_offset;
+    p(2,2) = (z_near+z_far)/(z_near-z_far);
+    p(3,2) = -1.0f;
+    p(2,3) = 2.0f*z_near*z_far/(z_near-z_far);
     vdbProjection(p.data);
 }
 
@@ -208,14 +219,14 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     // also assumes modelview matrix is SE3
     // (e.g. rotation and translation only)
 
-    float ax = vdb_projection.at(0,0);
-    float ay = vdb_projection.at(1,1);
-    // float az = vdb_projection.at(2,2);
-    float bx = vdb_projection.at(0,3);
-    float by = vdb_projection.at(1,3);
-    // float bz = vdb_projection.at(2,3);
-    float cw = vdb_projection.at(3,2);
-    float aw = vdb_projection.at(3,3);
+    float ax = vdb_projection(0,0);
+    float ay = vdb_projection(1,1);
+    // float az = vdb_projection(2,2);
+    float bx = vdb_projection(0,3);
+    float by = vdb_projection(1,3);
+    // float bz = vdb_projection(2,3);
+    float cw = vdb_projection(3,2);
+    float aw = vdb_projection(3,3);
 
     float w_clip = cw*depth + aw;
     float x_clip = x_ndc*w_clip;
