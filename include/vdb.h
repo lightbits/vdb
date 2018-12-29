@@ -5,90 +5,11 @@ struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 
-// Subset of scancodes copied from SDL_scancodes.h
-enum vdbKey
-{
-    VDB_KEY_A = 4,
-    VDB_KEY_B = 5,
-    VDB_KEY_C = 6,
-    VDB_KEY_D = 7,
-    VDB_KEY_E = 8,
-    VDB_KEY_F = 9,
-    VDB_KEY_G = 10,
-    VDB_KEY_H = 11,
-    VDB_KEY_I = 12,
-    VDB_KEY_J = 13,
-    VDB_KEY_K = 14,
-    VDB_KEY_L = 15,
-    VDB_KEY_M = 16,
-    VDB_KEY_N = 17,
-    VDB_KEY_O = 18,
-    VDB_KEY_P = 19,
-    VDB_KEY_Q = 20,
-    VDB_KEY_R = 21,
-    VDB_KEY_S = 22,
-    VDB_KEY_T = 23,
-    VDB_KEY_U = 24,
-    VDB_KEY_V = 25,
-    VDB_KEY_W = 26,
-    VDB_KEY_X = 27,
-    VDB_KEY_Y = 28,
-    VDB_KEY_Z = 29,
-
-    VDB_KEY_1 = 30,
-    VDB_KEY_2 = 31,
-    VDB_KEY_3 = 32,
-    VDB_KEY_4 = 33,
-    VDB_KEY_5 = 34,
-    VDB_KEY_6 = 35,
-    VDB_KEY_7 = 36,
-    VDB_KEY_8 = 37,
-    VDB_KEY_9 = 38,
-    VDB_KEY_0 = 39,
-
-    VDB_KEY_RETURN = 40,
-    VDB_KEY_ESCAPE = 41,
-    VDB_KEY_BACKSPACE = 42,
-    VDB_KEY_TAB = 43,
-    VDB_KEY_SPACE = 44,
-
-    VDB_KEY_F1 = 58,
-    VDB_KEY_F2 = 59,
-    VDB_KEY_F3 = 60,
-    VDB_KEY_F4 = 61,
-    VDB_KEY_F5 = 62,
-    VDB_KEY_F6 = 63,
-    VDB_KEY_F7 = 64,
-    VDB_KEY_F8 = 65,
-    VDB_KEY_F9 = 66,
-    VDB_KEY_F10 = 67,
-    VDB_KEY_F11 = 68,
-    VDB_KEY_F12 = 69,
-
-    VDB_KEY_HOME = 74,
-    VDB_KEY_PAGEUP = 75,
-    VDB_KEY_DELETE = 76,
-    VDB_KEY_END = 77,
-    VDB_KEY_PAGEDOWN = 78,
-    VDB_KEY_RIGHT = 79,
-    VDB_KEY_LEFT = 80,
-    VDB_KEY_DOWN = 81,
-    VDB_KEY_UP = 82,
-
-    VDB_KEY_LCTRL = 224,
-    VDB_KEY_LSHIFT = 225,
-    VDB_KEY_LALT = 226, /**< alt, option */
-    VDB_KEY_LGUI = 227, /**< windows, command (apple), meta */
-
-    VDB_KEY_RCTRL = 228,
-    VDB_KEY_RSHIFT = 229,
-    VDB_KEY_RALT = 230, /**< alt gr, option */
-    VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
-};
-
-enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
-enum vdbTextureFilter { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
-enum vdbTextureWrap { VDB_CLAMP, VDB_REPEAT };
+// Enumerations (defined as int to be compatible with some c++ compilers)
+typedef int vdbKey;
+typedef int vdbTextureFormat;
+typedef int vdbTextureFilter;
+typedef int vdbTextureWrap;
 
 // vdb.cpp
 void vdbDetachGLContext();
@@ -229,3 +150,88 @@ void vdbSetTextureParameters(vdbTextureFilter filter, vdbTextureWrap wrap, bool 
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
+
+// Subset of scancodes copied from SDL_scancodes.h
+enum vdbKey_
+{
+    VDB_KEY_A = 4,
+    VDB_KEY_B = 5,
+    VDB_KEY_C = 6,
+    VDB_KEY_D = 7,
+    VDB_KEY_E = 8,
+    VDB_KEY_F = 9,
+    VDB_KEY_G = 10,
+    VDB_KEY_H = 11,
+    VDB_KEY_I = 12,
+    VDB_KEY_J = 13,
+    VDB_KEY_K = 14,
+    VDB_KEY_L = 15,
+    VDB_KEY_M = 16,
+    VDB_KEY_N = 17,
+    VDB_KEY_O = 18,
+    VDB_KEY_P = 19,
+    VDB_KEY_Q = 20,
+    VDB_KEY_R = 21,
+    VDB_KEY_S = 22,
+    VDB_KEY_T = 23,
+    VDB_KEY_U = 24,
+    VDB_KEY_V = 25,
+    VDB_KEY_W = 26,
+    VDB_KEY_X = 27,
+    VDB_KEY_Y = 28,
+    VDB_KEY_Z = 29,
+
+    VDB_KEY_1 = 30,
+    VDB_KEY_2 = 31,
+    VDB_KEY_3 = 32,
+    VDB_KEY_4 = 33,
+    VDB_KEY_5 = 34,
+    VDB_KEY_6 = 35,
+    VDB_KEY_7 = 36,
+    VDB_KEY_8 = 37,
+    VDB_KEY_9 = 38,
+    VDB_KEY_0 = 39,
+
+    VDB_KEY_RETURN = 40,
+    VDB_KEY_ESCAPE = 41,
+    VDB_KEY_BACKSPACE = 42,
+    VDB_KEY_TAB = 43,
+    VDB_KEY_SPACE = 44,
+
+    VDB_KEY_F1 = 58,
+    VDB_KEY_F2 = 59,
+    VDB_KEY_F3 = 60,
+    VDB_KEY_F4 = 61,
+    VDB_KEY_F5 = 62,
+    VDB_KEY_F6 = 63,
+    VDB_KEY_F7 = 64,
+    VDB_KEY_F8 = 65,
+    VDB_KEY_F9 = 66,
+    VDB_KEY_F10 = 67,
+    VDB_KEY_F11 = 68,
+    VDB_KEY_F12 = 69,
+
+    VDB_KEY_HOME = 74,
+    VDB_KEY_PAGEUP = 75,
+    VDB_KEY_DELETE = 76,
+    VDB_KEY_END = 77,
+    VDB_KEY_PAGEDOWN = 78,
+    VDB_KEY_RIGHT = 79,
+    VDB_KEY_LEFT = 80,
+    VDB_KEY_DOWN = 81,
+    VDB_KEY_UP = 82,
+
+    VDB_KEY_LCTRL = 224,
+    VDB_KEY_LSHIFT = 225,
+    VDB_KEY_LALT = 226, /**< alt, option */
+    VDB_KEY_LGUI = 227, /**< windows, command (apple), meta */
+
+    VDB_KEY_RCTRL = 228,
+    VDB_KEY_RSHIFT = 229,
+    VDB_KEY_RALT = 230, /**< alt gr, option */
+    VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
+};
+
+enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
+enum vdbTextureFilter_ { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
+enum vdbTextureWrap_ { VDB_CLAMP, VDB_REPEAT };

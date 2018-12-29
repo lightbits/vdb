@@ -33,7 +33,7 @@
 #define HOTKEY_SKETCH_MODE vdb.key_pressed[SDL_SCANCODE_D] && vdb.key_down[SDL_SCANCODE_LALT]
 #define HOTKEY_RULER_MODE  vdb.key_pressed[SDL_SCANCODE_R] && vdb.key_down[SDL_SCANCODE_LALT]
 
-struct vdbGlobals
+struct vdb_globals_t
 {
     const char *active_label;
     bool initialized;
@@ -79,7 +79,7 @@ struct vdbGlobals
     render_texture_t *current_render_texture;
     vdb_settings_t settings;
 };
-static vdbGlobals vdb = {0};
+static vdb_globals_t vdb = {0};
 
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
