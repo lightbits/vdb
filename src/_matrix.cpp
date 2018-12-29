@@ -75,6 +75,14 @@ static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
     return a;
 }
 
+static vdbMat4 vdbMatTranspose(vdbMat4 m)
+{
+    return vdbInitMat4(m(0,0), m(1,0), m(2,0), m(3,0),
+                       m(0,1), m(1,1), m(2,1), m(3,1),
+                       m(0,2), m(1,2), m(2,2), m(3,2),
+                       m(0,3), m(1,3), m(2,3), m(3,3));
+}
+
 static vdbMat4 operator+(vdbMat4 a, vdbMat4 b)
 {
     vdbMat4 c = {0};
