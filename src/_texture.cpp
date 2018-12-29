@@ -4,7 +4,7 @@ GLenum TextureFormatToGL(vdbTextureFormat format)
 {
     if (format == VDB_RGBA32F) return GL_RGBA32F;
     else if (format == VDB_RGBA8U) return GL_RGBA8;
-    SDL_assert(false && "Unrecognized vdbTextureFormat");
+    assert(false && "Unrecognized vdbTextureFormat");
     return GL_RGBA;
 }
 
@@ -13,7 +13,7 @@ GLenum TextureFilterToGL(vdbTextureFilter filter)
     if (filter == VDB_NEAREST) return GL_NEAREST;
     else if (filter == VDB_LINEAR) return GL_LINEAR;
     else if (filter == VDB_LINEAR_MIPMAP) return GL_LINEAR_MIPMAP_LINEAR;
-    SDL_assert(false && "Unrecognized vdbTextureFilter");
+    assert(false && "Unrecognized vdbTextureFilter");
     return GL_NEAREST;
 }
 
@@ -21,7 +21,7 @@ GLenum TextureWrapToGL(vdbTextureWrap wrap)
 {
     if (wrap == VDB_CLAMP) return GL_CLAMP_TO_EDGE;
     else if (wrap == VDB_REPEAT) return GL_REPEAT;
-    SDL_assert(false && "Unrecognized vdbTextureWrap");
+    assert(false && "Unrecognized vdbTextureWrap");
     return GL_CLAMP_TO_EDGE;
 }
 

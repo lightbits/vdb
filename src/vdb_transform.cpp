@@ -43,13 +43,13 @@ void vdbProjection(float *m)
 
 void vdbGetMatrix(float *m)
 {
-    SDL_assert(m && "pointer passed to vdbGetMatrix was NULL");
+    assert(m && "pointer passed to vdbGetMatrix was NULL");
     glGetFloatv(GL_MODELVIEW_MATRIX, m);
 }
 
 void vdbMultMatrix(float *m)
 {
-    SDL_assert(m && "pointer passed to vdbMultMatrix was NULL");
+    assert(m && "pointer passed to vdbMultMatrix was NULL");
     if (m)
     {
         glMatrixMode(GL_MODELVIEW);
@@ -97,7 +97,7 @@ void vdbPushMatrix()
 void vdbPopMatrix()
 {
     vdb_push_pop_matrix_index--;
-    SDL_assert(vdb_push_pop_matrix_index >= 0 && "Mismatched vdb{Push/Pop}Matrix calls");
+    assert(vdb_push_pop_matrix_index >= 0 && "Mismatched vdb{Push/Pop}Matrix calls");
     glMatrixMode(GL_MODELVIEW);
     glPopMatrix();
 
@@ -168,7 +168,7 @@ void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top)
 
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far)
 {
-    SDL_assert(false && "not implemented yet");
+    assert(false && "not implemented yet");
     vdbMat4 p = vdbMatIdentity();
     vdbProjection(p.data);
 }

@@ -18,7 +18,7 @@ static gl_point_buffer_t point_buffers[vdb_max_point_buffers];
 
 void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points)
 {
-    SDL_assert(slot >= 0 && slot < vdb_max_point_buffers && "You are trying to load points beyond the available slots.");
+    assert(slot >= 0 && slot < vdb_max_point_buffers && "You are trying to load points beyond the available slots.");
 
     gl_point_buffer_t *buffer = &point_buffers[slot];
     buffer->num_points = num_points;
@@ -58,10 +58,10 @@ GLVERTEXATTRIBDIVISORPROC VertexAttribDivisor;
 
 void vdbDrawPoints(int slot, float point_size, int circle_segments)
 {
-    SDL_assert(slot >= 0 && slot < vdb_max_point_buffers && "You're trying to draw a point cloud beyond the available slots.");
+    assert(slot >= 0 && slot < vdb_max_point_buffers && "You're trying to draw a point cloud beyond the available slots.");
     if (!VertexAttribDivisor)
         VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
-    SDL_assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
+    assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
 
     // todo: gl deprecation, replace with storing own matrix stack?
     float projection[4*4];

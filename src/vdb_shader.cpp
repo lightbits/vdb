@@ -4,7 +4,7 @@ static GLuint vdb_gl_shaders[vdb_max_shaders];
 
 void vdbLoadShader(int slot, const char *fragment_shader_string)
 {
-    SDL_assert(slot >= 0 && slot < vdb_max_shaders && "You are trying to set a pixel shader beyond the available number of slots.");
+    assert(slot >= 0 && slot < vdb_max_shaders && "You are trying to set a pixel shader beyond the available number of slots.");
     if (vdb_gl_shaders[slot])
         glDeleteProgram(vdb_gl_shaders[slot]);
 
@@ -17,7 +17,7 @@ void vdbLoadShader(int slot, const char *fragment_shader_string)
     "}\n"
     ;
     vdb_gl_shaders[slot] = LoadShaderFromMemory(vertex_shader_string, fragment_shader_string);
-    SDL_assert(vdb_gl_shaders[slot] && "Failed to load shader.");
+    assert(vdb_gl_shaders[slot] && "Failed to load shader.");
 }
 void vdbBeginShader(int slot)
 {

@@ -1,6 +1,6 @@
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels)
 {
-    SDL_assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
+    assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
     if (channels == 1)      SetTexture(slot, data, width, height, GL_LUMINANCE, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
     else if (channels == 2) SetTexture(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
     else if (channels == 3) SetTexture(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST);
@@ -8,7 +8,7 @@ void vdbLoadImageUint8(int slot, const void *data, int width, int height, int ch
 }
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels)
 {
-    SDL_assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
+    assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
     if (channels == 1)      SetTexture(slot, data, width, height, GL_LUMINANCE, GL_FLOAT, GL_NEAREST, GL_NEAREST);
     else if (channels == 2) SetTexture(slot, data, width, height, GL_RG, GL_FLOAT, GL_NEAREST, GL_NEAREST);
     else if (channels == 3) SetTexture(slot, data, width, height, GL_RGB, GL_FLOAT, GL_NEAREST, GL_NEAREST);
@@ -18,7 +18,7 @@ void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *heigh
 {
     int w,h,n;
     unsigned char *data = stbi_load(filename, &w, &h, &n, 4);
-    SDL_assert(data && "Failed to load image from file.");
+    assert(data && "Failed to load image from file.");
     SetTexture(slot, data, w, h, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR);
     free(data);
 

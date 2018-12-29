@@ -18,8 +18,8 @@ void DisableRenderTexture(render_texture_t *rt)
 
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits, int stencil_bits)
 {
-    SDL_assert(stencil_bits == 0 && "Stencil in RenderTexture is not implemented yet.");
-    SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
+    assert(stencil_bits == 0 && "Stencil in RenderTexture is not implemented yet.");
+    assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
 
     render_texture_t *rt = render_textures + slot;
     bool should_create = false;
@@ -56,7 +56,7 @@ void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat for
 
 void vdbEndRenderTexture(int slot)
 {
-    SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
+    assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     DisableRenderTexture(render_textures + slot);
 
     // todo: if LINEAR_MIPMAP, regenerate mipmaps
@@ -64,7 +64,7 @@ void vdbEndRenderTexture(int slot)
 
 void vdbBindRenderTexture(int slot)
 {
-    SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
+    assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0); // todo: let user specify this
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
@@ -78,7 +78,7 @@ void vdbUnbindRenderTexture()
 
 void vdbDrawRenderTexture(int slot)
 {
-    SDL_assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
+    assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     StoreGLState();
 
     glEnable(GL_BLEND);

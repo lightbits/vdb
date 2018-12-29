@@ -1,4 +1,4 @@
-#define SDL_ASSERT_LEVEL 2
+#define assert_LEVEL 2
 #include "SDL.h"
 #include "glad/glad.c"
 #ifdef _WIN32
@@ -340,7 +340,7 @@ static void vdbSetWindowSize(SDL_Window *window, int w, int h, bool topmost)
 static void vdbOpenWindow(int x, int y, int width, int height)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-        SDL_assert(false);
+        assert(false);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, VDB_GL_MAJOR);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, VDB_GL_MINOR);
@@ -360,12 +360,12 @@ static void vdbOpenWindow(int x, int y, int width, int height)
         height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-    SDL_assert(vdb.window);
+    assert(vdb.window);
     SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
     vdb.context = SDL_GL_CreateContext(vdb.window);
-    SDL_assert(vdb.context != 0);
-    SDL_assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
-    SDL_assert(gladLoadGL());
+    assert(vdb.context != 0);
+    assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
+    assert(gladLoadGL());
 
     // 0 for immediate updates, 1 for updates synchronized with the
     // vertical retrace. If the system supports it, you may
