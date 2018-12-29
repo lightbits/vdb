@@ -90,15 +90,21 @@ enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
 enum vdbTextureFilter { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
 enum vdbTextureWrap { VDB_CLAMP, VDB_REPEAT };
 
+// vdb.cpp
 void vdbDetachGLContext();
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();
-void vdbNoteV(float x, float y, const char *fmt, va_list args);
-void vdbNote(float x, float y, const char *fmt, ...);
 
+// vdb_immediate.cpp
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
+void vdbInverseColor(bool enable);
+void vdbBlendNone();
+void vdbBlendAdd();
+void vdbBlendAlpha();
+void vdbDepthTest(bool enable);
+void vdbDepthWrite(bool enable);
 void vdbLineWidth(float width);
 void vdbBeginLines();
 void vdbLines(float width);
@@ -115,13 +121,17 @@ void vdbColor(vdbVec3 rgb, float a=1.0f);
 void vdbColor(vdbVec4 rgba);
 void vdbTexel(float u, float v);
 
-void vdbInverseColor(bool enable);
-void vdbBlendNone();
-void vdbBlendAdd();
-void vdbBlendAlpha();
-void vdbDepthTest(bool enable);
-void vdbDepthWrite(bool enable);
+// vdb_immediate_util.cpp
+void vdbNoteV(float x, float y, const char *fmt, va_list args);
+void vdbNote(float x, float y, const char *fmt, ...);
+void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
+void vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
+void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
+void vdbLineRect(float x, float y, float size_x, float size_y);
+void vdbFillRect(float x, float y, float size_x, float size_y);
+void vdbLineCircle(float x, float y, float radius, int segments=16);
 
+// vdb_transform.cpp
 void vdbViewporti(int left, int bottom, int width, int height);
 void vdbViewport(float left, float bottom, float width, float height);
 void vdbProjection(float *m=0);
@@ -150,10 +160,12 @@ int vdbGetFramebufferHeight();
 int vdbGetWindowWidth();
 int vdbGetWindowHeight();
 
+// vdb_keyboard.cpp
 bool vdbWasKeyPressed(vdbKey key);
 bool vdbWasKeyReleased(vdbKey key);
 bool vdbIsKeyDown(vdbKey key);
 
+// vdb_mouse.cpp
 bool vdbWasMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();    // upper-left: (0,0). bottom-right: (WindowWidth, WindowHeight)
@@ -170,26 +182,26 @@ bool vdbIsMouseLeftDown();
 bool vdbIsMouseRightDown();
 bool vdbIsMouseMiddleDown();
 
-void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
-void vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
-void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
-void vdbLineRect(float x, float y, float size_x, float size_y);
-void vdbFillRect(float x, float y, float size_x, float size_y);
-void vdbLineCircle(float x, float y, float radius, int segments=16);
-
+// vdb_points.cpp
 void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points);
 void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, void *data, int idx), void *data, int num_points);
 void vdbDrawPoints(int slot, float point_size, int circle_segments);
+
+// vdb_image.cpp
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *height=0, int *channels=0);
 void vdbDrawImage(int slot);
 void vdbBindImage(int slot);
 void vdbUnbindImage();
+
+// vdb_filter.cpp
 void vdbBeginTAA(int downscale, float blend_factor);
 void vdbBeginTSS(int width, int height, int upscale, float *dx, float *dy);
 void vdbEndTAA();
 void vdbEndTSS();
+
+// vdb_shader.cpp
 void vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void vdbBeginShader(int slot);
 void vdbEndShader();
@@ -204,6 +216,7 @@ void vdbUniform4i(const char *name, int x, int y, int z, int w);
 void vdbUniformMatrix4fv(const char *name, float *x, bool transpose=false);
 void vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
 
+// vdb_render_texture.cpp
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void vdbEndRenderTexture(int slot);
 void vdbBindRenderTexture(int slot);

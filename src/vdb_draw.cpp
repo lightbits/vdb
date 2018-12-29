@@ -42,23 +42,6 @@ void vdbClearDepth(float d)
     glClearDepth(d);
     glClear(GL_DEPTH_BUFFER_BIT);
 }
-void vdbLineWidth(float width) { glLineWidth(width); }
-void vdbBeginLines() { glBegin(GL_LINES); }
-void vdbLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
-void vdbLineSize(float width) { glLineWidth(width); }
-void vdbBeginPoints() { glBegin(GL_POINTS); }
-void vdbPoints(float radius) { glPointSize(radius); glBegin(GL_POINTS); }
-void vdbTriangles() { glBegin(GL_TRIANGLES); }
-void vdbEnd() { glEnd(); }
-
-void vdbVertex(float x, float y, float z, float w) { glVertex4f(x,y,z,w); }
-void vdbColor(float r, float g, float b, float a)  { glColor4f(r,g,b,a); }
-void vdbTexel(float u, float v)                    { glTexCoord2f(u,v); }
-
-void vdbVertex(vdbVec3 v, float w) { glVertex4f(v.x, v.y, v.z, w); }
-void vdbVertex(vdbVec4 v)          { glVertex4f(v.x, v.y, v.z, v.w); }
-void vdbColor(vdbVec3 v, float a)  { glColor4f(v.x, v.y, v.z, a); }
-void vdbColor(vdbVec4 v)           { glColor4f(v.x, v.y, v.z, v.w); }
 
 void vdbBlendNone()  { glDisable(GL_BLEND); }
 void vdbBlendAdd()   { glEnable(GL_BLEND); glBlendFunc(GL_ONE, GL_ONE); }

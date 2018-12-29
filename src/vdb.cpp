@@ -85,6 +85,7 @@ static vdbGlobals vdb = {0};
 #include "vdb_transform.cpp"
 #include "vdb_camera.cpp"
 #include "vdb_draw.cpp"
+#include "vdb_immediate.cpp"
 #include "vdb_keyboard.cpp"
 #include "vdb_mouse.cpp"
 #include "vdb_shader.cpp"
