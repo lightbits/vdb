@@ -60,6 +60,8 @@ void vdbProjection(float *m); // NULL -> Load 4x4 identity matrix
 void vdbLoadMatrix(float *m); // NULL -> Load 4x4 identity matrix
 void vdbMultMatrix(float *m);
 void vdbGetMatrix(float *m);
+void vdbGetProjectionMatrix(float *m);
+void vdbGetPVM(float *m);
 void vdbTranslate(float x, float y, float z);
 void vdbRotateXYZ(float x, float y, float z);
 void vdbRotateZYX(float z, float y, float x);

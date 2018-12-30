@@ -210,8 +210,8 @@ void vdbEnd()
     }
     assert(program);
 
-    glLineWidth(imm.line_width); // todo: deprecated
-    glPointSize(imm.point_size); // todo: deprecated
+    glLineWidth(imm.line_width); // todo: deprecated // todo: custom lines
+    glPointSize(imm.point_size); // todo: rounded point drawing
 
     glUseProgram(program); // todo: optimize
 

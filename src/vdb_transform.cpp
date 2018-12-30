@@ -50,6 +50,18 @@ void vdbProjection(float *m)
     transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
+void vdbGetProjection(float *m)
+{
+    assert(m);
+    glGetFloatv(GL_PROJECTION, m);
+}
+
+void vdbGetPVM(float *m)
+{
+    assert(m);
+    *(vdbMat4*)m = transform::pvm;
+}
+
 void vdbGetMatrix(float *m)
 {
     assert(m && "pointer passed to vdbGetMatrix was NULL");
@@ -142,6 +154,18 @@ void vdbProjection(float *m)
     else
         projection = vdbMatIdentity();
     pvm = vdbMul4x4(projection, view_model);
+}
+
+void vdbGetProjection(float *m)
+{
+    assert(m);
+    *(vdbMat4*)m = transform::projection;
+}
+
+void vdbGetPVM(float *m)
+{
+    assert(m);
+    *(vdbMat4*)m = transform::pvm;
 }
 
 void vdbGetMatrix(float *m)
