@@ -33,15 +33,6 @@
 #include "_window.cpp"
 #include "_uistuff.cpp"
 
-struct vdb_globals_t
-{
-    const char *active_label;
-    bool initialized;
-    bool is_first_frame;
-};
-
-static vdb_globals_t vdb = {0};
-
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
 #include "vdb_camera.cpp"
@@ -52,9 +43,15 @@ static vdb_globals_t vdb = {0};
 #include "vdb_image.cpp"
 #include "vdb_filter.cpp"
 
+namespace vdb
+{
+    static bool initialized;
+    static bool is_first_frame;
+}
+
 bool vdbIsFirstFrame()
 {
-    return vdb.is_first_frame;
+    return vdb::is_first_frame;
 }
 
 void vdbDetachGLContext()
@@ -67,14 +64,14 @@ bool vdbBeginFrame(const char *label)
     static const char *skip_label = NULL;
     // static const char *prev_label = NULL;
     static bool is_first_frame = true;
-    vdb.is_first_frame = is_first_frame;
+    vdb::is_first_frame = is_first_frame;
     // prev_label = label;
     if (skip_label == label)
         return false;
     is_first_frame = false; // todo: first frame detection is janky.
                             // consider e.g. a for loop with single-stepping
 
-    if (!vdb.initialized)
+    if (!vdb::initialized)
     {
         settings::LoadOrDefault(VDB_SETTINGS_FILENAME);
         window::Open(settings::window_x, settings::window_y, settings::window_w, settings::window_h);
@@ -83,7 +80,7 @@ bool vdbBeginFrame(const char *label)
         ImGui::StyleColorsDark();
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
-        vdb.initialized = true;
+        vdb::initialized = true;
 
         // Assuming user uploads images that are one-byte packed?
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
