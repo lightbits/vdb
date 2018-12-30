@@ -130,9 +130,25 @@ bool vdbBeginFrame(const char *label)
         settings::Save(VDB_SETTINGS_FILENAME);
     }
 
-    if (keys::pressed[SDL_SCANCODE_F10]) { settings::Save(VDB_SETTINGS_FILENAME); is_first_frame = true; return false; }
-    if (keys::pressed[SDL_SCANCODE_F5]) { settings::Save(VDB_SETTINGS_FILENAME); is_first_frame = true; skip_label = label; return false; }
-    if (window::should_quit) { settings::Save(VDB_SETTINGS_FILENAME); window::Close(); exit(0); }
+    if (keys::pressed[SDL_SCANCODE_F10])
+    {
+        settings::Save(VDB_SETTINGS_FILENAME);
+        is_first_frame = true;
+        return false;
+    }
+    if (keys::pressed[SDL_SCANCODE_F5])
+    {
+        settings::Save(VDB_SETTINGS_FILENAME);
+        is_first_frame = true;
+        skip_label = label;
+        return false;
+    }
+    if (window::should_quit)
+    {
+        settings::Save(VDB_SETTINGS_FILENAME);
+        window::Close();
+        exit(0);
+    }
 
     transform::Reset();
     vdbResetMouseOverState();
