@@ -53,7 +53,7 @@ void vdbFillRect(float x, float y, float size_x, float size_y);
 void vdbLineCircle(float x, float y, float radius, int segments=16);
 
 // vdb_transform.cpp
-// VDB can be compiled to accept matrices in either row- or column-major memory order. See vdbconfig.h
+// VDB can be compiled to accept matrices in either row- or column-major memory order. See vdb_config.h
 void vdbPushMatrix();
 void vdbPopMatrix();
 void vdbProjection(float *m); // NULL -> Load 4x4 identity matrix
