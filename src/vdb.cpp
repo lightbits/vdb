@@ -26,7 +26,6 @@
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
-#include "_render_texture.cpp"
 
 #include "vdb_keyboard.cpp"
 #include "vdb_mouse.cpp"
@@ -39,7 +38,6 @@ struct vdb_globals_t
     const char *active_label;
     bool initialized;
     bool is_first_frame;
-    render_texture_t *current_render_texture;
 };
 
 static vdb_globals_t vdb = {0};

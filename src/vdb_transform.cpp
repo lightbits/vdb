@@ -198,13 +198,17 @@ int vdbGetWindowHeight() { return window::window_height; }
 
 int vdbGetFramebufferWidth()
 {
-    if (vdb.current_render_texture) return vdb.current_render_texture->width;
+    using namespace render_texture;
+    if (current_render_texture)
+        return current_render_texture->width;
     else return window::framebuffer_width;
 }
 
 int vdbGetFramebufferHeight()
 {
-    if (vdb.current_render_texture) return vdb.current_render_texture->height;
+    using namespace render_texture;
+    if (current_render_texture)
+        return current_render_texture->height;
     else return window::framebuffer_height;
 }
 

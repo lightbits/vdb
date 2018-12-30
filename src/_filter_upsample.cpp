@@ -65,6 +65,8 @@ namespace upsample_filter
     }
     void Begin(int w, int h, int n)
     {
+        using namespace render_texture;
+
         has_begun = true;
         if (lowres.width != w || lowres.height != h)
         {
@@ -83,6 +85,8 @@ namespace upsample_filter
     }
     void End()
     {
+        using namespace render_texture;
+
         static GLuint program = 0;
         static GLint attrib_position = 0;
         static GLint uniform_sampler0 = 0;

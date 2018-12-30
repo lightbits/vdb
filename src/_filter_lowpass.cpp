@@ -8,6 +8,8 @@ namespace lowpass_filter
 
     void Begin(int downsample, float _blend_factor)
     {
+        using namespace render_texture;
+
         has_begun = true;
         blend_factor = _blend_factor;
         int w = window::framebuffer_width;
@@ -33,6 +35,8 @@ namespace lowpass_filter
     }
     void End()
     {
+        using namespace render_texture;
+
         static GLuint program = 0;
         static GLint attrib_position = 0;
         static GLint uniform_factor = 0;
