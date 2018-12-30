@@ -119,25 +119,15 @@ bool vdbBeginFrame(const char *label)
     window::EnsureGLContextIsCurrent();
     window::PollEvents();
 
-    static int save_settings_counter = 60;
+    static int save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
     if (save_settings_counter >= 0)
-        save_settings_counter--;
-    if (settings::window_x != window::window_x ||
-        settings::window_y != window::window_y ||
-        settings::window_w != window::window_width ||
-        settings::window_h != window::window_height)
     {
-        settings::window_x = window::window_x;
-        settings::window_y = window::window_y;
-        settings::window_w = window::window_width;
-        settings::window_h = window::window_height;
-        // if the settings changed and we haven't saved in a while (to
-        // spare disk usage) then we save to disk.
-        if (save_settings_counter < 0)
-        {
-            save_settings_counter = 60;
-            settings::Save(VDB_SETTINGS_FILENAME);
-        }
+        save_settings_counter--;
+    }
+    else
+    {
+        save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
+        settings::Save(VDB_SETTINGS_FILENAME);
     }
 
     if (keys::pressed[SDL_SCANCODE_F10]) { settings::Save(VDB_SETTINGS_FILENAME); is_first_frame = true; return false; }

@@ -45,6 +45,9 @@
 // where the information is stored.
 #define VDB_SETTINGS_FILENAME  "./vdb.ini"
 
+// Number of frames to pass between saving settings to disk
+#define VDB_SAVE_SETTINGS_PERIOD 64*5
+
 // The state of ImGui windows is remembered between sessions.
 // This path specifies the path (relative to working directory)
 // where the information is stored.
