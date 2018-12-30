@@ -53,20 +53,21 @@ void vdbFillRect(float x, float y, float size_x, float size_y);
 void vdbLineCircle(float x, float y, float radius, int segments=16);
 
 // vdb_transform.cpp
-void vdbViewporti(int left, int bottom, int width, int height);
-void vdbViewport(float left, float bottom, float width, float height);
-void vdbProjection(float *m=0);
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
-void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
+// VDB can be compiled to accept matrices in either row- or column-major memory order. See vdbconfig.h
 void vdbPushMatrix();
 void vdbPopMatrix();
-void vdbLoadMatrix(float *m);
+void vdbProjection(float *m); // NULL -> Load 4x4 identity matrix
+void vdbLoadMatrix(float *m); // NULL -> Load 4x4 identity matrix
 void vdbMultMatrix(float *m);
 void vdbGetMatrix(float *m);
 void vdbTranslate(float x, float y, float z);
 void vdbRotateXYZ(float x, float y, float z);
 void vdbRotateZYX(float z, float y, float x);
+void vdbViewporti(int left, int bottom, int width, int height);
+void vdbViewport(float left, float bottom, float width, float height);
+void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
+void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
+void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
 
 // vdb_transform.cpp
 vdbVec2 vdbNDCToWindow(float xn, float yn);
