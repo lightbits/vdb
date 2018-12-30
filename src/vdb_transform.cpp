@@ -53,7 +53,7 @@ void vdbProjection(float *m)
 void vdbGetProjection(float *m)
 {
     assert(m);
-    glGetFloatv(GL_PROJECTION, m);
+    glGetFloatv(GL_PROJECTION_MATRIX, m);
 }
 
 void vdbGetPVM(float *m)
