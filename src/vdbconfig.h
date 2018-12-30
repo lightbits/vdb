@@ -6,12 +6,10 @@
 // which can either be interpreted as column-major or row-major order.
 //
 // VDB_MATRIX_COLUMN_MAJOR:
-// Memory layout follows row, i.e.
 //   float m[] = {A,B,C,D}; -> |A B|
 //                             |C D|
 //
 // VDB_MATRIX_ROW_MAJOR:
-// Memory layout follows column, i.e.
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
 //

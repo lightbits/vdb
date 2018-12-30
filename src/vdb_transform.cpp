@@ -1,7 +1,7 @@
 #include "_matrix.cpp"
 
 static vdbMat4 vdb_projection = vdbMatIdentity();
-static vdbMat4 vdb_modelview = vdbMatIdentity();
+static vdbMat4 vdb_view_model = vdbMatIdentity();
 static vdbMat4 vdb_pvm = vdbMatIdentity();
 
 #if VDB_USE_FIXED_FUNCTION_PIPELINE==1
@@ -12,7 +12,7 @@ static vdbMat4 vdb_pvm = vdbMatIdentity();
 void vdbResetTransform()
 {
     vdb_projection = vdbMatIdentity();
-    vdb_modelview = vdbMatIdentity();
+    vdb_view_model = vdbMatIdentity();
     vdb_pvm = vdbMatIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -38,7 +38,7 @@ void vdbProjection(float *m)
         vdb_projection = vdbMatIdentity();
         glLoadIdentity();
     }
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
 }
 
 void vdbGetMatrix(float *m)
@@ -55,12 +55,12 @@ void vdbMultMatrix(float *m)
         glMatrixMode(GL_MODELVIEW);
         #ifdef VDB_MATRIX_ROW_MAJOR
         glMultMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
         #else
         glMultTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
         #endif
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
     }
 }
 
@@ -71,18 +71,18 @@ void vdbLoadMatrix(float *m)
     {
         #ifdef VDB_MATRIX_ROW_MAJOR
         glLoadMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
         #else
         glLoadTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
         #endif
     }
     else
     {
-        vdb_modelview = vdbMatIdentity();
+        vdb_view_model = vdbMatIdentity();
         glLoadIdentity();
     }
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
 }
 
 static int vdb_push_pop_matrix_index = 0;
@@ -102,16 +102,73 @@ void vdbPopMatrix()
     glPopMatrix();
 
     #ifdef VDB_MATRIX_ROW_MAJOR
-    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
     #else
-    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_modelview.data);
+    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
     #endif
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_modelview);
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
 }
 
 #else
+#include "_matrix_stack.cpp"
 
-#error "Not implemented"
+static matrix_stack_t vdb_matrix_stack = {0};
+
+void vdbResetTransform()
+{
+    vdb_projection = vdbMatIdentity();
+    vdb_view_model = vdbMatIdentity();
+    vdb_pvm = vdbMatIdentity();
+    vdb_matrix_stack.Reset();
+}
+
+void vdbProjection(float *m)
+{
+    if (m)
+        vdb_projection = *(vdbMat4*)m;
+    else
+        vdb_projection = vdbMatIdentity();
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+}
+
+void vdbGetMatrix(float *m)
+{
+    assert(m);
+    *(vdbMat4*)m = vdb_view_model;
+}
+
+void vdbMultMatrix(float *m)
+{
+    if (m)
+    {
+        vdb_matrix_stack.Multiply(*(vdbMat4*)m);
+        vdb_view_model = vdb_matrix_stack.Top();
+        vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+    }
+}
+
+void vdbLoadMatrix(float *m)
+{
+    if (m)
+        vdb_matrix_stack.Load(*(vdbMat4*)m);
+    else
+        vdb_matrix_stack.LoadIdentity();
+    vdb_view_model = vdb_matrix_stack.Top();
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+}
+
+void vdbPushMatrix()
+{
+    vdb_matrix_stack.Push();
+    vdb_view_model = vdb_matrix_stack.Top();
+}
+
+void vdbPopMatrix()
+{
+    vdb_matrix_stack.Pop();
+    vdb_view_model = vdb_matrix_stack.Top();
+    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+}
 
 #endif
 
@@ -237,7 +294,7 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     view.y = (y_clip-by)/ay;
     view.z = depth;
     view.w = 1.0f;
-    vdbVec4 model = vdbMulSE3Inverse(vdb_modelview, view);
+    vdbVec4 model = vdbMulSE3Inverse(vdb_view_model, view);
     vdbVec3 result(model.x,model.y,model.z);
     return result;
 }

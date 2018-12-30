@@ -63,12 +63,6 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
         VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
     assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
 
-    // todo: gl deprecation, replace with storing own matrix stack?
-    float projection[4*4];
-    float model_to_view[4*4];
-    glGetFloatv(GL_PROJECTION_MATRIX, projection);
-    glGetFloatv(GL_MODELVIEW_MATRIX, model_to_view);
-
     static bool shader_loaded = false;
     static GLuint program = 0;
     static GLint attrib_in_position = 0;
@@ -97,11 +91,18 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
         shader_loaded = true;
     }
 
-    // todo: do we need a vertex array object...?
+    // todo: vertex array object
 
     glUseProgram(program);
-    glUniformMatrix4fv(uniform_projection, 1, GL_FALSE, projection);
-    glUniformMatrix4fv(uniform_model_to_view, 1, GL_FALSE, model_to_view);
+    #if defined(VDB_MATRIX_ROW_MAJOR)
+    glUniformMatrix4fv(uniform_projection, 1, GL_FALSE, vdb_projection.data);
+    glUniformMatrix4fv(uniform_model_to_view, 1, GL_FALSE, vdb_view_model.data);
+    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
+    glUniformMatrix4fv(uniform_projection, 1, GL_TRUE, vdb_projection.data);
+    glUniformMatrix4fv(uniform_model_to_view, 1, GL_TRUE, vdb_view_model.data);
+    #else
+    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
+    #endif
     glUniform1f(uniform_point_size, point_size);
 
     #if defined(VDB_POINT_SHADER_QUAD)

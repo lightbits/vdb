@@ -41,25 +41,26 @@ void vdbDepthWrite(bool enabled)
     else { glDepthMask(GL_FALSE); }
 }
 
+void vdbVertex(vdbVec3 v, float w)                 { vdbVertex(v.x, v.y, v.z, w); }
+void vdbVertex(vdbVec4 v)                          { vdbVertex(v.x, v.y, v.z, v.w); }
+void vdbColor(vdbVec3 v, float a)                  { vdbColor(v.x, v.y, v.z, a); }
+void vdbColor(vdbVec4 v)                           { vdbColor(v.x, v.y, v.z, v.w); }
+
 #if VDB_USE_FIXED_FUNCTION_PIPELINE==1
 // This path uses the fixed-function pipeline of legacy OpenGL.
 // It is available only in compatibility profiles of OpenGL, which
 // itself is not available on certain drivers (Mesa, for one).
-void vdbLineWidth(float width) { glLineWidth(width); }
-void vdbBeginLines() { glBegin(GL_LINES); }
-void vdbLines(float width) { glLineWidth(width); glBegin(GL_LINES); }
-void vdbLineSize(float width) { glLineWidth(width); }
-void vdbBeginPoints() { glBegin(GL_POINTS); }
-void vdbPoints(float radius) { glPointSize(radius); glBegin(GL_POINTS); }
-void vdbTriangles() { glBegin(GL_TRIANGLES); }
-void vdbEnd() { glEnd(); }
+void vdbLineWidth(float width)                     { glLineWidth(width); }
+void vdbBeginLines()                               { glBegin(GL_LINES); }
+void vdbLines(float width)                         { glLineWidth(width); glBegin(GL_LINES); }
+void vdbLineSize(float width)                      { glLineWidth(width); }
+void vdbBeginPoints()                              { glBegin(GL_POINTS); }
+void vdbPoints(float radius)                       { glPointSize(radius); glBegin(GL_POINTS); }
+void vdbTriangles()                                { glBegin(GL_TRIANGLES); }
+void vdbEnd()                                      { glEnd(); }
 void vdbVertex(float x, float y, float z, float w) { glVertex4f(x,y,z,w); }
 void vdbColor(float r, float g, float b, float a)  { glColor4f(r,g,b,a); }
 void vdbTexel(float u, float v)                    { glTexCoord2f(u,v); }
-void vdbVertex(vdbVec3 v, float w) { glVertex4f(v.x, v.y, v.z, w); }
-void vdbVertex(vdbVec4 v)          { glVertex4f(v.x, v.y, v.z, v.w); }
-void vdbColor(vdbVec3 v, float a)  { glColor4f(v.x, v.y, v.z, a); }
-void vdbColor(vdbVec4 v)           { glColor4f(v.x, v.y, v.z, v.w); }
 
 #else
 
@@ -179,7 +180,7 @@ void vdbEnd()
             "out vec2 vs_texel;\n"
             "void main()\n"
             "{\n"
-            "    gl_Position = position;\n"
+            "    gl_Position = pvm*position;\n"
             "    vs_color = color;\n"
             "    vs_texel = texel;\n"
             "}\n";
@@ -207,7 +208,15 @@ void vdbEnd()
     glPointSize(imm.point_size); // todo: deprecated
 
     glUseProgram(program); // todo: optimize
+
+    #if defined(VDB_MATRIX_ROW_MAJOR)
     glUniformMatrix4fv(uniform_pvm, 1, GL_FALSE, vdb_pvm.data);
+    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
+    glUniformMatrix4fv(uniform_pvm, 1, GL_TRUE, vdb_pvm.data);
+    #else
+    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
+    #endif
+
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     if (!imm.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
@@ -267,7 +276,7 @@ void vdbTexel(float u, float v)
     imm.vertex.texel[1] = v;
 }
 
-void vdbColor(float r, float g, float b, float a=1.0f)
+void vdbColor(float r, float g, float b, float a)
 {
     imm.vertex.color[0] = r;
     imm.vertex.color[1] = g;
@@ -275,7 +284,7 @@ void vdbColor(float r, float g, float b, float a=1.0f)
     imm.vertex.color[3] = a;
 }
 
-void vdbVertex(float x, float y, float z=0.0f, float w=1.0f)
+void vdbVertex(float x, float y, float z, float w)
 {
     assert(imm.prim_type != IMM_PRIM_NONE && "immVertex cannot be called outside immBegin/immEnd block");
     imm.vertex.position[0] = x;
