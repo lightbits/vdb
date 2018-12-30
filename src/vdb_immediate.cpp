@@ -64,34 +64,40 @@ void vdbTexel(float u, float v)                    { glTexCoord2f(u,v); }
 
 #else
 
-enum vdb_immediate_type_t { IMM_PRIM_NONE = 0, IMM_PRIM_POINTS, IMM_PRIM_LINES, IMM_PRIM_TRIANGLES };
+enum imm_prim_type_t
+{
+    IMM_PRIM_NONE = 0,
+    IMM_PRIM_POINTS,
+    IMM_PRIM_LINES,
+    IMM_PRIM_TRIANGLES
+};
 
-struct vdb_immediate_vertex_t
+struct imm_vertex_t
 {
     float position[4];
     float texel[2];
     float color[4];
 };
 
-struct vdb_immediate_t
+struct imm_t
 {
     bool initialized;
     GLuint vao;
     GLuint vbo;
-    vdb_immediate_vertex_t *buffer;
-    vdb_immediate_vertex_t vertex;
+    imm_vertex_t *buffer;
+    imm_vertex_t vertex;
     size_t allocated_count;
     size_t count;
-    vdb_immediate_type_t prim_type;
+    imm_prim_type_t prim_type;
     float line_width;
     float point_size;
     bool texel_specified;
     GLuint default_texture;
 };
 
-static vdb_immediate_t imm;
+static imm_t imm;
 
-void vdbBeginImmediate(vdb_immediate_type_t prim_type)
+void BeginImmediate(imm_prim_type_t prim_type)
 {
     if (!imm.initialized)
     {
@@ -101,13 +107,13 @@ void vdbBeginImmediate(vdb_immediate_type_t prim_type)
         imm.point_size = 1.0f;
         imm.count = 0;
         imm.allocated_count = 1024*100;
-        imm.buffer = new vdb_immediate_vertex_t[imm.allocated_count];
+        imm.buffer = new imm_vertex_t[imm.allocated_count];
         assert(imm.buffer);
 
         glGenVertexArrays(1, &imm.vao);
         glGenBuffers(1, &imm.vbo);
         glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(vdb_immediate_vertex_t), NULL, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         static unsigned char default_texture_data[] = { 255, 255, 255, 255 };
@@ -222,13 +228,13 @@ void vdbEnd()
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
 
     glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(vdb_immediate_vertex_t), (const GLvoid*)imm.buffer);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
 
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
     glEnableVertexAttribArray(attrib_position);
     glEnableVertexAttribArray(attrib_texel);
     glEnableVertexAttribArray(attrib_color);
-    int stride = sizeof(vdb_immediate_vertex_t);
+    int stride = sizeof(imm_vertex_t);
     glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, stride, (const void*)(0));
     glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, stride, (const void*)(4*sizeof(float)));
     glVertexAttribPointer(attrib_color,    4, GL_FLOAT, GL_FALSE, stride, (const void*)(6*sizeof(float)));
@@ -262,11 +268,11 @@ void vdbEnd()
 
 void vdbLineWidth(float width) { imm.line_width = width; }
 void vdbPointSize(float size) { imm.point_size = size; }
-void vdbTriangles() { vdbBeginImmediate(IMM_PRIM_TRIANGLES); }
-void vdbBeginLines() { vdbBeginImmediate(IMM_PRIM_LINES); }
-void vdbBeginPoints() { vdbBeginImmediate(IMM_PRIM_POINTS); }
-void vdbLines(float line_width) { vdbLineWidth(line_width); vdbBeginImmediate(IMM_PRIM_LINES); }
-void vdbPoints(float point_size) { vdbPointSize(point_size); vdbBeginImmediate(IMM_PRIM_POINTS); }
+void vdbTriangles() { BeginImmediate(IMM_PRIM_TRIANGLES); }
+void vdbBeginLines() { BeginImmediate(IMM_PRIM_LINES); }
+void vdbBeginPoints() { BeginImmediate(IMM_PRIM_POINTS); }
+void vdbLines(float line_width) { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
+void vdbPoints(float point_size) { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
 
 void vdbTexel(float u, float v)
 {
@@ -297,7 +303,7 @@ void vdbVertex(float x, float y, float z, float w)
     if (imm.count == imm.allocated_count)
     {
         int new_allocated_count = (3*imm.allocated_count)/2;
-        vdb_immediate_vertex_t *new_buffer = new vdb_immediate_vertex_t[new_allocated_count];
+        imm_vertex_t *new_buffer = new imm_vertex_t[new_allocated_count];
         assert(new_buffer && "Ran out of memory expanding buffer");
         for (size_t i = 0; i < imm.allocated_count; i++)
             new_buffer[i] = imm.buffer[i];
@@ -306,7 +312,7 @@ void vdbVertex(float x, float y, float z, float w)
         imm.allocated_count = new_allocated_count;
 
         glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(vdb_immediate_vertex_t), NULL, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
