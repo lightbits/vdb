@@ -143,6 +143,7 @@ void BeginImmediate(imm_prim_type_t prim_type)
     assert(imm.initialized);
     assert(imm.vao);
     assert(imm.vbo);
+    assert(imm.prim_type == IMM_PRIM_NONE && "Missing immEnd before immBegin");
     imm.prim_type = prim_type;
     imm.count = 0;
 
@@ -264,6 +265,9 @@ void vdbEnd()
     glLineWidth(1.0f);
     glPointSize(1.0f);
     glUseProgram(0); // todo: optimize
+
+    imm.prim_type = IMM_PRIM_NONE;
+    assert(imm.prim_type == IMM_PRIM_NONE && "Did you forget?");
 }
 
 void vdbLineWidth(float width) { imm.line_width = width; }
