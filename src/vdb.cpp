@@ -73,8 +73,9 @@ bool vdbBeginFrame(const char *label)
 
     if (!vdb::initialized)
     {
-        settings::LoadOrDefault(VDB_SETTINGS_FILENAME);
-        window::Open(settings::window_x, settings::window_y, settings::window_w, settings::window_h);
+        settings_t &s = settings;
+        s.LoadOrDefault(VDB_SETTINGS_FILENAME);
+        window::Open(s.window_x, s.window_y, s.window_w, s.window_h);
         ImGui::CreateContext();
         ImGui_ImplSdlGL3_Init(window::sdl_window);
         ImGui::StyleColorsDark();
@@ -95,29 +96,25 @@ bool vdbBeginFrame(const char *label)
     if (save_settings_counter <= 0)
     {
         save_settings_counter += VDB_SAVE_SETTINGS_PERIOD;
-        settings::window_w = window::window_width;
-        settings::window_h = window::window_height;
-        settings::window_x = window::window_x;
-        settings::window_y = window::window_y;
-        settings::Save(VDB_SETTINGS_FILENAME);
+        settings.Save(VDB_SETTINGS_FILENAME);
     }
 
     if (keys::pressed[SDL_SCANCODE_F10])
     {
-        settings::Save(VDB_SETTINGS_FILENAME);
+        settings.Save(VDB_SETTINGS_FILENAME);
         is_first_frame = true;
         return false;
     }
     if (keys::pressed[SDL_SCANCODE_F5])
     {
-        settings::Save(VDB_SETTINGS_FILENAME);
+        settings.Save(VDB_SETTINGS_FILENAME);
         is_first_frame = true;
         skip_label = label;
         return false;
     }
     if (window::should_quit)
     {
-        settings::Save(VDB_SETTINGS_FILENAME);
+        settings.Save(VDB_SETTINGS_FILENAME);
         window::Close();
         exit(0);
     }

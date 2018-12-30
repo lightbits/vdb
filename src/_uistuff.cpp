@@ -12,12 +12,12 @@ namespace uistuff
 static void uistuff::ExitDialog()
 {
     bool escape = keys::pressed[SDL_SCANCODE_ESCAPE];
-    if (escape && !uistuff::escape_eaten && settings::never_ask_on_exit)
+    if (escape && !uistuff::escape_eaten && settings.never_ask_on_exit)
     {
         window::should_quit = true;
         return;
     }
-    if (escape && !uistuff::escape_eaten && !settings::never_ask_on_exit)
+    if (escape && !uistuff::escape_eaten && !settings.never_ask_on_exit)
     {
         ImGui::OpenPopup("Do you want to exit?##popup_exit");
     }
@@ -34,7 +34,7 @@ static void uistuff::ExitDialog()
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        ImGui::Checkbox("Never ask me again", &settings::never_ask_on_exit);
+        ImGui::Checkbox("Never ask me again", &settings.never_ask_on_exit);
         if (escape && !ImGui::IsWindowAppearing())
         {
             uistuff::escape_eaten = true;

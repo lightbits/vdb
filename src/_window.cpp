@@ -195,5 +195,10 @@ namespace window
         SDL_GetWindowPosition(sdl_window, &window_x, &window_y);
         SDL_GetMouseState(&mouse::x, &mouse::y);
         SDL_GetWindowSize(sdl_window, &window_width, &window_height);
+
+        settings.window_w = window_width;
+        settings.window_h = window_height;
+        settings.window_x = window_x;
+        settings.window_y = window_y;
     }
 }
