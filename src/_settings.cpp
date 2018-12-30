@@ -3,11 +3,11 @@
 
 namespace settings
 {
-    bool never_ask_on_exit;
-    int window_w;
-    int window_h;
-    int window_x;
-    int window_y;
+    static bool never_ask_on_exit;
+    static int window_w;
+    static int window_h;
+    static int window_x;
+    static int window_y;
 
     void Save(const char *filename)
     {

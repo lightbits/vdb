@@ -91,13 +91,14 @@ bool vdbBeginFrame(const char *label)
     window::PollEvents();
 
     static int save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
-    if (save_settings_counter >= 0)
+    save_settings_counter--;
+    if (save_settings_counter <= 0)
     {
-        save_settings_counter--;
-    }
-    else
-    {
-        save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
+        save_settings_counter += VDB_SAVE_SETTINGS_PERIOD;
+        settings::window_w = window::window_width;
+        settings::window_h = window::window_height;
+        settings::window_x = window::window_x;
+        settings::window_y = window::window_y;
         settings::Save(VDB_SETTINGS_FILENAME);
     }
 
