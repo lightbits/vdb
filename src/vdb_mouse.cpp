@@ -22,8 +22,8 @@ bool vdbWasMouseOver(float x, float y, float z, float w)
     vdbVec2 ndc = vdbModelToNDC(x, y, z, w);
     vdbVec2 win = vdbNDCToWindow(ndc.x, ndc.y);
 
-    float dx = win.x - (float)vdb.mouse.x;
-    float dy = win.y - (float)vdb.mouse.y;
+    float dx = win.x - (float)mouse::x;
+    float dy = win.y - (float)mouse::y;
 
     float distance = dx*dx + dy*dy;
 
@@ -47,17 +47,17 @@ int vdbGetMouseOverIndex(float *x, float *y, float *z)
     if (z) *z = vdb_map.closest_z;
     return vdb_map.closest_index;
 }
-vdbVec2 vdbGetMousePos()      { vdbVec2 result((float)vdb.mouse.x, (float)vdb.mouse.y); return result; }
-vdbVec2 vdbGetMousePosNDC()   { return vdb.mouse.ndc; }
+vdbVec2 vdbGetMousePos()      { vdbVec2 result((float)mouse::x, (float)mouse::y); return result; }
+vdbVec2 vdbGetMousePosNDC()   { return mouse::ndc; }
 vdbVec3 vdbGetMousePosModel(float depth) { vdbVec2 ndc = vdbGetMousePosNDC(); vdbVec3 model = vdbNDCToModel(ndc.x, ndc.y, depth); return model; }
-float vdbGetMouseWheel() { return ImGui::GetIO().WantCaptureMouse ? 0.0f : vdb.mouse.wheel; }
+float vdbGetMouseWheel() { return ImGui::GetIO().WantCaptureMouse ? 0.0f : mouse::wheel; }
 
-bool vdbWasMouseLeftPressed()    { return vdb.mouse.left.pressed    && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbWasMouseRightPressed()   { return vdb.mouse.right.pressed   && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbWasMouseMiddlePressed()  { return vdb.mouse.middle.pressed  && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbWasMouseLeftReleased()   { return vdb.mouse.left.released   && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbWasMouseRightReleased()  { return vdb.mouse.right.released  && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbWasMouseMiddleReleased() { return vdb.mouse.middle.released && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbIsMouseLeftDown()       { return vdb.mouse.left.down       && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbIsMouseRightDown()      { return vdb.mouse.right.down      && !ImGui::GetIO().WantCaptureMouse; }
-bool vdbIsMouseMiddleDown()     { return vdb.mouse.middle.down     && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseLeftPressed()    { return mouse::left.pressed    && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseRightPressed()   { return mouse::right.pressed   && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseMiddlePressed()  { return mouse::middle.pressed  && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseLeftReleased()   { return mouse::left.released   && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseRightReleased()  { return mouse::right.released  && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbWasMouseMiddleReleased() { return mouse::middle.released && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseLeftDown()       { return mouse::left.down       && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseRightDown()      { return mouse::right.down      && !ImGui::GetIO().WantCaptureMouse; }
+bool vdbIsMouseMiddleDown()     { return mouse::middle.down     && !ImGui::GetIO().WantCaptureMouse; }

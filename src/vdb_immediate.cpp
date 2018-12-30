@@ -210,9 +210,9 @@ void vdbEnd()
     glUseProgram(program); // todo: optimize
 
     #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(uniform_pvm, 1, GL_FALSE, vdb_pvm.data);
+    glUniformMatrix4fv(uniform_pvm, 1, GL_FALSE, transform::pvm.data);
     #elif defined(VDB_MATRIX_COLUMN_MAJOR)
-    glUniformMatrix4fv(uniform_pvm, 1, GL_TRUE, vdb_pvm.data);
+    glUniformMatrix4fv(uniform_pvm, 1, GL_TRUE, transform::pvm.data);
     #else
     #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
     #endif

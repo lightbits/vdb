@@ -61,3 +61,8 @@
 // using textured quads. This option might be slower than the vertex version
 // especially if you restrict yourself to low vertex count.
 // #define VDB_POINT_SHADER_QUAD
+
+#define VDB_HOTKEY_FRAMEGRAB   keys::pressed[SDL_SCANCODE_S] && keys::down[SDL_SCANCODE_LALT]
+#define VDB_HOTKEY_WINDOW_SIZE keys::pressed[SDL_SCANCODE_W] && keys::down[SDL_SCANCODE_LALT]
+#define VDB_HOTKEY_SKETCH_MODE keys::pressed[SDL_SCANCODE_D] && keys::down[SDL_SCANCODE_LALT]
+#define VDB_HOTKEY_RULER_MODE  keys::pressed[SDL_SCANCODE_R] && keys::down[SDL_SCANCODE_LALT]

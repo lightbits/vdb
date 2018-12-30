@@ -1,4 +1,4 @@
-namespace TemporalBlend
+namespace lowpass_filter
 {
     static render_texture_t rt_frame = {0};
     static render_texture_t rt_accumulator[2] = {0};
@@ -10,8 +10,8 @@ namespace TemporalBlend
     {
         has_begun = true;
         blend_factor = _blend_factor;
-        int w = vdb.framebuffer_width;
-        int h = vdb.framebuffer_height;
+        int w = window::framebuffer_width;
+        int h = window::framebuffer_height;
         if (rt_frame.width != w>>downsample || rt_frame.height != h>>downsample)
         {
             FreeRenderTexture(&rt_frame);
@@ -136,5 +136,5 @@ namespace TemporalBlend
 
         turn = next_turn;
     }
-};
+}
 

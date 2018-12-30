@@ -1,19 +1,28 @@
 #include "_matrix.cpp"
 
-static vdbMat4 vdb_projection = vdbMatIdentity();
-static vdbMat4 vdb_view_model = vdbMatIdentity();
-static vdbMat4 vdb_pvm = vdbMatIdentity();
+namespace transform
+{
+    static vdbMat4 projection = vdbMatIdentity();
+    static vdbMat4 view_model = vdbMatIdentity();
+    static vdbMat4 pvm = vdbMatIdentity();
+    int viewport_left;
+    int viewport_bottom;
+    int viewport_width;
+    int viewport_height;
+
+    void Reset();
+}
 
 #if VDB_USE_FIXED_FUNCTION_PIPELINE==1
 // This path uses the fixed-function pipeline of legacy OpenGL.
 // It is available only in compatibility profiles of OpenGL, which
 // itself is not available on certain drivers (Mesa, for one).
 
-void vdbResetTransform()
+void transform::Reset()
 {
-    vdb_projection = vdbMatIdentity();
-    vdb_view_model = vdbMatIdentity();
-    vdb_pvm = vdbMatIdentity();
+    projection = vdbMatIdentity();
+    view_model = vdbMatIdentity();
+    pvm = vdbMatIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
@@ -26,7 +35,7 @@ void vdbProjection(float *m)
     glMatrixMode(GL_PROJECTION);
     if (m)
     {
-        vdb_projection = *(vdbMat4*)m;
+        transform::projection = *(vdbMat4*)m;
         #ifdef VDB_MATRIX_ROW_MAJOR
         glLoadMatrixf(m);
         #else
@@ -35,10 +44,10 @@ void vdbProjection(float *m)
     }
     else
     {
-        vdb_projection = vdbMatIdentity();
+        transform::projection = vdbMatIdentity();
         glLoadIdentity();
     }
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
 void vdbGetMatrix(float *m)
@@ -55,12 +64,12 @@ void vdbMultMatrix(float *m)
         glMatrixMode(GL_MODELVIEW);
         #ifdef VDB_MATRIX_ROW_MAJOR
         glMultMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
         #else
         glMultTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
         #endif
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+        transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
     }
 }
 
@@ -71,18 +80,18 @@ void vdbLoadMatrix(float *m)
     {
         #ifdef VDB_MATRIX_ROW_MAJOR
         glLoadMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
         #else
         glLoadTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
         #endif
     }
     else
     {
-        vdb_view_model = vdbMatIdentity();
+        transform::view_model = vdbMatIdentity();
         glLoadIdentity();
     }
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
 static int vdb_push_pop_matrix_index = 0;
@@ -102,72 +111,80 @@ void vdbPopMatrix()
     glPopMatrix();
 
     #ifdef VDB_MATRIX_ROW_MAJOR
-    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
     #else
-    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)vdb_view_model.data);
+    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
     #endif
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
 #else
 #include "_matrix_stack.cpp"
 
-static matrix_stack_t vdb_matrix_stack = {0};
-
-void vdbResetTransform()
+namespace transform
 {
-    vdb_projection = vdbMatIdentity();
-    vdb_view_model = vdbMatIdentity();
-    vdb_pvm = vdbMatIdentity();
-    vdb_matrix_stack.Reset();
+    static matrix_stack_t matrix_stack = {0};
+}
+
+void transform::Reset()
+{
+    projection = vdbMatIdentity();
+    view_model = vdbMatIdentity();
+    pvm = vdbMatIdentity();
+    matrix_stack.Reset();
 }
 
 void vdbProjection(float *m)
 {
+    using namespace transform;
     if (m)
-        vdb_projection = *(vdbMat4*)m;
+        projection = *(vdbMat4*)m;
     else
-        vdb_projection = vdbMatIdentity();
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+        projection = vdbMatIdentity();
+    pvm = vdbMul4x4(projection, view_model);
 }
 
 void vdbGetMatrix(float *m)
 {
     assert(m);
-    *(vdbMat4*)m = vdb_view_model;
+    *(vdbMat4*)m = transform::view_model;
 }
 
 void vdbMultMatrix(float *m)
 {
+    using namespace transform;
     if (m)
     {
-        vdb_matrix_stack.Multiply(*(vdbMat4*)m);
-        vdb_view_model = vdb_matrix_stack.Top();
-        vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+        matrix_stack.Multiply(*(vdbMat4*)m);
+        view_model = matrix_stack.Top();
+        pvm = vdbMul4x4(projection, view_model);
     }
 }
 
 void vdbLoadMatrix(float *m)
 {
+    using namespace transform;
     if (m)
-        vdb_matrix_stack.Load(*(vdbMat4*)m);
+        matrix_stack.Load(*(vdbMat4*)m);
     else
-        vdb_matrix_stack.LoadIdentity();
-    vdb_view_model = vdb_matrix_stack.Top();
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+        matrix_stack.LoadIdentity();
+    view_model = matrix_stack.Top();
+    pvm = vdbMul4x4(projection, view_model);
 }
 
 void vdbPushMatrix()
 {
-    vdb_matrix_stack.Push();
-    vdb_view_model = vdb_matrix_stack.Top();
+    using namespace transform;
+    matrix_stack.Push();
+    view_model = matrix_stack.Top();
 }
 
 void vdbPopMatrix()
 {
-    vdb_matrix_stack.Pop();
-    vdb_view_model = vdb_matrix_stack.Top();
-    vdb_pvm = vdbMul4x4(vdb_projection, vdb_view_model);
+    using namespace transform;
+    matrix_stack.Pop();
+    view_model = matrix_stack.Top();
+    pvm = vdbMul4x4(projection, view_model);
 }
 
 #endif
@@ -176,19 +193,19 @@ void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y
 void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
 void vdbRotateZYX(float z, float y, float x) { vdbMultMatrix(vdbMatRotateZYX(z,y,x).data); }
 
-int vdbGetWindowWidth() { return vdb.window_width; }
-int vdbGetWindowHeight() { return vdb.window_height; }
+int vdbGetWindowWidth() { return window::window_width; }
+int vdbGetWindowHeight() { return window::window_height; }
 
 int vdbGetFramebufferWidth()
 {
     if (vdb.current_render_texture) return vdb.current_render_texture->width;
-    else return vdb.framebuffer_width;
+    else return window::framebuffer_width;
 }
 
 int vdbGetFramebufferHeight()
 {
     if (vdb.current_render_texture) return vdb.current_render_texture->height;
-    else return vdb.framebuffer_height;
+    else return window::framebuffer_height;
 }
 
 float vdbGetAspectRatio()
@@ -199,10 +216,10 @@ float vdbGetAspectRatio()
 void vdbViewporti(int left, int bottom, int width, int height)
 {
     glViewport(left, bottom, (GLsizei)width, (GLsizei)height);
-    vdb.viewport_left = left;
-    vdb.viewport_bottom = bottom;
-    vdb.viewport_width = width;
-    vdb.viewport_height = height;
+    transform::viewport_left = left;
+    transform::viewport_bottom = bottom;
+    transform::viewport_width = width;
+    transform::viewport_height = height;
 }
 
 void vdbViewport(float left, float bottom, float width, float height)
@@ -246,26 +263,32 @@ void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float
 
 vdbVec2 vdbWindowToNDC(float xw, float yw)
 {
-    float xf = vdb.framebuffer_width*(xw/vdb.window_width);
-    float yf = vdb.framebuffer_height*(1.0f - yw/vdb.window_height);
-    float xn = -1.0f+2.0f*(xf-vdb.viewport_left)/vdb.viewport_width;
-    float yn = -1.0f+2.0f*(yf-vdb.viewport_bottom)/vdb.viewport_height;
+    using namespace window;
+    using namespace transform;
+    float xf = framebuffer_width*(xw/window_width);
+    float yf = framebuffer_height*(1.0f - yw/window_height);
+    float xn = -1.0f+2.0f*(xf-viewport_left)/viewport_width;
+    float yn = -1.0f+2.0f*(yf-viewport_bottom)/viewport_height;
     vdbVec2 result(xn,yn);
     return result;
 }
 
 vdbVec2 vdbNDCToWindow(float xn, float yn)
 {
-    float xf = vdb.viewport_left + (0.5f+0.5f*xn)*vdb.viewport_width;
-    float yf = vdb.viewport_bottom + (0.5f+0.5f*yn)*vdb.viewport_height;
-    float xw = vdb.window_width*(xf/vdb.framebuffer_width);
-    float yw = vdb.window_height*(1.0f - yf/vdb.framebuffer_height);
+    using namespace window;
+    using namespace transform;
+    float xf = viewport_left + (0.5f+0.5f*xn)*viewport_width;
+    float yf = viewport_bottom + (0.5f+0.5f*yn)*viewport_height;
+    float xw = window_width*(xf/framebuffer_width);
+    float yw = window_height*(1.0f - yf/framebuffer_height);
     vdbVec2 result(xw,yw);
     return result;
 }
 
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
 {
+    using namespace transform;
+
     // assuming projection is of the form
     // ax       bx
     //    ay    by
@@ -276,14 +299,14 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     // also assumes modelview matrix is SE3
     // (e.g. rotation and translation only)
 
-    float ax = vdb_projection(0,0);
-    float ay = vdb_projection(1,1);
-    // float az = vdb_projection(2,2);
-    float bx = vdb_projection(0,3);
-    float by = vdb_projection(1,3);
-    // float bz = vdb_projection(2,3);
-    float cw = vdb_projection(3,2);
-    float aw = vdb_projection(3,3);
+    float ax = projection(0,0);
+    float ay = projection(1,1);
+    // float az = projection(2,2);
+    float bx = projection(0,3);
+    float by = projection(1,3);
+    // float bz = projection(2,3);
+    float cw = projection(3,2);
+    float aw = projection(3,3);
 
     float w_clip = cw*depth + aw;
     float x_clip = x_ndc*w_clip;
@@ -294,7 +317,7 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     view.y = (y_clip-by)/ay;
     view.z = depth;
     view.w = 1.0f;
-    vdbVec4 model = vdbMulSE3Inverse(vdb_view_model, view);
+    vdbVec4 model = vdbMulSE3Inverse(view_model, view);
     vdbVec3 result(model.x,model.y,model.z);
     return result;
 }
@@ -302,7 +325,7 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
 vdbVec2 vdbModelToNDC(float x, float y, float z, float w)
 {
     vdbVec4 model(x,y,z,w);
-    vdbVec4 clip = vdbMul4x1(vdb_pvm, model);
+    vdbVec4 clip = vdbMul4x1(transform::pvm, model);
     vdbVec2 ndc(clip.x/clip.w, clip.y/clip.w);
     return ndc;
 }

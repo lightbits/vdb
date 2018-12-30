@@ -24,7 +24,7 @@
 //                                   -----------------
 // In this example, it would take 4 frames before the output is stable,
 // assuming a static scene.
-namespace TemporalSuperSample
+namespace upsample_filter
 {
     static render_texture_t output;
     static render_texture_t lowres;
@@ -192,4 +192,4 @@ namespace TemporalSuperSample
         int num_subpixels = (1<<upsample)*(1<<upsample);
         subpixel = (subpixel+1)%num_subpixels;
     }
-};
+}

@@ -95,11 +95,11 @@ void vdbDrawPoints(int slot, float point_size, int circle_segments)
 
     glUseProgram(program);
     #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(uniform_projection, 1, GL_FALSE, vdb_projection.data);
-    glUniformMatrix4fv(uniform_model_to_view, 1, GL_FALSE, vdb_view_model.data);
+    glUniformMatrix4fv(uniform_projection, 1, GL_FALSE, transform::projection.data);
+    glUniformMatrix4fv(uniform_model_to_view, 1, GL_FALSE, transform::view_model.data);
     #elif defined(VDB_MATRIX_COLUMN_MAJOR)
-    glUniformMatrix4fv(uniform_projection, 1, GL_TRUE, vdb_projection.data);
-    glUniformMatrix4fv(uniform_model_to_view, 1, GL_TRUE, vdb_view_model.data);
+    glUniformMatrix4fv(uniform_projection, 1, GL_TRUE, transform::projection.data);
+    glUniformMatrix4fv(uniform_model_to_view, 1, GL_TRUE, transform::view_model.data);
     #else
     #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
     #endif

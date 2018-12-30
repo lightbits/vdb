@@ -28,57 +28,37 @@
 #include "_ruler_mode.cpp"
 #include "_render_texture.cpp"
 
-#define HOTKEY_FRAMEGRAB   vdb.key_pressed[SDL_SCANCODE_S] && vdb.key_down[SDL_SCANCODE_LALT]
-#define HOTKEY_WINDOW_SIZE vdb.key_pressed[SDL_SCANCODE_W] && vdb.key_down[SDL_SCANCODE_LALT]
-#define HOTKEY_SKETCH_MODE vdb.key_pressed[SDL_SCANCODE_D] && vdb.key_down[SDL_SCANCODE_LALT]
-#define HOTKEY_RULER_MODE  vdb.key_pressed[SDL_SCANCODE_R] && vdb.key_down[SDL_SCANCODE_LALT]
+namespace mouse
+{
+    static int x,y; // The position of the mouse in the client area in screen coordinates where (0,0):top-left
+    static vdbVec2 ndc; // -||- in normalized device coordinates where (-1,-1):bottom-left (+1,+1):top-right
+    static float wheel;
+    static struct button_t
+    {
+        bool pressed,released,down;
+    } left,right,middle;
+}
+
+namespace keys
+{
+    static bool pressed[SDL_NUM_SCANCODES];
+    static bool down[SDL_NUM_SCANCODES];
+    static bool released[SDL_NUM_SCANCODES];
+}
+
+#include "_window.cpp"
 
 struct vdb_globals_t
 {
     const char *active_label;
     bool initialized;
-    bool has_vsync;
-    SDL_Window *window;
-    SDL_GLContext context;
-
-    // Note: for retina displays screen coordinates != framebuffer coordinates
-    // This is the size in pixels of the framebuffer in the window
-    int framebuffer_width;
-    int framebuffer_height;
-    // This is the size of the window's client area in screen coordinates
-    int window_width;
-    int window_height;
-    // This is the position of the window's client area in screen coordinates
-    int window_x;
-    int window_y;
-    int viewport_left;
-    int viewport_bottom;
-    int viewport_width;
-    int viewport_height;
-    bool key_pressed[SDL_NUM_SCANCODES];
-    bool key_down[SDL_NUM_SCANCODES];
-    bool key_released[SDL_NUM_SCANCODES];
-    struct mouse_t
-    {
-        int x,y; // The position of the mouse in the client area in screen coordinates where (0,0):top-left
-        vdbVec2 ndc; // -||- in normalized device coordinates where (-1,-1):bottom-left (+1,+1):top-right
-        float wheel;
-        struct button_t
-        {
-            bool pressed,released,down;
-        } left,right,middle;
-    } mouse;
-    bool should_quit;
-    bool escape_eaten;
     int note_index;
     bool is_first_frame;
     bool taa_begun;
     bool tss_begun;
-    bool sketch_mode_active;
-    bool ruler_mode_active;
     render_texture_t *current_render_texture;
-    vdb_settings_t settings;
 };
+
 static vdb_globals_t vdb = {0};
 
 #include "vdb_render_texture.cpp"
@@ -93,22 +73,20 @@ static vdb_globals_t vdb = {0};
 #include "vdb_image.cpp"
 #include "vdb_filter.cpp"
 
-static void vdbCloseWindow();
-static void vdbSetWindowSize(int width, int height, bool topmost);
-static void vdbOpenWindow(int x, int y, int width, int height);
-static void vdbSwapBuffers(float dt);
-static void vdbPollEvents();
-static void vdbExitDialog();
-static void vdbSizeDialog();
-static void vdbFramegrabDialog();
+namespace uistuff
+{
+    static bool escape_eaten;
+    static bool sketch_mode_active;
+    static bool ruler_mode_active;
+
+    static void ExitDialog();
+    static void WindowSizeDialog();
+    static void FramegrabDialog();
+}
 
 bool vdbIsFirstFrame() { return vdb.is_first_frame; }
 
-void vdbDetachGLContext()
-{
-    assert(vdb.window);
-    SDL_GL_MakeCurrent(vdb.window, NULL);
-}
+void vdbDetachGLContext() { window::DetachGLContext(); }
 
 bool vdbBeginFrame(const char *label)
 {
@@ -124,10 +102,10 @@ bool vdbBeginFrame(const char *label)
 
     if (!vdb.initialized)
     {
-        vdb.settings = vdbLoadSettingsOrDefault(VDB_SETTINGS_FILENAME);
-        vdbOpenWindow(vdb.settings.window_x, vdb.settings.window_y, vdb.settings.window_w, vdb.settings.window_h);
+        settings::LoadOrDefault(VDB_SETTINGS_FILENAME);
+        window::Open(settings::window_x, settings::window_y, settings::window_w, settings::window_h);
         ImGui::CreateContext();
-        ImGui_ImplSdlGL3_Init(vdb.window);
+        ImGui_ImplSdlGL3_Init(window::sdl_window);
         ImGui::StyleColorsDark();
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
@@ -138,54 +116,56 @@ bool vdbBeginFrame(const char *label)
         CheckGLError();
     }
 
-    SDL_GLContext current = SDL_GL_GetCurrentContext();
-    if (current != vdb.context)
-        SDL_GL_MakeCurrent(vdb.window, vdb.context);
-
-    vdbPollEvents();
+    window::EnsureGLContextIsCurrent();
+    window::PollEvents();
 
     static int save_settings_counter = 60;
     if (save_settings_counter >= 0)
         save_settings_counter--;
-    if (vdb.settings.window_x != vdb.window_x ||
-        vdb.settings.window_y != vdb.window_y ||
-        vdb.settings.window_w != vdb.window_width ||
-        vdb.settings.window_h != vdb.window_height)
+    if (settings::window_x != window::window_x ||
+        settings::window_y != window::window_y ||
+        settings::window_w != window::window_width ||
+        settings::window_h != window::window_height)
     {
-        vdb.settings.window_x = vdb.window_x;
-        vdb.settings.window_y = vdb.window_y;
-        vdb.settings.window_w = vdb.window_width;
-        vdb.settings.window_h = vdb.window_height;
+        settings::window_x = window::window_x;
+        settings::window_y = window::window_y;
+        settings::window_w = window::window_width;
+        settings::window_h = window::window_height;
         // if the settings changed and we haven't saved in a while (to
         // spare disk usage) then we save to disk.
         if (save_settings_counter < 0)
         {
             save_settings_counter = 60;
-            vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME);
+            settings::Save(VDB_SETTINGS_FILENAME);
         }
     }
 
-    if (vdb.key_pressed[SDL_SCANCODE_F10]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); is_first_frame = true; return false; }
-    if (vdb.key_pressed[SDL_SCANCODE_F5]) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); is_first_frame = true; skip_label = label; return false; }
-    if (vdb.should_quit) { vdbSaveSettings(vdb.settings, VDB_SETTINGS_FILENAME); vdbCloseWindow(); exit(0); }
+    if (keys::pressed[SDL_SCANCODE_F10]) { settings::Save(VDB_SETTINGS_FILENAME); is_first_frame = true; return false; }
+    if (keys::pressed[SDL_SCANCODE_F5]) { settings::Save(VDB_SETTINGS_FILENAME); is_first_frame = true; skip_label = label; return false; }
+    if (window::should_quit) { settings::Save(VDB_SETTINGS_FILENAME); window::Close(); exit(0); }
 
-    vdbResetTransform();
+    transform::Reset();
     vdbResetMouseOverState();
-    vdb.escape_eaten = false;
+    uistuff::escape_eaten = false;
     vdb.note_index = 0;
-    vdb.viewport_left = 0;
-    vdb.viewport_bottom = 0;
-    vdb.viewport_width = vdb.framebuffer_width;
-    vdb.viewport_height = vdb.framebuffer_height;
-    vdb.mouse.ndc = vdbWindowToNDC((float)vdb.mouse.x, (float)vdb.mouse.y);
+    transform::viewport_left = 0;
+    transform::viewport_bottom = 0;
+    transform::viewport_width = window::framebuffer_width;
+    transform::viewport_height = window::framebuffer_height;
+    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y);
 
-    ImGui_ImplSdlGL3_NewFrame(vdb.window);
+    ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
     CheckGLError();
 
-    if (HOTKEY_SKETCH_MODE) vdb.sketch_mode_active = !vdb.sketch_mode_active;
+    if (VDB_HOTKEY_SKETCH_MODE) uistuff::sketch_mode_active = !uistuff::sketch_mode_active;
 
-    if (vdb.sketch_mode_active)
+    if (uistuff::sketch_mode_active)
     {
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        {
+            uistuff::sketch_mode_active = false;
+            uistuff::escape_eaten = true;
+        }
         bool undo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Z);
         bool redo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Y);
         bool clear = vdbWasKeyPressed(VDB_KEY_D);
@@ -198,14 +178,14 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureMouse = true;
     }
 
-    if (HOTKEY_RULER_MODE) vdb.ruler_mode_active = !vdb.ruler_mode_active;
+    if (VDB_HOTKEY_RULER_MODE) uistuff::ruler_mode_active = !uistuff::ruler_mode_active;
 
-    if (vdb.ruler_mode_active)
+    if (uistuff::ruler_mode_active)
     {
-        if (vdb.key_pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
-            vdb.ruler_mode_active = false;
-            vdb.escape_eaten = true;
+            uistuff::ruler_mode_active = false;
+            uistuff::escape_eaten = true;
         }
         vdbRulerMode(vdbIsMouseLeftDown(), vdbGetMousePos());
         ImGui::GetIO().WantCaptureKeyboard = true;
@@ -225,7 +205,7 @@ bool vdbBeginFrame(const char *label)
     glDisable(GL_TEXTURE_2D);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDisable(GL_DEPTH_TEST);
-    glViewport(0, 0, vdb.framebuffer_width, vdb.framebuffer_height);
+    glViewport(0, 0, window::framebuffer_width, window::framebuffer_height);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     CheckGLError();
@@ -238,15 +218,15 @@ void vdbEndFrame()
     if (vdb.taa_begun) vdbEndTAA();
     if (vdb.tss_begun) vdbEndTSS();
 
-    if (vdb.sketch_mode_active)
+    if (uistuff::sketch_mode_active)
         vdbSketchModePresent();
 
-    if (vdb.ruler_mode_active)
+    if (uistuff::ruler_mode_active)
         vdbRulerModePresent();
 
-    if (framegrab.active)
+    if (framegrab::active)
     {
-        framegrab_options_t opt = framegrab.options;
+        framegrab_options_t opt = framegrab::options;
 
         if (opt.draw_imgui)
         {
@@ -256,8 +236,8 @@ void vdbEndFrame()
 
         GLenum format = opt.alpha_channel ? GL_RGBA : GL_RGB;
         int channels = opt.alpha_channel ? 4 : 3;
-        int width = vdb.framebuffer_width;
-        int height = vdb.framebuffer_height;
+        int width = window::framebuffer_width;
+        int height = window::framebuffer_height;
         unsigned char *data = (unsigned char*)malloc(width*height*channels);
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_BACK);
@@ -269,207 +249,42 @@ void vdbEndFrame()
             ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
-        FramegrabSaveOutput(data, width, height, channels, format);
+        framegrab::SaveFrame(data, width, height, channels, format);
 
         free(data);
 
-        if (vdb.key_pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
-            StopFramegrab();
-            vdb.escape_eaten = true;
+            framegrab::StopRecording();
+            uistuff::escape_eaten = true;
         }
-        else if (HOTKEY_FRAMEGRAB)
+        else if (VDB_HOTKEY_FRAMEGRAB)
         {
-            StopFramegrab();
+            framegrab::StopRecording();
         }
     }
     else
     {
-        vdbSizeDialog();
-        vdbFramegrabDialog();
-        vdbExitDialog();
+        uistuff::WindowSizeDialog();
+        uistuff::FramegrabDialog();
+        uistuff::ExitDialog();
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
-    vdbSwapBuffers(1.0f/60.0f);
+    window::SwapBuffers(1.0f/60.0f);
     CheckGLError();
 }
 
-static void vdbCloseWindow()
+static void uistuff::ExitDialog()
 {
-    SDL_GL_DeleteContext(vdb.context);
-    SDL_DestroyWindow(vdb.window);
-    SDL_Quit();
-}
-
-static void vdbSetWindowSize(SDL_Window *window, int w, int h, bool topmost)
-{
-    #ifdef _WIN32
-    SDL_SysWMinfo info;
-    SDL_VERSION(&info.version);
-    if (SDL_GetWindowWMInfo(window, &info))
+    bool escape = keys::pressed[SDL_SCANCODE_ESCAPE];
+    if (escape && !uistuff::escape_eaten && settings::never_ask_on_exit)
     {
-        HWND hwnd = info.info.win.window;
-        RECT rect;
-        rect.left = 0;
-        rect.top = 0;
-        rect.right = w;
-        rect.bottom = h;
-        AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-        int aw = rect.right-rect.left;
-        int ah = rect.bottom-rect.top;
-        if (topmost)
-        {
-            SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, aw, ah, SWP_NOMOVE);
-        }
-        else
-        {
-            SetWindowPos(hwnd, HWND_TOP, 0, 0, aw, ah, SWP_NOMOVE);
-        }
-    }
-    else
-    {
-        SDL_SetWindowSize(window, w, h);
-    }
-    #else
-    SDL_SetWindowSize(window, w, h);
-    #endif
-}
-
-static void vdbOpenWindow(int x, int y, int width, int height)
-{
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
-        assert(false);
-
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, VDB_GL_MAJOR);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, VDB_GL_MINOR);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, VDB_ALPHABITS);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, VDB_DEPTHBITS);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, VDB_STENCILBITS);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, VDB_MULTISAMPLES > 0 ? 1 : 0);
-    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, VDB_MULTISAMPLES);
-
-    vdb.window = SDL_CreateWindow(
-        "vdb",
-        (x < 0) ? SDL_WINDOWPOS_CENTERED : x,
-        (y < 0) ? SDL_WINDOWPOS_CENTERED : y,
-        width,
-        height,
-        SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
-
-    assert(vdb.window);
-    SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
-    vdb.context = SDL_GL_CreateContext(vdb.window);
-    assert(vdb.context != 0);
-    assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
-    assert(gladLoadGL());
-
-    // 0 for immediate updates, 1 for updates synchronized with the
-    // vertical retrace. If the system supports it, you may
-    // specify -1 to allow late swaps to happen immediately
-    // instead of waiting for the next retrace.
-    SDL_GL_SetSwapInterval(1);
-
-    // Instead of using vsync, you can specify a desired framerate
-    // that the application will attempt to keep. If a frame rendered
-    // too fast, it will sleep the remaining time. Leave swap_interval
-    // at 0 when using this.
-    vdb.has_vsync = (SDL_GL_GetSwapInterval() == 1);
-
-    // printf("Vendor        : %s\n", glGetString(GL_VENDOR));
-    // printf("Renderer      : %s\n", glGetString(GL_RENDERER));
-    // printf("Version       : %s\n", glGetString(GL_VERSION));
-    // printf("Extensions    : %s\n", glGetString(GL_EXTENSIONS));
-    CheckGLError();
-}
-
-static void vdbSwapBuffers(float dt)
-{
-    SDL_GL_SwapWindow(vdb.window);
-    if (!vdb.has_vsync && dt < 1.0f/60.0f)
-    {
-        float sleep_s = (1.0f/60.0f) - dt;
-        Uint32 sleep_ms = (Uint32)(sleep_s*1000.0f);
-        SDL_Delay(sleep_ms);
-    }
-}
-
-static void vdbPollEvents()
-{
-    vdb.mouse.wheel = 0.0f;
-    for (int i = 0; i < SDL_NUM_SCANCODES; i++)
-    {
-        vdb.key_pressed[i] = false;
-        vdb.key_released[i] = false;
-    }
-    vdb.mouse.left.pressed = false;
-    vdb.mouse.right.pressed = false;
-    vdb.mouse.middle.pressed = false;
-    vdb.mouse.left.released = false;
-    vdb.mouse.right.released = false;
-    vdb.mouse.middle.released = false;
-
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        ImGui_ImplSdlGL3_ProcessEvent(&event);
-        if (event.type == SDL_QUIT) vdb.should_quit = true;
-        else
-        if (event.type == SDL_KEYDOWN)
-        {
-            SDL_Scancode c = event.key.keysym.scancode;
-            if (!vdb.key_down[c])
-                vdb.key_pressed[c] = true;
-            vdb.key_down[c] = true;
-        }
-        else
-        if (event.type == SDL_KEYUP)
-        {
-            SDL_Scancode c = event.key.keysym.scancode;
-            if (vdb.key_down[c])
-                vdb.key_released[c] = true;
-            vdb.key_down[c] = false;
-        }
-        else
-        if (event.type == SDL_MOUSEBUTTONDOWN)
-        {
-            if (event.button.button == SDL_BUTTON_LEFT) { if (!vdb.mouse.left.down) vdb.mouse.left.pressed = true; vdb.mouse.left.down = true; }
-            if (event.button.button == SDL_BUTTON_RIGHT) { if (!vdb.mouse.right.down) vdb.mouse.right.pressed = true; vdb.mouse.right.down = true; }
-            if (event.button.button == SDL_BUTTON_MIDDLE) { if (!vdb.mouse.middle.down) vdb.mouse.middle.pressed = true; vdb.mouse.middle.down = true; }
-        }
-        else
-        if (event.type == SDL_MOUSEBUTTONUP)
-        {
-            if (event.button.button == SDL_BUTTON_LEFT) { if (vdb.mouse.left.down) vdb.mouse.left.released = true; vdb.mouse.left.down = false; }
-            if (event.button.button == SDL_BUTTON_RIGHT) { if (vdb.mouse.right.down) vdb.mouse.right.released = true; vdb.mouse.right.down = false; }
-            if (event.button.button == SDL_BUTTON_MIDDLE) { if (vdb.mouse.middle.down) vdb.mouse.middle.released = true; vdb.mouse.middle.down = false; }
-        }
-        else
-        if (event.type == SDL_MOUSEWHEEL)
-        {
-            if (event.wheel.y > 0) vdb.mouse.wheel = +1.0f;
-            else if (event.wheel.y < 0) vdb.mouse.wheel = -1.0f;
-        }
-    }
-
-    SDL_GL_GetDrawableSize(vdb.window, &vdb.framebuffer_width, &vdb.framebuffer_height);
-    SDL_GetWindowPosition(vdb.window, &vdb.window_x, &vdb.window_y);
-    SDL_GetMouseState(&vdb.mouse.x, &vdb.mouse.y);
-    SDL_GetWindowSize(vdb.window, &vdb.window_width, &vdb.window_height);
-}
-
-static void vdbExitDialog()
-{
-    bool escape = vdb.key_pressed[SDL_SCANCODE_ESCAPE];
-    if (escape && !vdb.escape_eaten && vdb.settings.never_ask_on_exit)
-    {
-        vdb.should_quit = true;
+        window::should_quit = true;
         return;
     }
-    if (escape && !vdb.escape_eaten && !vdb.settings.never_ask_on_exit)
+    if (escape && !uistuff::escape_eaten && !settings::never_ask_on_exit)
     {
         ImGui::OpenPopup("Do you want to exit?##popup_exit");
     }
@@ -477,7 +292,7 @@ static void vdbExitDialog()
     {
         if (ImGui::Button("Yes"))
         {
-            vdb.should_quit = true;
+            window::should_quit = true;
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -486,19 +301,19 @@ static void vdbExitDialog()
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        ImGui::Checkbox("Never ask me again", &vdb.settings.never_ask_on_exit);
+        ImGui::Checkbox("Never ask me again", &settings::never_ask_on_exit);
         if (escape && !ImGui::IsWindowAppearing())
         {
-            vdb.escape_eaten = true;
+            uistuff::escape_eaten = true;
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
 }
 
-static void vdbSizeDialog()
+static void uistuff::WindowSizeDialog()
 {
-    if (HOTKEY_WINDOW_SIZE)
+    if (VDB_HOTKEY_WINDOW_SIZE)
     {
         ImGui::OpenPopup("Set window size##popup");
         ImGui::CaptureKeyboardFromApp(true);
@@ -508,8 +323,8 @@ static void vdbSizeDialog()
         static int width = 0, height = 0;
         if (ImGui::IsWindowAppearing())
         {
-            width = vdb.window_width;
-            height = vdb.window_height;
+            width = window::window_width;
+            height = window::window_height;
         }
 
         static bool topmost = false;
@@ -518,9 +333,9 @@ static void vdbSizeDialog()
         ImGui::Separator();
         ImGui::Checkbox("Topmost", &topmost);
 
-        if (ImGui::Button("OK", ImVec2(120,0)) || vdb.key_pressed[SDL_SCANCODE_RETURN])
+        if (ImGui::Button("OK", ImVec2(120,0)) || keys::pressed[SDL_SCANCODE_RETURN])
         {
-            vdbSetWindowSize(vdb.window, width, height, topmost);
+            window::SetSize(width, height, topmost);
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -528,24 +343,24 @@ static void vdbSizeDialog()
         {
             ImGui::CloseCurrentPopup();
         }
-        if (vdb.key_pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
             ImGui::CloseCurrentPopup();
-            vdb.escape_eaten = true;
+            uistuff::escape_eaten = true;
         }
         ImGui::EndPopup();
     }
 }
 
-static void vdbFramegrabDialog()
+static void uistuff::FramegrabDialog()
 {
     using namespace ImGui;
-    bool enter_button = vdb.key_pressed[SDL_SCANCODE_RETURN];
-    bool escape_button = vdb.key_pressed[SDL_SCANCODE_ESCAPE];
-    if (HOTKEY_FRAMEGRAB)
+    bool enter_button = keys::pressed[SDL_SCANCODE_RETURN];
+    bool escape_button = keys::pressed[SDL_SCANCODE_ESCAPE];
+    if (VDB_HOTKEY_FRAMEGRAB)
     {
         OpenPopup("Take screenshot##popup");
-        ImGui::CaptureKeyboardFromApp(true);
+        CaptureKeyboardFromApp(true);
     }
     if (BeginPopupModal("Take screenshot##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
     {
@@ -594,7 +409,14 @@ static void vdbFramegrabDialog()
             }
             if (Button("OK", ImVec2(120,0)) || enter_button)
             {
-                TakeScreenshot(filename, draw_imgui, draw_cursor, !do_continue, start_from, alpha);
+                framegrab_options_t opt = {0};
+                opt.filename = filename;
+                opt.reset_counter = !do_continue;
+                opt.start_from = start_from;
+                opt.draw_imgui = draw_imgui;
+                opt.draw_cursor = draw_cursor;
+                opt.alpha_channel = alpha;
+                framegrab::TakeScreenshot(opt);
                 CloseCurrentPopup();
             }
             SameLine();
@@ -624,7 +446,14 @@ static void vdbFramegrabDialog()
 
             if (Button("Start", ImVec2(120,0)) || enter_button)
             {
-                RecordVideoToImageSequence(filename, frame_cap, draw_imgui, draw_cursor, !do_continue, start_from, alpha);
+                framegrab_options_t opt = {0};
+                opt.filename = filename;
+                opt.alpha_channel = alpha;
+                opt.draw_cursor = draw_cursor;
+                opt.draw_imgui = draw_imgui;
+                opt.video_frame_cap = frame_cap;
+                opt.reset_counter = !do_continue;
+                framegrab::RecordImageSequence(opt);
             }
             SameLine();
             ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
@@ -647,7 +476,15 @@ static void vdbFramegrabDialog()
 
             if (Button("Start", ImVec2(120,0)) || enter_button)
             {
-                RecordVideoToFfmpeg(filename, framerate, crf, frame_cap, draw_imgui, draw_cursor, alpha);
+                framegrab_options_t opt = {0};
+                opt.filename = filename;
+                opt.alpha_channel = alpha;
+                opt.draw_cursor = draw_cursor;
+                opt.draw_imgui = draw_imgui;
+                opt.ffmpeg_crf = crf;
+                opt.ffmpeg_fps = framerate;
+                opt.video_frame_cap = frame_cap;
+                framegrab::RecordFFmpeg(opt);
             }
             SameLine();
             ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
@@ -661,7 +498,7 @@ static void vdbFramegrabDialog()
         if (escape_button)
         {
             CloseCurrentPopup();
-            vdb.escape_eaten = true;
+            uistuff::escape_eaten = true;
         }
         EndPopup();
     }

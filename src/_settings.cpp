@@ -1,55 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
-struct vdb_settings_t
+
+namespace settings
 {
     bool never_ask_on_exit;
     int window_w;
     int window_h;
     int window_x;
     int window_y;
-};
 
-void vdbSaveSettings(vdb_settings_t s, const char *filename)
-{
-    FILE *f = fopen(filename, "wb+");
-    if (!f)
+    void Save(const char *filename)
     {
-        printf("Failed to save settings.\n");
-        return;
+        FILE *f = fopen(filename, "wb+");
+        if (!f)
+        {
+            printf("Failed to save settings.\n");
+            return;
+        }
+        fprintf(f, "[vdb]\n");
+        fprintf(f, "Pos=%d,%d\n", window_x, window_y);
+        fprintf(f, "Size=%d,%d\n", window_w, window_h);
+        fprintf(f, "NeverAskOnExit=%d\n", never_ask_on_exit);
+        fclose(f);
     }
-    fprintf(f, "[vdb]\n");
-    fprintf(f, "Pos=%d,%d\n", s.window_x, s.window_y);
-    fprintf(f, "Size=%d,%d\n", s.window_w, s.window_h);
-    fprintf(f, "NeverAskOnExit=%d\n", s.never_ask_on_exit);
-    fclose(f);
-}
 
-vdb_settings_t vdbLoadSettingsOrDefault(const char *filename)
-{
-    vdb_settings_t settings = {0};
-    settings.window_x = -1;
-    settings.window_y = -1;
-    settings.window_w = 1000;
-    settings.window_h = 600;
-    settings.never_ask_on_exit = false;
-
-    FILE *f = fopen(filename, "rb");
-    if (!f) return settings;
-    if (fseek(f, 0, SEEK_END)) { fclose(f); return settings; }
-    int file_size = (int)ftell(f);
-    if (file_size <= 0)        { fclose(f); return settings; }
-    if (fseek(f, 0, SEEK_SET)) { fclose(f); return settings; }
-
-    char *line = (char*)malloc(file_size);
-    while (fgets(line, file_size, f))
+    void LoadOrDefault(const char *filename)
     {
-        int x,y;
-        int i;
-        if      (sscanf(line, "Pos=%d,%d", &x, &y) == 2)     { settings.window_x = x; settings.window_y = y; }
-        else if (sscanf(line, "Size=%d,%d", &x, &y) == 2)    { settings.window_w = x; settings.window_h = y; }
-        else if (sscanf(line, "NeverAskOnExit=%d", &i) == 1) { settings.never_ask_on_exit = (i != 0); }
+        window_x = -1;
+        window_y = -1;
+        window_w = 1000;
+        window_h = 600;
+        never_ask_on_exit = false;
+
+        FILE *f = fopen(filename, "rb");
+        if (!f) return;
+        if (fseek(f, 0, SEEK_END)) { fclose(f); return; }
+        int file_size = (int)ftell(f);
+        if (file_size <= 0)        { fclose(f); return; }
+        if (fseek(f, 0, SEEK_SET)) { fclose(f); return; }
+
+        char *line = (char*)malloc(file_size);
+        while (fgets(line, file_size, f))
+        {
+            int x,y;
+            int i;
+            if      (sscanf(line, "Pos=%d,%d", &x, &y) == 2)     { window_x = x; window_y = y; }
+            else if (sscanf(line, "Size=%d,%d", &x, &y) == 2)    { window_w = x; window_h = y; }
+            else if (sscanf(line, "NeverAskOnExit=%d", &i) == 1) { never_ask_on_exit = (i != 0); }
+        }
+        free(line);
+        fclose(f);
     }
-    free(line);
-    fclose(f);
-    return settings;
 }
