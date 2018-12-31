@@ -432,10 +432,6 @@ void EndImmediateTriangles()
     assert(imm.initialized);
     assert(imm.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
 
-    if (!VertexAttribDivisor)
-        VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
-    assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
-
     static GLuint program = 0;
     static GLint attrib_position = 0;
     static GLint attrib_texel = 0;
