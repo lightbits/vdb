@@ -604,8 +604,7 @@ void vdbVertex(float x, float y, float z, float w)
         imm.buffer = new_buffer;
         imm.allocated_count = new_allocated_count;
 
-        // todo: do we need to call glDeleteBuffers?
-
+        // We don't need to call glDeleteBuffers as per spec: "BufferData deletes any existing data store"
         glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
         glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
