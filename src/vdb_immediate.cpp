@@ -26,15 +26,30 @@ void vdbClearDepth(float d)
     glClear(GL_DEPTH_BUFFER_BIT);
 }
 
-void vdbBlendNone()  { glDisable(GL_BLEND); }
-void vdbBlendAdd()   { glEnable(GL_BLEND); glBlendFunc(GL_ONE, GL_ONE); }
-void vdbBlendAlpha() { glEnable(GL_BLEND); glBlendEquation(GL_FUNC_ADD); glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE); }
+void vdbBlendNone()
+{
+    glDisable(GL_BLEND);
+}
+
+void vdbBlendAdd()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+}
+
+void vdbBlendAlpha()
+{
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+}
 
 void vdbDepthTest(bool enabled)
 {
     if (enabled) glEnable(GL_DEPTH_TEST);
     else glDisable(GL_DEPTH_TEST);
 }
+
 void vdbDepthWrite(bool enabled)
 {
     if (enabled) { glDepthMask(GL_TRUE); glDepthRange(0.0f, 1.0f); }
@@ -131,7 +146,7 @@ struct imm_t
 
 static imm_t imm;
 
-void BeginImmediate(imm_prim_type_t prim_type)
+static void BeginImmediate(imm_prim_type_t prim_type)
 {
     if (!imm.initialized)
     {
@@ -202,7 +217,7 @@ void BeginImmediate(imm_prim_type_t prim_type)
     imm.vertex.position[3] = 1.0f;
 }
 
-void EndImmediatePoints()
+static void EndImmediatePoints()
 {
     assert(imm.initialized);
 
@@ -316,7 +331,7 @@ void EndImmediatePoints()
     glUseProgram(0); // todo: optimize
 }
 
-void EndImmediateLinesThin()
+static void EndImmediateLinesThin()
 {
     static GLuint program = 0;
     static GLint attrib_position = 0;
@@ -385,14 +400,14 @@ void EndImmediateLinesThin()
     glUseProgram(0); // todo: optimize
 }
 
-void EndImmediateLinesThick()
+static void EndImmediateLinesThick()
 {
     glLineWidth(imm.line_width); // todo: deprecated
     EndImmediateLinesThin();
     glLineWidth(1.0f);
 }
 
-void EndImmediateLines()
+static void EndImmediateLines()
 {
     assert(imm.initialized);
     assert(imm.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
@@ -403,7 +418,7 @@ void EndImmediateLines()
         EndImmediateLinesThin();
 }
 
-void EndImmediateTriangles()
+static void EndImmediateTriangles()
 {
     assert(imm.initialized);
     assert(imm.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
@@ -489,16 +504,16 @@ void vdbEnd()
     assert(imm.prim_type == IMM_PRIM_NONE && "Did you forget?");
 }
 
-void vdbLineWidth(float width) { imm.line_width = width; imm.line_width_is_3D = false; }
-void vdbLineWidth3D(float width) { imm.line_width = width; imm.line_width_is_3D = true; }
-void vdbPointSize(float size) { imm.point_size = size; imm.point_size_is_3D = false; }
-void vdbPointSize3D(float size) { imm.point_size = size; imm.point_size_is_3D = true; }
+void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
+void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
+void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
+void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
 void vdbPointSegments(int segments) { imm.point_segments = segments; }
-void vdbTriangles() { BeginImmediate(IMM_PRIM_TRIANGLES); }
-void vdbBeginLines() { BeginImmediate(IMM_PRIM_LINES); }
-void vdbBeginPoints() { BeginImmediate(IMM_PRIM_POINTS); }
-void vdbLines(float line_width) { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
-void vdbPoints(float point_size) { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
+void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
+void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
+void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
+void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
+void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
 
 // void vdbBeginPointsList(int slot)
 // {
