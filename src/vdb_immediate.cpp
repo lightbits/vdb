@@ -89,9 +89,9 @@ enum imm_prim_type_t
 
 struct imm_vertex_t
 {
-    float position[4];
-    float texel[2];
-    float color[4];
+    GLfloat position[4];
+    GLfloat texel[2];
+    GLubyte color[4];
 };
 
 // enum { IMM_MAX_LISTS = 1024 };
@@ -175,10 +175,10 @@ void BeginImmediate(imm_prim_type_t prim_type)
                      default_texture_data);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        imm.vertex.color[0] = 0.0f;
-        imm.vertex.color[1] = 0.0f;
-        imm.vertex.color[2] = 0.0f;
-        imm.vertex.color[3] = 1.0f;
+        imm.vertex.color[0] = 0;
+        imm.vertex.color[1] = 0;
+        imm.vertex.color[2] = 0;
+        imm.vertex.color[3] = 255;
     }
 
     assert(imm.buffer);
@@ -302,7 +302,7 @@ void EndImmediatePoints()
         glEnableVertexAttribArray(attrib_instance_color);
         glVertexAttribPointer(attrib_instance_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
         glVertexAttribPointer(attrib_instance_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
-        glVertexAttribPointer(attrib_instance_color,    4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
+        glVertexAttribPointer(attrib_instance_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
         VertexAttribDivisor(attrib_instance_position, 1);
         VertexAttribDivisor(attrib_instance_texel, 1);
         VertexAttribDivisor(attrib_instance_color, 1);
@@ -577,10 +577,10 @@ void vdbTexel(float u, float v)
 
 void vdbColor(float r, float g, float b, float a)
 {
-    imm.vertex.color[0] = r;
-    imm.vertex.color[1] = g;
-    imm.vertex.color[2] = b;
-    imm.vertex.color[3] = a;
+    imm.vertex.color[0] = (GLubyte)(255*r);
+    imm.vertex.color[1] = (GLubyte)(255*g);
+    imm.vertex.color[2] = (GLubyte)(255*b);
+    imm.vertex.color[3] = (GLubyte)(255*a);
 }
 
 void vdbVertex(float x, float y, float z, float w)
