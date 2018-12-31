@@ -429,8 +429,12 @@ void EndImmediateLines()
 
 void EndImmediateTriangles()
 {
-    #if 0
     assert(imm.initialized);
+    assert(imm.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
+
+    if (!VertexAttribDivisor)
+        VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
+    assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
 
     static GLuint program = 0;
     static GLint attrib_position = 0;
@@ -474,64 +478,29 @@ void EndImmediateTriangles()
     }
     assert(program);
 
-    glLineWidth(imm.line_width); // todo: glLineWidth(w > 1.0f) is deprecated!
-    glPointSize(imm.point_size); // todo: rounded point drawing
-
     glUseProgram(program); // todo: optimize
-
-    #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(uniform_pvm, 1, GL_FALSE, transform::pvm.data);
-    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
-    glUniformMatrix4fv(uniform_pvm, 1, GL_TRUE, transform::pvm.data);
-    #else
-    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
-    #endif
-
+    UniformMatrix4fv(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     if (!imm.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-
-    glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
-
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
-    glEnableVertexAttribArray(attrib_position);
-    glEnableVertexAttribArray(attrib_texel);
-    glEnableVertexAttribArray(attrib_color);
-    int stride = sizeof(imm_vertex_t);
-    glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, stride, (const void*)(0));
-    glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, stride, (const void*)(4*sizeof(float)));
-    glVertexAttribPointer(attrib_color,    4, GL_FLOAT, GL_FALSE, stride, (const void*)(6*sizeof(float)));
-    if (imm.prim_type == IMM_PRIM_LINES)
+    glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
     {
-        assert(imm.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
-        glDrawArrays(GL_LINES, 0, imm.count);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
+        glEnableVertexAttribArray(attrib_position);
+        glEnableVertexAttribArray(attrib_texel);
+        glEnableVertexAttribArray(attrib_color);
+        glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
+        glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
+        glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
     }
-    else if (imm.prim_type == IMM_PRIM_POINTS)
-    {
-        glDrawArrays(GL_POINTS, 0, imm.count);
-    }
-    else if (imm.prim_type == IMM_PRIM_TRIANGLES)
-    {
-        assert(imm.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
-        glDrawArrays(GL_TRIANGLES, 0, imm.count);
-    }
-    else
-    {
-        assert(false && "unhandled primitive type");
-    }
+    glDrawArrays(GL_TRIANGLES, 0, imm.count);
     glDisableVertexAttribArray(attrib_position);
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
-    glLineWidth(1.0f);
-    glPointSize(1.0f);
     glUseProgram(0); // todo: optimize
-
-    imm.prim_type = IMM_PRIM_NONE;
-    assert(imm.prim_type == IMM_PRIM_NONE && "Did you forget?");
-    #endif
 }
 
 void vdbEnd()
