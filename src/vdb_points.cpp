@@ -53,9 +53,6 @@ void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, v
     free(color);
 }
 
-typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
-GLVERTEXATTRIBDIVISORPROC VertexAttribDivisor;
-
 void vdbDrawPoints(int slot, float point_size, int circle_segments)
 {
     assert(slot >= 0 && slot < vdb_max_point_buffers && "You're trying to draw a point cloud beyond the available slots.");

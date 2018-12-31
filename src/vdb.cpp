@@ -33,6 +33,9 @@
 #include "_window.cpp"
 #include "_uistuff.cpp"
 
+typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
+GLVERTEXATTRIBDIVISORPROC VertexAttribDivisor;
+
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
 #include "vdb_camera.cpp"
