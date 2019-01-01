@@ -11,6 +11,10 @@ typedef int vdbTextureFormat;
 typedef int vdbTextureFilter;
 typedef int vdbTextureWrap;
 
+enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
+enum vdbTextureFilter_ { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
+enum vdbTextureWrap_ { VDB_CLAMP, VDB_REPEAT };
+
 // vdb.cpp
 void vdbDetachGLContext();
 bool vdbBeginFrame(const char *label);
@@ -126,9 +130,9 @@ bool vdbIsMouseMiddleDown();
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *height=0, int *channels=0);
-void vdbDrawImage(int slot);
-void vdbBindImage(int slot);
 void vdbUnbindImage();
+void vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
 // vdb_filter.cpp
 void vdbBeginTAA(int downscale, float blend_factor);
@@ -154,11 +158,9 @@ void vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
 // vdb_render_texture.cpp
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void vdbEndRenderTexture(int slot);
-void vdbBindRenderTexture(int slot);
 void vdbUnbindRenderTexture();
-void vdbDrawRenderTexture(int slot);
-
-void vdbSetTextureParameters(vdbTextureFilter filter, vdbTextureWrap wrap, bool generate_mipmaps); // applies to the currently bound texture (e.g. from BindRenderTexture or BindImage)
+void vdbBindRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
@@ -243,7 +245,3 @@ enum vdbKey_
     VDB_KEY_RALT = 230, /**< alt gr, option */
     VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
 };
-
-enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
-enum vdbTextureFilter_ { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
-enum vdbTextureWrap_ { VDB_CLAMP, VDB_REPEAT };

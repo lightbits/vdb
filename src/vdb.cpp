@@ -21,7 +21,6 @@
 #include "_settings.cpp"
 #include "_framegrab.cpp"
 #include "_source_sans_pro.cpp"
-#include "_texture.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
@@ -35,13 +34,13 @@
 typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
 GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 
+#include "vdb_image.cpp"
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
 #include "vdb_camera.cpp"
 #include "vdb_immediate.cpp"
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
-#include "vdb_image.cpp"
 #include "vdb_filter.cpp"
 
 namespace vdb

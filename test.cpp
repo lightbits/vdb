@@ -98,7 +98,7 @@ int main(int, char **)
     VDBB("Variable access");
     {
         vdbLoadImageUint8(0, data, width, height, 3);
-        vdbDrawImage(0);
+        vdbDrawImage(0, VDB_NEAREST, VDB_CLAMP);
         ImGui::TextWrapped("You can access variables outside the scope.");
     }
     VDBE();

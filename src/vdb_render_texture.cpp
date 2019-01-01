@@ -149,12 +149,13 @@ void vdbEndRenderTexture(int slot)
     // todo: if LINEAR_MIPMAP, regenerate mipmaps
 }
 
-void vdbBindRenderTexture(int slot)
+void vdbBindRenderTexture(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     using namespace render_texture;
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
     glActiveTexture(GL_TEXTURE0); // todo: let user specify this
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
+    vdbSetTextureParameters(filter, wrap, false);
 }
 
 void vdbUnbindRenderTexture()
@@ -162,13 +163,14 @@ void vdbUnbindRenderTexture()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void vdbDrawRenderTexture(int slot)
+void vdbDrawRenderTexture(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     using namespace render_texture;
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
+    vdbSetTextureParameters(filter, wrap, false);
     vdbTriangles();
     vdbColor(1,1,1,1);
     vdbTexel(0,0); vdbVertex(-1,-1);
