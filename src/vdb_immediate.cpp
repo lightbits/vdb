@@ -220,7 +220,6 @@ static void DrawImmediatePoints(imm_list_t list)
     static GLint uniform_model_to_view = 0;
     static GLint uniform_sampler0 = 0;
     static GLint uniform_point_size = 0;
-    static GLint uniform_resolution = 0;
     static GLint uniform_size_is_3D = 0;
     if (!program)
     {
@@ -235,7 +234,6 @@ static void DrawImmediatePoints(imm_list_t list)
         uniform_model_to_view = glGetUniformLocation(program, "model_to_view");
         uniform_point_size    = glGetUniformLocation(program, "point_size");
         uniform_sampler0      = glGetUniformLocation(program, "sampler0");
-        uniform_resolution    = glGetUniformLocation(program, "resolution");
         uniform_size_is_3D    = glGetUniformLocation(program, "size_is_3D");
     }
     assert(program);
@@ -249,8 +247,21 @@ static void DrawImmediatePoints(imm_list_t list)
         glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
         if (!list.texel_specified)
             glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-        glUniform1f(uniform_point_size, imm.point_size);
-        glUniform2f(uniform_resolution, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
+        if (imm.point_size_is_3D)
+        {
+            // Note: point_size is treated as a radius inside the shader, but imm.point_size
+            // is considered to be diameter (to be consistent with glPointSize). For efficiency
+            // we divide by two before passing it in, so we don't have to do it in the shader.
+            glUniform2f(uniform_point_size, 0.5f*imm.point_size, 0.5f*imm.point_size);
+        }
+        else
+        {
+            // Convert point size units from screen pixels to NDC.
+            // Note: Division by two as per above.
+            glUniform2f(uniform_point_size,
+                        imm.point_size/vdbGetFramebufferWidth(),
+                        imm.point_size/vdbGetFramebufferHeight());
+        }
         glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
     }
 
@@ -534,7 +545,7 @@ void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_
 void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
 void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
 void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
-void vdbPointSegments(int segments) { imm.point_segments = segments; }
+void vdbPointSegments(int segments) { assert(segments >= 3); imm.point_segments = segments; }
 void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
 void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
 void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
