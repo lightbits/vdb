@@ -287,7 +287,7 @@ int main(int, char **)
         vdbClearDepth(1.0f);
         vdbClearColor(0,0,0,1);
 
-        vdbPointSize3D(0.1f);
+        vdbPointSize3D(0.2f);
         vdbPointSegments(32);
         vdbDrawList(0);
     }
