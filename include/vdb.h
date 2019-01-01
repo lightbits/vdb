@@ -36,6 +36,8 @@ void vdbBeginPoints();
 void vdbPoints(float radius);
 void vdbTriangles();
 void vdbEnd();
+void vdbBeginList(int list);
+void vdbDrawList(int list);
 void vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void vdbVertex(vdbVec3 xyz, float w=1.0f);
 void vdbVertex(vdbVec4 xyzw);

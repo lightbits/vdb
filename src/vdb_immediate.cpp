@@ -109,39 +109,40 @@ struct imm_vertex_t
     GLubyte color[4];
 };
 
-// enum { IMM_MAX_LISTS = 1024 };
+enum { IMM_MAX_LISTS = 1024 };
 
-// struct imm_draw_list_t
-// {
-//     float line_width;
-//     float point_size;
-//     int point_segments;
-//     GLuint vbo;
-//     GLuint vao;
-//     int count;
-//     imm_prim_type_t prim_type;
-// };
+struct imm_list_t
+{
+    GLuint vbo;
+    size_t count;
+    imm_prim_type_t prim_type;
+    bool texel_specified;
+};
 
 struct imm_t
 {
-    bool initialized;
-    GLuint vao;
-    GLuint vbo;
-    imm_vertex_t *buffer;
-    imm_vertex_t vertex;
-    size_t allocated_count;
-    size_t count;
-    imm_prim_type_t prim_type;
     float line_width;
     float point_size;
     int point_segments;
     bool point_size_is_3D;
     bool line_width_is_3D;
-    bool texel_specified;
-    GLuint default_texture;
 
-    // imm_draw_list_t *list;
-    // imm_draw_list_t *lists[IMM_MAX_LISTS];
+    bool initialized;
+    GLuint default_texture;
+    bool has_begun;
+
+    // todo: move these members out, use e.g. default_list.
+    GLuint vao;
+    GLuint vbo;
+    imm_prim_type_t prim_type;
+    bool texel_specified;
+    size_t count;
+    size_t allocated_count;
+    imm_vertex_t *buffer;
+    imm_vertex_t vertex;
+
+    imm_list_t *list;
+    imm_list_t lists[IMM_MAX_LISTS];
 };
 
 static imm_t imm;
@@ -164,6 +165,7 @@ static void BeginImmediate(imm_prim_type_t prim_type)
         assert(imm.buffer);
 
         glGenVertexArrays(1, &imm.vao);
+
         glGenBuffers(1, &imm.vbo);
         glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
         glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
@@ -192,13 +194,16 @@ static void BeginImmediate(imm_prim_type_t prim_type)
         imm.vertex.color[3] = 255;
     }
 
-    assert(imm.buffer);
     assert(imm.initialized);
+    assert(imm.buffer);
     assert(imm.vao);
-    assert(imm.vbo);
-    assert(imm.prim_type == IMM_PRIM_NONE && "Missing immEnd before immBegin");
+
+    assert(!imm.has_begun && "Missing vdbEnd before vdbBegin");
+    imm.has_begun = true;
+
     imm.prim_type = prim_type;
     imm.count = 0;
+    imm.texel_specified = false;
 
     // We allow immColor to be called outside a Begin/End block
     // and therefore do not reset it here.
@@ -209,7 +214,6 @@ static void BeginImmediate(imm_prim_type_t prim_type)
 
     imm.vertex.texel[0] = 0.0f;
     imm.vertex.texel[1] = 0.0f;
-    imm.texel_specified = false;
 
     imm.vertex.position[0] = 0.0f;
     imm.vertex.position[1] = 0.0f;
@@ -217,9 +221,10 @@ static void BeginImmediate(imm_prim_type_t prim_type)
     imm.vertex.position[3] = 1.0f;
 }
 
-static void EndImmediatePoints()
+static void DrawImmediatePoints(imm_list_t list)
 {
-    assert(imm.initialized);
+    assert(imm.vao);
+    assert(imm.default_texture);
 
     if (!VertexAttribDivisor)
         VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
@@ -255,15 +260,20 @@ static void EndImmediatePoints()
     assert(program);
 
     glUseProgram(program);
-    UniformMatrix4fv(uniform_projection, 1, transform::projection);
-    UniformMatrix4fv(uniform_model_to_view, 1, transform::view_model);
-    glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
-    if (!imm.texel_specified)
-        glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-    glUniform1f(uniform_point_size, imm.point_size);
-    glUniform2f(uniform_resolution, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
-    glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
 
+    // set uniforms
+    {
+        UniformMatrix4fv(uniform_projection, 1, transform::projection);
+        UniformMatrix4fv(uniform_model_to_view, 1, transform::view_model);
+        glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
+        if (!list.texel_specified)
+            glBindTexture(GL_TEXTURE_2D, imm.default_texture);
+        glUniform1f(uniform_point_size, imm.point_size);
+        glUniform2f(uniform_resolution, (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
+        glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
+    }
+
+    // generate primitive geometry (circle)
     static GLuint point_geometry_vbo = 0;
     {
         enum { max_segments = 128 };
@@ -292,33 +302,33 @@ static void EndImmediatePoints()
             last_point_segments = imm.point_segments;
             glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
             glBufferSubData(GL_ARRAY_BUFFER, 0, imm.point_segments*3*sizeof(vdbVec2), (const GLvoid*)circle);
-        }
-        else
-        {
-            glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
 
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
+
+    // todo: move these calls out, and optimize wrt buffer binding changes
+
+    // instance geometry
+    glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
+    glEnableVertexAttribArray(attrib_instance_position);
+    glEnableVertexAttribArray(attrib_instance_texel);
+    glEnableVertexAttribArray(attrib_instance_color);
+    glVertexAttribPointer(attrib_instance_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
+    glVertexAttribPointer(attrib_instance_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
+    glVertexAttribPointer(attrib_instance_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
+    VertexAttribDivisor(attrib_instance_position, 1);
+    VertexAttribDivisor(attrib_instance_texel, 1);
+    VertexAttribDivisor(attrib_instance_color, 1);
+
+    // primitive geometry
     glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
-    {
-        glEnableVertexAttribArray(attrib_in_position);
-        glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
-    }
-    glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-    {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
-        glEnableVertexAttribArray(attrib_instance_position);
-        glEnableVertexAttribArray(attrib_instance_texel);
-        glEnableVertexAttribArray(attrib_instance_color);
-        glVertexAttribPointer(attrib_instance_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
-        glVertexAttribPointer(attrib_instance_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
-        glVertexAttribPointer(attrib_instance_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-        VertexAttribDivisor(attrib_instance_position, 1);
-        VertexAttribDivisor(attrib_instance_texel, 1);
-        VertexAttribDivisor(attrib_instance_color, 1);
-    }
-    glDrawArraysInstanced(GL_TRIANGLES, 0, imm.point_segments*3, imm.count);
+    glEnableVertexAttribArray(attrib_in_position);
+    glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
+
+    glDrawArraysInstanced(GL_TRIANGLES, 0, imm.point_segments*3, list.count);
+
     glDisableVertexAttribArray(attrib_in_position);
     glDisableVertexAttribArray(attrib_instance_position);
     glDisableVertexAttribArray(attrib_instance_texel);
@@ -331,7 +341,7 @@ static void EndImmediatePoints()
     glUseProgram(0); // todo: optimize
 }
 
-static void EndImmediateLinesThin()
+static void DrawImmediateLinesThin(imm_list_t list)
 {
     static GLuint program = 0;
     static GLint attrib_position = 0;
@@ -378,20 +388,17 @@ static void EndImmediateLinesThin()
     glUseProgram(program); // todo: optimize
     UniformMatrix4fv(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
-    if (!imm.texel_specified)
+    if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
-    glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-    {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
-        glEnableVertexAttribArray(attrib_position);
-        glEnableVertexAttribArray(attrib_texel);
-        glEnableVertexAttribArray(attrib_color);
-        glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
-        glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
-        glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-    }
-    glDrawArrays(GL_LINES, 0, imm.count);
+    glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
+    glEnableVertexAttribArray(attrib_position);
+    glEnableVertexAttribArray(attrib_texel);
+    glEnableVertexAttribArray(attrib_color);
+    glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
+    glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
+    glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
+    glDrawArrays(GL_LINES, 0, list.count);
     glDisableVertexAttribArray(attrib_position);
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
@@ -400,28 +407,28 @@ static void EndImmediateLinesThin()
     glUseProgram(0); // todo: optimize
 }
 
-static void EndImmediateLinesThick()
+static void DrawImmediateLinesThick(imm_list_t list)
 {
     glLineWidth(imm.line_width); // todo: deprecated
-    EndImmediateLinesThin();
+    DrawImmediateLinesThin(list);
     glLineWidth(1.0f);
 }
 
-static void EndImmediateLines()
+static void DrawImmediateLines(imm_list_t list)
 {
     assert(imm.initialized);
-    assert(imm.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
+    assert(list.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
 
     if (imm.line_width_is_3D || imm.line_width > 1.0f)
-        EndImmediateLinesThick();
+        DrawImmediateLinesThick(list);
     else
-        EndImmediateLinesThin();
+        DrawImmediateLinesThin(list);
 }
 
-static void EndImmediateTriangles()
+static void DrawImmediateTriangles(imm_list_t list)
 {
     assert(imm.initialized);
-    assert(imm.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
+    assert(list.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
 
     static GLuint program = 0;
     static GLint attrib_position = 0;
@@ -468,65 +475,89 @@ static void EndImmediateTriangles()
     glUseProgram(program); // todo: optimize
     UniformMatrix4fv(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
-    if (!imm.texel_specified)
+    if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
-    glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-    {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
-        glEnableVertexAttribArray(attrib_position);
-        glEnableVertexAttribArray(attrib_texel);
-        glEnableVertexAttribArray(attrib_color);
-        glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
-        glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
-        glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-    }
-    glDrawArrays(GL_TRIANGLES, 0, imm.count);
+    glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
+    glEnableVertexAttribArray(attrib_position);
+    glEnableVertexAttribArray(attrib_texel);
+    glEnableVertexAttribArray(attrib_color);
+    glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
+    glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
+    glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
+    glDrawArrays(GL_TRIANGLES, 0, list.count);
     glDisableVertexAttribArray(attrib_position);
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
     glUseProgram(0); // todo: optimize
+}
+
+static void DrawImmediate(imm_list_t list)
+{
+    if (list.count <= 0)
+        return;
+    if      (list.prim_type == IMM_PRIM_POINTS)    DrawImmediatePoints(list);
+    else if (list.prim_type == IMM_PRIM_LINES)     DrawImmediateLines(list);
+    else if (list.prim_type == IMM_PRIM_TRIANGLES) DrawImmediateTriangles(list);
+    else assert(false);
 }
 
 void vdbEnd()
 {
-    assert(imm.prim_type != IMM_PRIM_NONE && "Missing immBegin before immEnd");
     assert(imm.initialized);
+    assert(imm.has_begun && "Missing vdbBegin before vdbEnd");
+    if (imm.count <= 0)
+        return;
 
-    if      (imm.prim_type == IMM_PRIM_LINES)     EndImmediateLines();
-    else if (imm.prim_type == IMM_PRIM_POINTS)    EndImmediatePoints();
-    else if (imm.prim_type == IMM_PRIM_TRIANGLES) EndImmediateTriangles();
-    else assert(false);
+    if (imm.list)
+    {
+        if (!imm.list->vbo)
+            glGenBuffers(1, &imm.list->vbo);
+        assert(imm.list->vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, imm.list->vbo);
+        glBufferData(GL_ARRAY_BUFFER, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer, GL_STATIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        imm.list->texel_specified = imm.texel_specified;
+        imm.list->count = imm.count;
+        imm.list->prim_type = imm.prim_type;
+        imm.list = NULL;
+    }
+    else
+    {
+        assert(imm.vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
+        glBindBuffer(GL_ARRAY_BUFFER, 0); // todo: minimize buffer binding changes
 
-    imm.prim_type = IMM_PRIM_NONE;
-    assert(imm.prim_type == IMM_PRIM_NONE && "Did you forget?");
+        imm_list_t list = {0};
+        list.vbo = imm.vbo;
+        list.texel_specified = imm.texel_specified;
+        list.count = imm.count;
+        list.prim_type = imm.prim_type;
+        DrawImmediate(list);
+    }
+
+    imm.has_begun = false;
 }
 
-void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
-void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
-void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
-void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
-void vdbPointSegments(int segments) { imm.point_segments = segments; }
-void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
-void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
-void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
-void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
-void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
+void vdbBeginList(int slot)
+{
+    assert(slot >= 0 && slot < IMM_MAX_LISTS);
+    assert(imm.list == NULL);
+    imm.list = imm.lists + slot;
+}
 
-// void vdbBeginPointsList(int slot)
-// {
-//     assert(slot >= 0 && slot < IMM_MAX_LISTS && "Slot out of range");
-//     imm.list = imm.lists + slot;
-//     imm.list->point_size = point_size;
-//     imm.list->point_segments = point_segments;
-//     vdbBeginPoints();
-// }
+void vdbDrawList(int slot)
+{
+    assert(slot >= 0 && slot < IMM_MAX_LISTS);
+    DrawImmediate(imm.lists[slot]);
+}
 
 void vdbTexel(float u, float v)
 {
-    assert(imm.prim_type != IMM_PRIM_NONE && "immTexel cannot be called outside immBegin/immEnd block");
+    assert(imm.has_begun && "vdbTexel cannot be called outside vdbBegin/vdbEnd block");
     imm.texel_specified = true;
     imm.vertex.texel[0] = u;
     imm.vertex.texel[1] = v;
@@ -542,17 +573,17 @@ void vdbColor(float r, float g, float b, float a)
 
 void vdbVertex(float x, float y, float z, float w)
 {
-    assert(imm.prim_type != IMM_PRIM_NONE && "immVertex cannot be called outside immBegin/immEnd block");
+    assert(imm.has_begun && "vdbVertex cannot be called outside vdbBegin/vdbEnd block");
+    assert(imm.count < imm.allocated_count);
     imm.vertex.position[0] = x;
     imm.vertex.position[1] = y;
     imm.vertex.position[2] = z;
     imm.vertex.position[3] = w;
-    imm.buffer[imm.count] = imm.vertex;
-    imm.count++;
+    imm.buffer[imm.count++] = imm.vertex;
 
     if (imm.count == imm.allocated_count)
     {
-        int new_allocated_count = (3*imm.allocated_count)/2;
+        size_t new_allocated_count = (3*imm.allocated_count)/2;
         imm_vertex_t *new_buffer = new imm_vertex_t[new_allocated_count];
         assert(new_buffer && "Ran out of memory expanding buffer");
         for (size_t i = 0; i < imm.allocated_count; i++)
@@ -567,4 +598,15 @@ void vdbVertex(float x, float y, float z, float w)
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 }
+
+void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
+void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
+void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
+void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
+void vdbPointSegments(int segments) { imm.point_segments = segments; }
+void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
+void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
+void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
+void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
+void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
 #endif
