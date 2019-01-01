@@ -109,22 +109,33 @@ namespace lowpass_filter
 
         // add just-rendered frame to accumulator framebuffer
         {
-            static const float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+            static GLuint vao = 0;
+            static GLuint vbo = 0;
+            if (!vao)
+            {
+                static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+                glGenVertexArrays(1, &vao);
+                glGenBuffers(1, &vbo);
+                glBindBuffer(GL_ARRAY_BUFFER, vbo);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+            }
+            assert(vao);
+            assert(vbo);
 
             EnableRenderTexture(&rt_accumulator[front]);
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUseProgram(program);
-            glActiveTexture(GL_TEXTURE1);
-            glUniform1i(uniform_sampler1, 1);
-            glBindTexture(GL_TEXTURE_2D, rt_accumulator[back].color[0]);
-            glActiveTexture(GL_TEXTURE0);
-            glUniform1i(uniform_sampler0, 0);
-            glBindTexture(GL_TEXTURE_2D, rt_frame.color[0]);
+            glActiveTexture(GL_TEXTURE1); glUniform1i(uniform_sampler1, 1); glBindTexture(GL_TEXTURE_2D, rt_accumulator[back].color[0]);
+            glActiveTexture(GL_TEXTURE0); glUniform1i(uniform_sampler0, 0); glBindTexture(GL_TEXTURE_2D, rt_frame.color[0]);
             glUniform1f(uniform_factor, blend_factor);
-            glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, position);
             glEnableVertexAttribArray(attrib_position);
+            glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
             glDrawArrays(GL_TRIANGLES, 0, 6);
             glDisableVertexAttribArray(attrib_position);
             glUseProgram(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
             DisableRenderTexture(&rt_accumulator[front]);
         }
 

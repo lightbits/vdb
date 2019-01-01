@@ -164,9 +164,23 @@ namespace upsample_filter
         {
             int idx,idy;
             GetSubpixelOffsetI(lowres.width,lowres.height,upsample,&idx,&idy);
-            static const float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+
+            static GLuint vao = 0;
+            static GLuint vbo = 0;
+            if (!vao)
+            {
+                static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+                glGenVertexArrays(1, &vao);
+                glGenBuffers(1, &vbo);
+                glBindBuffer(GL_ARRAY_BUFFER, vbo);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+            }
+            assert(vao);
+            assert(vbo);
 
             EnableRenderTexture(&output);
+            glBindVertexArray(vao);
+            glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUseProgram(program);
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(uniform_sampler0, 0);
@@ -174,11 +188,13 @@ namespace upsample_filter
             glUniform1f(uniform_dx, (float)idx);
             glUniform1f(uniform_dy, (float)idy);
             glUniform1f(uniform_tile_dim, (float)(1<<upsample));
-            glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, position);
+            glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(attrib_position);
             glDrawArrays(GL_TRIANGLES, 0, 6);
             glDisableVertexAttribArray(attrib_position);
             glUseProgram(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glBindVertexArray(0);
             DisableRenderTexture(&output);
         }
 

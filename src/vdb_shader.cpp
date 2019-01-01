@@ -26,13 +26,29 @@ void vdbBeginShader(int slot)
 }
 void vdbEndShader()
 {
+    static GLuint vao = 0;
+    static GLuint vbo = 0;
+    if (!vao)
+    {
+        static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+    }
+    assert(vao);
+    assert(vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     GLint attrib_in_position = glGetAttribLocation(vdb_gl_current_program, "in_position");
-    static const float quad_position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
-    glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, quad_position);
     glEnableVertexAttribArray(attrib_in_position);
+    glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glDisableVertexAttribArray(attrib_in_position);
     glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
     vdb_gl_current_program = 0;
 }
 void vdbUniform1f(const char *name, float x)                            { glUniform1f(glGetUniformLocation(vdb_gl_current_program, name), x); }
