@@ -128,10 +128,7 @@ void SetTexture(
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrap_t);
     if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
-    {
-        glGenerateMipmap(GL_TEXTURE_2D); // todo
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-    }
+        glGenerateMipmap(GL_TEXTURE_2D);
     glTexImage2D(GL_TEXTURE_2D, 0,
                  internal_format,
                  width,
@@ -150,15 +147,13 @@ void BindTexture(int slot)
 
 void DrawTexture(int slot)
 {
-    glEnable(GL_TEXTURE_2D);
     BindTexture(slot);
-    glBegin(GL_TRIANGLES);
-    glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
-    glColor4f(1,1,1,1); glTexCoord2f(1,0); glVertex2f(+1,-1);
-    glColor4f(1,1,1,1); glTexCoord2f(1,1); glVertex2f(+1,+1);
-    glColor4f(1,1,1,1); glTexCoord2f(1,1); glVertex2f(+1,+1);
-    glColor4f(1,1,1,1); glTexCoord2f(0,1); glVertex2f(-1,+1);
-    glColor4f(1,1,1,1); glTexCoord2f(0,0); glVertex2f(-1,-1);
-    glEnd();
-    glDisable(GL_TEXTURE_2D);
+    vdbTriangles();
+    vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
+    vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,-1);
+    vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
+    vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
+    vdbColor(1,1,1,1); vdbTexel(0,1); vdbVertex(-1,+1);
+    vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
+    vdbEnd();
 }
