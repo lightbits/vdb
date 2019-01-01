@@ -24,20 +24,20 @@ void vdbClearDepth(float d);
 void vdbBlendNone();
 void vdbBlendAdd();
 void vdbBlendAlpha();
-void vdbCullFace(bool enable);
-void vdbDepthTest(bool enable);
-void vdbDepthWrite(bool enable);
-void vdbLineWidth(float width);
+void vdbCullFace(bool enable);       // if enabled, back-facing triangles are not drawn
+void vdbDepthTest(bool enable);      // if enabled, fragments are tested against depth buffer
+void vdbDepthWrite(bool enable);     // if enabled, fragments write to the depth buffer
+void vdbLineWidth(float width);      // line diameter in framebuffer pixels
+void vdbPointSegments(int segments); // points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
+void vdbPointSize(float size);       // point diameter in framebuffer pixels (size=1 and segments=4 gives pixel-perfect rendering)
+void vdbPointSize3D(float size);     // point diameter in model-coordinates (is affected by projection)
 void vdbBeginLines();
-void vdbLines(float width);
-void vdbPointSegments(int segments);
-void vdbPointSize(float radius);
-void vdbPointSize3D(float radius);
 void vdbBeginPoints();
-void vdbPoints(float radius);
 void vdbTriangles();
+void vdbLines(float width); // short-hand for vdbLineWidth(width); vdbBeginLines();
+void vdbPoints(float size); // short-hand for vdbPointSize(size); vdbBeginPoints();
 void vdbEnd();
-void vdbBeginList(int list);
+void vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
 void vdbDrawList(int list);
 void vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
@@ -67,22 +67,23 @@ void vdbLineCircle(float x, float y, float radius, int segments=16);
 
 // vdb_transform.cpp
 // VDB can be compiled to accept matrices in either row- or column-major memory order. See vdb_config.h
-void vdbPushMatrix();
-void vdbPopMatrix();
-void vdbProjection(float *m); // NULL -> Load 4x4 identity matrix
-void vdbLoadMatrix(float *m); // NULL -> Load 4x4 identity matrix
-void vdbMultMatrix(float *m);
-void vdbGetMatrix(float *m);
-void vdbGetProjection(float *m);
-void vdbGetPVM(float *m);
-void vdbTranslate(float x, float y, float z);
-void vdbRotateXYZ(float x, float y, float z);
-void vdbRotateZYX(float z, float y, float x);
-void vdbViewporti(int left, int bottom, int width, int height);
-void vdbViewport(float left, float bottom, float width, float height);
+// Matrix = transformation from model coordinates to view coordinates (before projection)
+void vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
+void vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
+void vdbProjection(float *m);                 // NULL -> Load 4x4 identity matrix
+void vdbLoadMatrix(float *m);                 // NULL -> Load 4x4 identity matrix
+void vdbMultMatrix(float *m);                 // Matrix <- Matrix mul m (right-multiply top of matrix stack)
+void vdbGetMatrix(float *m);                  // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
+void vdbGetProjection(float *m);              // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
+void vdbGetPVM(float *m);                     // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
+void vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Translate(x,y,z)
+void vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
+void vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
+void vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
+void vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
-void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f);
+void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
 
 // vdb_transform.cpp
 vdbVec2 vdbNDCToWindow(float xn, float yn);
@@ -92,7 +93,7 @@ vdbVec2 vdbModelToNDC(float x, float y, float z=0.0f, float w=1.0f);
 float vdbGetAspectRatio();
 int vdbGetFramebufferWidth();
 int vdbGetFramebufferHeight();
-int vdbGetWindowWidth();
+int vdbGetWindowWidth(); // Note: the window size may not be the same as the framebuffer resolution on retina displays.
 int vdbGetWindowHeight();
 
 // vdb_camera.cpp
