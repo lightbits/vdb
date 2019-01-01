@@ -147,12 +147,18 @@ namespace upsample_filter
         has_begun = false;
         DisableRenderTexture(&lowres);
 
+        imm_gl_state_t last_state = GetImmediateGLState();
+        float last_projection[4*4];
+        vdbGetProjection(last_projection);
+        vdbProjection(NULL);
+        vdbPushMatrix();
+        vdbLoadMatrix(NULL);
         glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
+        vdbCullFace(false);
+        vdbDepthTest(false);
+        vdbDepthWrite(false);
 
         // interleave just-rendered frame into full resolution framebuffer
         {
@@ -162,6 +168,7 @@ namespace upsample_filter
 
             EnableRenderTexture(&output);
             glUseProgram(program);
+            glActiveTexture(GL_TEXTURE0);
             glUniform1i(uniform_sampler0, 0);
             glBindTexture(GL_TEXTURE_2D, lowres.color[0]);
             glUniform1f(uniform_dx, (float)idx);
@@ -177,17 +184,22 @@ namespace upsample_filter
 
         // draw full resolution framebuffer onto window framebuffer
         {
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, output.color[0]);
-            glBegin(GL_TRIANGLES);
-            glColor4f(1,1,1,1);
-            glTexCoord2f(0,0);glVertex2f(-1,-1);
-            glTexCoord2f(1,0);glVertex2f(+1,-1);
-            glTexCoord2f(1,1);glVertex2f(+1,+1);
-            glTexCoord2f(1,1);glVertex2f(+1,+1);
-            glTexCoord2f(0,1);glVertex2f(-1,+1);
-            glTexCoord2f(0,0);glVertex2f(-1,-1);
-            glEnd();
+            vdbTriangles();
+            vdbColor(1,1,1,1);
+            vdbTexel(0,0); vdbVertex(-1,-1);
+            vdbTexel(1,0); vdbVertex(+1,-1);
+            vdbTexel(1,1); vdbVertex(+1,+1);
+            vdbTexel(1,1); vdbVertex(+1,+1);
+            vdbTexel(0,1); vdbVertex(-1,+1);
+            vdbTexel(0,0); vdbVertex(-1,-1);
+            vdbEnd();
         }
+
+        SetImmediateGLState(last_state);
+        vdbPopMatrix();
+        vdbProjection(last_projection);
 
         // just a linear sampling order. want something nicer in the future
         int num_subpixels = (1<<upsample)*(1<<upsample);
