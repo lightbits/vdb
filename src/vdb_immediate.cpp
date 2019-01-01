@@ -265,11 +265,14 @@ static void DrawImmediatePoints(imm_list_t list)
         glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
     }
 
-    // generate primitive geometry (circle)
+    // generate primitive geometry
+    static int rasterization_count = 0;
+    static GLenum rasterization_mode = 0;
     static GLuint point_geometry_vbo = 0;
     {
         enum { max_segments = 128 };
-        static vdbVec2 circle[max_segments*3];
+        static float quad[] = { -1,-1, +1,-1, +1,+1, +1,+1, -1,+1, -1,-1 };
+        static vdbVec2 circle[max_segments+2];
         if (!point_geometry_vbo)
         {
             glGenBuffers(1, &point_geometry_vbo);
@@ -278,25 +281,41 @@ static void DrawImmediatePoints(imm_list_t list)
             glBufferData(GL_ARRAY_BUFFER, sizeof(circle), NULL, GL_DYNAMIC_DRAW);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
-        int last_point_segments = 0;
+
         if (imm.point_segments > max_segments)
             imm.point_segments = max_segments;
+
+        int last_point_segments = 0;
         if (imm.point_segments != last_point_segments)
         {
-            for (int i = 0; i < imm.point_segments; i++)
+            if (imm.point_segments == 4)
             {
-                float t1 = 2.0f*3.1415926f*(0.125f + i/(float)(imm.point_segments));
-                float t2 = 2.0f*3.1415926f*(0.125f + (i+1)/(float)(imm.point_segments));
-                circle[3*i + 0] = vdbVec2(0.0f, 0.0f);
-                circle[3*i + 1] = vdbVec2(cosf(t1), sinf(t1));
-                circle[3*i + 2] = vdbVec2(cosf(t2), sinf(t2));
+                glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quad), quad);
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+                rasterization_mode = GL_TRIANGLES;
+                rasterization_count = 6;
+            }
+            else
+            {
+                circle[0] = vdbVec2(0.0f, 0.0f);
+                for (int i = 0; i <= imm.point_segments; i++)
+                {
+                    float t = 2.0f*3.1415926f*i/(float)(imm.point_segments);
+                    circle[i+1] = vdbVec2(cosf(t), sinf(t));
+                }
+                glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, (imm.point_segments+2)*sizeof(vdbVec2), circle);
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+                rasterization_mode = GL_TRIANGLE_FAN;
+                rasterization_count = imm.point_segments+2;
             }
             last_point_segments = imm.point_segments;
-            glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, imm.point_segments*3*sizeof(vdbVec2), (const GLvoid*)circle);
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
     }
+    assert(rasterization_count);
+    assert(rasterization_mode);
+    assert(point_geometry_vbo);
 
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
 
@@ -319,7 +338,7 @@ static void DrawImmediatePoints(imm_list_t list)
     glEnableVertexAttribArray(attrib_in_position);
     glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
 
-    glDrawArraysInstanced(GL_TRIANGLES, 0, imm.point_segments*3, list.count);
+    glDrawArraysInstanced(rasterization_mode, 0, rasterization_count, list.count);
 
     glDisableVertexAttribArray(attrib_in_position);
     glDisableVertexAttribArray(attrib_instance_position);
