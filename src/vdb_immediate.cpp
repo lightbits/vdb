@@ -16,6 +16,7 @@ struct imm_gl_state_t
     GLboolean last_enable_cull_face;
     GLboolean last_enable_depth_test;
     GLboolean last_enable_scissor_test;
+    GLboolean last_enable_color_logic_op;
 };
 
 imm_gl_state_t GetImmediateGLState()
@@ -32,6 +33,7 @@ imm_gl_state_t GetImmediateGLState()
     s.last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
     s.last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
     s.last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+    s.last_enable_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
     return s;
 }
 
@@ -44,6 +46,7 @@ void SetImmediateGLState(imm_gl_state_t s)
     if (s.last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
     if (s.last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
     if (s.last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+    if (s.last_enable_color_logic_op) vdbInverseColor(true); else vdbInverseColor(false);
 }
 
 void vdbInverseColor(bool enable)
