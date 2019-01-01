@@ -1,4 +1,5 @@
 #include "_matrix.cpp"
+#include "_matrix_stack.cpp"
 
 namespace transform
 {
@@ -12,126 +13,6 @@ namespace transform
 
     void Reset();
 }
-
-#if VDB_USE_FIXED_FUNCTION_PIPELINE==1
-// This path uses the fixed-function pipeline of legacy OpenGL.
-// It is available only in compatibility profiles of OpenGL, which
-// itself is not available on certain drivers (Mesa, for one).
-
-void transform::Reset()
-{
-    projection = vdbMatIdentity();
-    view_model = vdbMatIdentity();
-    pvm = vdbMatIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    CheckGLError();
-}
-
-void vdbProjection(float *m)
-{
-    glMatrixMode(GL_PROJECTION);
-    if (m)
-    {
-        transform::projection = *(vdbMat4*)m;
-        #ifdef VDB_MATRIX_ROW_MAJOR
-        glLoadMatrixf(m);
-        #else
-        glLoadTransposeMatrixf(m);
-        #endif
-    }
-    else
-    {
-        transform::projection = vdbMatIdentity();
-        glLoadIdentity();
-    }
-    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
-}
-
-void vdbGetProjection(float *m)
-{
-    assert(m);
-    glGetFloatv(GL_PROJECTION_MATRIX, m);
-}
-
-void vdbGetPVM(float *m)
-{
-    assert(m);
-    *(vdbMat4*)m = transform::pvm;
-}
-
-void vdbGetMatrix(float *m)
-{
-    assert(m && "pointer passed to vdbGetMatrix was NULL");
-    glGetFloatv(GL_MODELVIEW_MATRIX, m);
-}
-
-void vdbMultMatrix(float *m)
-{
-    assert(m && "pointer passed to vdbMultMatrix was NULL");
-    if (m)
-    {
-        glMatrixMode(GL_MODELVIEW);
-        #ifdef VDB_MATRIX_ROW_MAJOR
-        glMultMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-        #else
-        glMultTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-        #endif
-        transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
-    }
-}
-
-void vdbLoadMatrix(float *m)
-{
-    glMatrixMode(GL_MODELVIEW);
-    if (m)
-    {
-        #ifdef VDB_MATRIX_ROW_MAJOR
-        glLoadMatrixf(m);
-        glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-        #else
-        glLoadTransposeMatrixf(m);
-        glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-        #endif
-    }
-    else
-    {
-        transform::view_model = vdbMatIdentity();
-        glLoadIdentity();
-    }
-    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
-}
-
-static int vdb_push_pop_matrix_index = 0;
-
-void vdbPushMatrix()
-{
-    vdb_push_pop_matrix_index++;
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-}
-
-void vdbPopMatrix()
-{
-    vdb_push_pop_matrix_index--;
-    assert(vdb_push_pop_matrix_index >= 0 && "Mismatched vdb{Push/Pop}Matrix calls");
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    #ifdef VDB_MATRIX_ROW_MAJOR
-    glGetFloatv(GL_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-    #else
-    glGetFloatv(GL_TRANSPOSE_MODELVIEW_MATRIX, (float*)transform::view_model.data);
-    #endif
-    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
-}
-
-#else
-#include "_matrix_stack.cpp"
 
 namespace transform
 {
@@ -210,8 +91,6 @@ void vdbPopMatrix()
     view_model = matrix_stack.Top();
     pvm = vdbMul4x4(projection, view_model);
 }
-
-#endif
 
 void vdbTranslate(float x, float y, float z) { vdbMultMatrix(vdbMatTranslate(x,y,z).data); }
 void vdbRotateXYZ(float x, float y, float z) { vdbMultMatrix(vdbMatRotateXYZ(x,y,z).data); }
