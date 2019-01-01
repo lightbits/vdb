@@ -25,6 +25,7 @@ void transform::Reset()
     view_model = vdbMatIdentity();
     pvm = vdbMatIdentity();
     matrix_stack.Reset();
+    vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
 }
 
 void vdbProjection(float *m)

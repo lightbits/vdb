@@ -122,13 +122,18 @@ bool vdbBeginFrame(const char *label)
 
     transform::Reset();
     mouse_over::Reset();
-    uistuff::escape_eaten = false;
+    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y); // Note: this must be called after viewport is set up (inside transform::Reset)
     immediate_util::note_index = 0;
-    vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
-    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y); // Note: this must be called after viewport is set up
 
+    ResetImmediateGLState();
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
     CheckGLError();
+
+    // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
+    // priority over ImGui panels created by the user.
+    uistuff::escape_eaten = false;
 
     if (VDB_HOTKEY_SKETCH_MODE) uistuff::sketch_mode_active = !uistuff::sketch_mode_active;
 
@@ -164,11 +169,6 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureKeyboard = true;
         ImGui::GetIO().WantCaptureMouse = true;
     }
-
-    ResetImmediateGLState();
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    CheckGLError();
 
     return true;
 }
