@@ -11,11 +11,11 @@ struct imm_gl_state_t
     GLenum last_blend_dst_alpha;
     GLenum last_blend_equation_rgb;
     GLenum last_blend_equation_alpha;
+    GLboolean last_depth_writemask;
     GLboolean last_enable_blend;
     GLboolean last_enable_cull_face;
     GLboolean last_enable_depth_test;
     GLboolean last_enable_scissor_test;
-    GLboolean last_depth_writemask;
 };
 
 imm_gl_state_t GetImmediateGLState()
@@ -106,16 +106,6 @@ void vdbDepthWrite(bool enabled)
 {
     if (enabled) { glDepthMask(GL_TRUE); glDepthRange(0.0f, 1.0f); }
     else { glDepthMask(GL_FALSE); }
-}
-
-void vdbPushImmediateState()
-{
-
-}
-
-void vdbPopImmediateState()
-{
-
 }
 
 void vdbVertex(vdbVec3 v, float w)                 { vdbVertex(v.x, v.y, v.z, w); }

@@ -94,11 +94,18 @@ namespace lowpass_filter
 
         DisableRenderTexture(&rt_frame);
 
+        imm_gl_state_t last_state = GetImmediateGLState();
+        float last_projection[4*4];
+        vdbGetProjection(last_projection);
+        vdbProjection(NULL);
+        vdbPushMatrix();
+        vdbLoadMatrix(NULL);
         glEnable(GL_BLEND);
+        glBlendEquation(GL_FUNC_ADD);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_TEXTURE_2D);
+        vdbCullFace(false);
+        vdbDepthTest(false);
+        vdbDepthWrite(false);
 
         // add just-rendered frame to accumulator framebuffer
         {
@@ -123,17 +130,22 @@ namespace lowpass_filter
 
         // draw blended result to default framebuffer
         {
+            glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, rt_accumulator[front].color[0]);
-            glBegin(GL_TRIANGLES);
-            glColor4f(1,1,1,1);
-            glTexCoord2f(0,0);glVertex2f(-1,-1);
-            glTexCoord2f(1,0);glVertex2f(+1,-1);
-            glTexCoord2f(1,1);glVertex2f(+1,+1);
-            glTexCoord2f(1,1);glVertex2f(+1,+1);
-            glTexCoord2f(0,1);glVertex2f(-1,+1);
-            glTexCoord2f(0,0);glVertex2f(-1,-1);
-            glEnd();
+            vdbTriangles();
+            vdbColor(1,1,1,1);
+            vdbTexel(0,0); vdbVertex(-1,-1);
+            vdbTexel(1,0); vdbVertex(+1,-1);
+            vdbTexel(1,1); vdbVertex(+1,+1);
+            vdbTexel(1,1); vdbVertex(+1,+1);
+            vdbTexel(0,1); vdbVertex(-1,+1);
+            vdbTexel(0,0); vdbVertex(-1,-1);
+            vdbEnd();
         }
+
+        SetImmediateGLState(last_state);
+        vdbPopMatrix();
+        vdbProjection(last_projection);
 
         turn = next_turn;
     }
