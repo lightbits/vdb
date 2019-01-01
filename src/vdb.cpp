@@ -124,11 +124,8 @@ bool vdbBeginFrame(const char *label)
     mouse_over::Reset();
     uistuff::escape_eaten = false;
     immediate_util::note_index = 0;
-    transform::viewport_left = 0;
-    transform::viewport_bottom = 0;
-    transform::viewport_width = window::framebuffer_width;
-    transform::viewport_height = window::framebuffer_height;
-    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y);
+    vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
+    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y); // Note: this must be called after viewport is set up
 
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
     CheckGLError();
@@ -169,7 +166,6 @@ bool vdbBeginFrame(const char *label)
     }
 
     ResetImmediateGLState();
-    glViewport(0, 0, window::framebuffer_width, window::framebuffer_height);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     CheckGLError();
@@ -179,6 +175,8 @@ bool vdbBeginFrame(const char *label)
 
 void vdbEndFrame()
 {
+    ResetImmediateGLState();
+
     if (filter::taa_begun) vdbEndTAA();
     if (filter::tss_begun) vdbEndTSS();
 
