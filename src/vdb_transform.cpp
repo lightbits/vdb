@@ -6,26 +6,20 @@ namespace transform
     static vdbMat4 projection = vdbMatIdentity();
     static vdbMat4 view_model = vdbMatIdentity();
     static vdbMat4 pvm = vdbMatIdentity();
+    static matrix_stack_t matrix_stack = {0};
     int viewport_left;
     int viewport_bottom;
     int viewport_width;
     int viewport_height;
 
-    void Reset();
-}
-
-namespace transform
-{
-    static matrix_stack_t matrix_stack = {0};
-}
-
-void transform::Reset()
-{
-    projection = vdbMatIdentity();
-    view_model = vdbMatIdentity();
-    pvm = vdbMatIdentity();
-    matrix_stack.Reset();
-    vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
+    static void NewFrame()
+    {
+        projection = vdbMatIdentity();
+        view_model = vdbMatIdentity();
+        pvm = vdbMatIdentity();
+        matrix_stack.Reset();
+        vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
+    }
 }
 
 void vdbProjection(float *m)

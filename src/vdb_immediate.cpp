@@ -666,3 +666,11 @@ void SetImmediateGLState(imm_gl_state_t s)
     imm.line_width_is_3D = s.line_width_is_3D;
     imm.point_size_is_3D = s.point_size_is_3D;
 }
+
+namespace immediate
+{
+    static void NewFrame()
+    {
+        ResetImmediateGLState();
+    }
+}

@@ -1,6 +1,10 @@
 namespace immediate_util
 {
     static int note_index;
+    static void NewFrame()
+    {
+        note_index = 0;
+    }
 }
 
 void vdbNoteV(float x, float y, const char *fmt, va_list args)

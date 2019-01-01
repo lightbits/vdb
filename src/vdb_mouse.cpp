@@ -7,6 +7,12 @@ namespace mouse
     {
         bool pressed,released,down;
     } left,right,middle;
+
+    static void NewFrame()
+    {
+        // Note: this must be called after viewport is set up
+        ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y);
+    }
 }
 
 namespace mouse_over
@@ -18,7 +24,7 @@ namespace mouse_over
     static float closest_x;
     static float closest_y;
     static float closest_z;
-    static void Reset()
+    static void NewFrame()
     {
         closest_distance = FLT_MAX;
         prev_closest_index = closest_index;

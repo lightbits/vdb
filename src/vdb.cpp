@@ -120,12 +120,11 @@ bool vdbBeginFrame(const char *label)
         exit(0);
     }
 
-    transform::Reset();
-    mouse_over::Reset();
-    mouse::ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y); // Note: this must be called after viewport is set up (inside transform::Reset)
-    immediate_util::note_index = 0;
-
-    ResetImmediateGLState();
+    transform::NewFrame();
+    mouse_over::NewFrame();
+    mouse::NewFrame();
+    immediate_util::NewFrame();
+    immediate::NewFrame();
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
