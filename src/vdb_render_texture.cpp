@@ -153,7 +153,6 @@ void vdbBindRenderTexture(int slot)
 {
     using namespace render_texture;
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
-    glEnable(GL_TEXTURE_2D);
     glActiveTexture(GL_TEXTURE0); // todo: let user specify this
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
 }
@@ -161,7 +160,6 @@ void vdbBindRenderTexture(int slot)
 void vdbUnbindRenderTexture()
 {
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
 }
 
 void vdbDrawRenderTexture(int slot)
@@ -169,20 +167,16 @@ void vdbDrawRenderTexture(int slot)
     using namespace render_texture;
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glEnable(GL_TEXTURE_2D);
-
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
-    glBegin(GL_TRIANGLES);
-    glColor4f(1,1,1,1);
-    glTexCoord2f(0,0);glVertex2f(-1,-1);
-    glTexCoord2f(1,0);glVertex2f(+1,-1);
-    glTexCoord2f(1,1);glVertex2f(+1,+1);
-    glTexCoord2f(1,1);glVertex2f(+1,+1);
-    glTexCoord2f(0,1);glVertex2f(-1,+1);
-    glTexCoord2f(0,0);glVertex2f(-1,-1);
-    glEnd();
+    vdbTriangles();
+    vdbColor(1,1,1,1);
+    vdbTexel(0,0); vdbVertex(-1,-1);
+    vdbTexel(1,0); vdbVertex(+1,-1);
+    vdbTexel(1,1); vdbVertex(+1,+1);
+    vdbTexel(1,1); vdbVertex(+1,+1);
+    vdbTexel(0,1); vdbVertex(-1,+1);
+    vdbTexel(0,0); vdbVertex(-1,-1);
+    vdbEnd();
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
