@@ -93,7 +93,6 @@ namespace lowpass_filter
         int front = next_turn;
 
         DisableRenderTexture(&rt_frame);
-        StoreGLState();
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -135,8 +134,6 @@ namespace lowpass_filter
             glTexCoord2f(0,0);glVertex2f(-1,-1);
             glEnd();
         }
-
-        RestoreGLState();
 
         turn = next_turn;
     }

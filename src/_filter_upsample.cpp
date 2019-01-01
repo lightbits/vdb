@@ -146,7 +146,6 @@ namespace upsample_filter
 
         has_begun = false;
         DisableRenderTexture(&lowres);
-        StoreGLState();
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -189,8 +188,6 @@ namespace upsample_filter
             glTexCoord2f(0,0);glVertex2f(-1,-1);
             glEnd();
         }
-
-        RestoreGLState();
 
         // just a linear sampling order. want something nicer in the future
         int num_subpixels = (1<<upsample)*(1<<upsample);

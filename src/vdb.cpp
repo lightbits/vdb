@@ -17,7 +17,6 @@
 #include "stb_image_write.h"
 #include "vdb.h"
 #include "vdb_config.h"
-#include "_gl_state.cpp"
 #include "_gl_error.cpp"
 #include "_settings.cpp"
 #include "_framegrab.cpp"

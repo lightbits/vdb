@@ -168,7 +168,6 @@ void vdbDrawRenderTexture(int slot)
 {
     using namespace render_texture;
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
-    StoreGLState();
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -186,6 +185,4 @@ void vdbDrawRenderTexture(int slot)
     glTexCoord2f(0,1);glVertex2f(-1,+1);
     glTexCoord2f(0,0);glVertex2f(-1,-1);
     glEnd();
-
-    RestoreGLState();
 }
