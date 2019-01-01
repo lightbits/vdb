@@ -168,16 +168,7 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureMouse = true;
     }
 
-    glDisable(GL_COLOR_LOGIC_OP);
-    glDisable(GL_SCISSOR_TEST);
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-    glDisable(GL_CULL_FACE);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_SCISSOR_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glDisable(GL_DEPTH_TEST);
+    ResetImmediateGLState();
     glViewport(0, 0, window::framebuffer_width, window::framebuffer_height);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);

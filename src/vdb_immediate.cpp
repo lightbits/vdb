@@ -3,52 +3,6 @@
 #include "shaders/lines.cpp"
 #include "shaders/triangles.cpp"
 
-struct imm_gl_state_t
-{
-    GLenum last_blend_src_rgb;
-    GLenum last_blend_dst_rgb;
-    GLenum last_blend_src_alpha;
-    GLenum last_blend_dst_alpha;
-    GLenum last_blend_equation_rgb;
-    GLenum last_blend_equation_alpha;
-    GLboolean last_depth_writemask;
-    GLboolean last_enable_blend;
-    GLboolean last_enable_cull_face;
-    GLboolean last_enable_depth_test;
-    GLboolean last_enable_scissor_test;
-    GLboolean last_enable_color_logic_op;
-};
-
-imm_gl_state_t GetImmediateGLState()
-{
-    imm_gl_state_t s = {0};
-    glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&s.last_blend_src_rgb);
-    glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&s.last_blend_dst_rgb);
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&s.last_blend_src_alpha);
-    glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&s.last_blend_dst_alpha);
-    glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&s.last_blend_equation_rgb);
-    glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&s.last_blend_equation_alpha);
-    glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean*)&s.last_depth_writemask);
-    s.last_enable_blend = glIsEnabled(GL_BLEND);
-    s.last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
-    s.last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    s.last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    s.last_enable_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
-    return s;
-}
-
-void SetImmediateGLState(imm_gl_state_t s)
-{
-    glBlendEquationSeparate(s.last_blend_equation_rgb, s.last_blend_equation_alpha);
-    glBlendFuncSeparate(s.last_blend_src_rgb, s.last_blend_dst_rgb, s.last_blend_src_alpha, s.last_blend_dst_alpha);
-    glDepthMask(s.last_depth_writemask);
-    if (s.last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-    if (s.last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
-    if (s.last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-    if (s.last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-    if (s.last_enable_color_logic_op) vdbInverseColor(true); else vdbInverseColor(false);
-}
-
 void vdbInverseColor(bool enable)
 {
     if (enable)
@@ -630,3 +584,78 @@ void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
 void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
 void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
 void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
+
+struct imm_gl_state_t
+{
+    GLenum last_blend_src_rgb;
+    GLenum last_blend_dst_rgb;
+    GLenum last_blend_src_alpha;
+    GLenum last_blend_dst_alpha;
+    GLenum last_blend_equation_rgb;
+    GLenum last_blend_equation_alpha;
+    GLboolean last_depth_writemask;
+    GLboolean last_enable_blend;
+    GLboolean last_enable_cull_face;
+    GLboolean last_enable_depth_test;
+    GLboolean last_enable_scissor_test;
+    GLboolean last_enable_color_logic_op;
+    float line_width;
+    float point_size;
+    int point_segments;
+    bool line_width_is_3D;
+    bool point_size_is_3D;
+};
+
+void ResetImmediateGLState()
+{
+    vdbLineWidth(1.0f);
+    vdbPointSize(1.0f);
+    vdbPointSegments(4);
+    vdbBlendAlpha();
+    vdbDepthWrite(false);
+    vdbDepthTest(false);
+    vdbCullFace(false);
+    vdbInverseColor(false);
+    glDisable(GL_SCISSOR_TEST);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+imm_gl_state_t GetImmediateGLState()
+{
+    imm_gl_state_t s = {0};
+    glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&s.last_blend_src_rgb);
+    glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&s.last_blend_dst_rgb);
+    glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&s.last_blend_src_alpha);
+    glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&s.last_blend_dst_alpha);
+    glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&s.last_blend_equation_rgb);
+    glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&s.last_blend_equation_alpha);
+    glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean*)&s.last_depth_writemask);
+    s.last_enable_blend = glIsEnabled(GL_BLEND);
+    s.last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
+    s.last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+    s.last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+    s.last_enable_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
+    s.line_width = imm.line_width;
+    s.point_size = imm.point_size;
+    s.point_segments = imm.point_segments;
+    s.line_width_is_3D = imm.line_width_is_3D;
+    s.point_size_is_3D = imm.point_size_is_3D;
+    return s;
+}
+
+void SetImmediateGLState(imm_gl_state_t s)
+{
+    glBlendEquationSeparate(s.last_blend_equation_rgb, s.last_blend_equation_alpha);
+    glBlendFuncSeparate(s.last_blend_src_rgb, s.last_blend_dst_rgb, s.last_blend_src_alpha, s.last_blend_dst_alpha);
+    glDepthMask(s.last_depth_writemask);
+    if (s.last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+    if (s.last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+    if (s.last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+    if (s.last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+    if (s.last_enable_color_logic_op) vdbInverseColor(true); else vdbInverseColor(false);
+    imm.line_width = s.line_width;
+    imm.point_size = s.point_size;
+    imm.point_segments = s.point_segments;
+    imm.line_width_is_3D = s.line_width_is_3D;
+    imm.point_size_is_3D = s.point_size_is_3D;
+}
