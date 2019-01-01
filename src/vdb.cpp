@@ -42,7 +42,6 @@ GLVERTEXATTRIBDIVISORPROC VertexAttribDivisor;
 #include "vdb_immediate.cpp"
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
-#include "vdb_points.cpp"
 #include "vdb_image.cpp"
 #include "vdb_filter.cpp"
 

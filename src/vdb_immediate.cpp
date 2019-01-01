@@ -1,4 +1,7 @@
 #pragma once
+#include "shaders/points.cpp"
+#include "shaders/lines.cpp"
+#include "shaders/triangles.cpp"
 
 void vdbInverseColor(bool enable)
 {
@@ -60,28 +63,6 @@ void vdbVertex(vdbVec3 v, float w)                 { vdbVertex(v.x, v.y, v.z, w)
 void vdbVertex(vdbVec4 v)                          { vdbVertex(v.x, v.y, v.z, v.w); }
 void vdbColor(vdbVec3 v, float a)                  { vdbColor(v.x, v.y, v.z, a); }
 void vdbColor(vdbVec4 v)                           { vdbColor(v.x, v.y, v.z, v.w); }
-
-#if VDB_USE_FIXED_FUNCTION_PIPELINE==1
-// This path uses the fixed-function pipeline of legacy OpenGL.
-// It is available only in compatibility profiles of OpenGL, which
-// itself is not available on certain drivers (Mesa, for one).
-void vdbLineWidth(float width)                     { glLineWidth(width); }
-void vdbBeginLines()                               { glBegin(GL_LINES); }
-void vdbLines(float width)                         { glLineWidth(width); glBegin(GL_LINES); }
-void vdbPointSegments(int segments)                { assert(false && "function not supported with fixed function pipeline"); }
-void vdbPointSize(float size)                      { glPointSize(size); }
-void vdbPointSize3D(float size)                    { assert(false && "function not supported with fixed function pipeline"); }
-void vdbBeginPoints()                              { glBegin(GL_POINTS); }
-void vdbPoints(float radius)                       { glPointSize(radius); glBegin(GL_POINTS); }
-void vdbTriangles()                                { glBegin(GL_TRIANGLES); }
-void vdbEnd()                                      { glEnd(); }
-void vdbVertex(float x, float y, float z, float w) { glVertex4f(x,y,z,w); }
-void vdbColor(float r, float g, float b, float a)  { glColor4f(r,g,b,a); }
-void vdbTexel(float u, float v)                    { glTexCoord2f(u,v); }
-
-#else
-
-#include "vdb_immediate_point_shader.cpp"
 
 inline void UniformMatrix4fv(GLint u, int n, vdbMat4 &m)
 {
@@ -243,7 +224,7 @@ static void DrawImmediatePoints(imm_list_t list)
     static GLint uniform_size_is_3D = 0;
     if (!program)
     {
-        program = LoadShaderFromMemory(immediate_point_shader_vs, immediate_point_shader_fs);
+        program = LoadShaderFromMemory(shader_points_vs, shader_points_fs);
 
         attrib_in_position       = glGetAttribLocation(program, "in_position");
         attrib_instance_position = glGetAttribLocation(program, "instance_position");
@@ -351,32 +332,7 @@ static void DrawImmediateLinesThin(imm_list_t list)
     static GLint uniform_pvm = 0;
     if (!program)
     {
-        const char *vs =
-            "#version 150\n"
-            "in vec4 position;\n"
-            "in vec2 texel;\n"
-            "in vec4 color;\n"
-            "uniform mat4 pvm;\n"
-            "out vec4 vs_color;\n"
-            "out vec2 vs_texel;\n"
-            "void main()\n"
-            "{\n"
-            "    gl_Position = pvm*position;\n"
-            "    vs_color = color;\n"
-            "    vs_texel = texel;\n"
-            "}\n";
-
-        const char *fs =
-            "#version 150\n"
-            "in vec4 vs_color;\n"
-            "in vec2 vs_texel;\n"
-            "uniform sampler2D sampler0;\n"
-            "out vec4 color0;\n"
-            "void main()\n"
-            "{\n"
-            "    color0 = vs_color*texture(sampler0, vs_texel);\n"
-            "}\n";
-        program = LoadShaderFromMemory(vs, fs);
+        program = LoadShaderFromMemory(shader_lines_vs, shader_lines_fs);
         attrib_position = glGetAttribLocation(program, "position");
         attrib_texel = glGetAttribLocation(program, "texel");
         attrib_color = glGetAttribLocation(program, "color");
@@ -438,32 +394,7 @@ static void DrawImmediateTriangles(imm_list_t list)
     static GLint uniform_pvm = 0;
     if (!program)
     {
-        const char *vs =
-            "#version 150\n"
-            "in vec4 position;\n"
-            "in vec2 texel;\n"
-            "in vec4 color;\n"
-            "uniform mat4 pvm;\n"
-            "out vec4 vs_color;\n"
-            "out vec2 vs_texel;\n"
-            "void main()\n"
-            "{\n"
-            "    gl_Position = pvm*position;\n"
-            "    vs_color = color;\n"
-            "    vs_texel = texel;\n"
-            "}\n";
-
-        const char *fs =
-            "#version 150\n"
-            "in vec4 vs_color;\n"
-            "in vec2 vs_texel;\n"
-            "uniform sampler2D sampler0;\n"
-            "out vec4 color0;\n"
-            "void main()\n"
-            "{\n"
-            "    color0 = vs_color*texture(sampler0, vs_texel);\n"
-            "}\n";
-        program = LoadShaderFromMemory(vs, fs);
+        program = LoadShaderFromMemory(shader_triangles_vs, shader_triangles_fs);
         attrib_position = glGetAttribLocation(program, "position");
         attrib_texel = glGetAttribLocation(program, "texel");
         attrib_color = glGetAttribLocation(program, "color");
@@ -609,4 +540,3 @@ void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
 void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
 void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
 void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
-#endif

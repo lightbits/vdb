@@ -244,11 +244,10 @@ int main(int, char **)
     {
         const int N = 8;
         const int num_points = N*N*N;
-        static vdbVec3 position[num_points];
-        static vdbVec4 color[num_points];
-        float *x = (float*)position;
         if (vdbIsFirstFrame())
         {
+            vdbBeginList(0);
+            vdbBeginPoints();
             for (int i = 0; i < num_points; i++)
             {
                 float r = (i % N)/(float)N;
@@ -257,10 +256,10 @@ int main(int, char **)
                 float x = -1.0f+2.0f*(r + 0.5f/N);
                 float y = -1.0f+2.0f*(g + 0.5f/N);
                 float z = -1.0f+2.0f*(b + 0.5f/N);
-                position[i] = vdbVec3(x,y,z);
-                color[i] = vdbVec4(r,g,0.5f+0.5f*b,1);
+                vdbColor(r, g, 0.5f + 0.5f*b, 1.0f);
+                vdbVertex(x, y, z);
             }
-            vdbLoadPoints(0, position, color, num_points);
+            vdbEnd();
         }
         // temporal super sampling
         #if 0
@@ -287,7 +286,10 @@ int main(int, char **)
         vdbDepthWrite(true);
         vdbClearDepth(1.0f);
         vdbClearColor(0,0,0,1);
-        vdbDrawPoints(0, 0.1f, 32);
+
+        vdbPointSize3D(0.1f);
+        vdbPointSegments(32);
+        vdbDrawList(0);
     }
     VDBE();
 

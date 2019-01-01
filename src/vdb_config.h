@@ -16,8 +16,6 @@
 // #define VDB_MATRIX_COLUMN_MAJOR
 #define VDB_MATRIX_ROW_MAJOR
 
-#define VDB_USE_FIXED_FUNCTION_PIPELINE 0
-
 // Height of default font
 #define VDB_FONT_HEIGHT        18.0f
 

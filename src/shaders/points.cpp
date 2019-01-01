@@ -6,7 +6,7 @@
 //
 #pragma once
 #define SHADER(S) "#version 150\n" #S
-const char *immediate_point_shader_vs = SHADER(
+const char *shader_points_vs = SHADER(
 in vec2 in_position;
 in vec4 instance_position;
 in vec2 instance_texel;
@@ -39,7 +39,7 @@ void main()
 }
 );
 
-const char *immediate_point_shader_fs = SHADER(
+const char *shader_points_fs = SHADER(
 in vec4 vertex_color;
 in vec2 quad_position;
 out vec4 fragment_color;

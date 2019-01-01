@@ -112,11 +112,6 @@ bool vdbIsMouseLeftDown();
 bool vdbIsMouseRightDown();
 bool vdbIsMouseMiddleDown();
 
-// vdb_points.cpp
-void vdbLoadPoints(int slot, vdbVec3 *position, vdbVec4 *color, int num_points);
-void vdbLoadPoints(int slot, void (*vertex_getter)(vdbVec3 *pos, vdbVec4 *col, void *data, int idx), void *data, int num_points);
-void vdbDrawPoints(int slot, float point_size, int circle_segments);
-
 // vdb_image.cpp
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
