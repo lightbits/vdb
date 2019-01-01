@@ -220,9 +220,9 @@ static void DrawImmediatePoints(imm_list_t list)
     assert(imm.vao);
     assert(imm.default_texture);
 
-    if (!VertexAttribDivisor)
-        VertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
-    assert(VertexAttribDivisor && "Failed to dynamically load OpenGL function.");
+    if (!glVertexAttribDivisor)
+        glVertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
+    assert(glVertexAttribDivisor && "Your system's OpenGL driver doesn't support glVertexAttribDivisor.");
 
     static GLuint program = 0;
     static GLint attrib_in_position = 0;
@@ -342,9 +342,9 @@ static void DrawImmediatePoints(imm_list_t list)
     glVertexAttribPointer(attrib_instance_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
     glVertexAttribPointer(attrib_instance_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
     glVertexAttribPointer(attrib_instance_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-    VertexAttribDivisor(attrib_instance_position, 1);
-    VertexAttribDivisor(attrib_instance_texel, 1);
-    VertexAttribDivisor(attrib_instance_color, 1);
+    glVertexAttribDivisor(attrib_instance_position, 1);
+    glVertexAttribDivisor(attrib_instance_texel, 1);
+    glVertexAttribDivisor(attrib_instance_color, 1);
 
     // primitive geometry
     glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
@@ -357,9 +357,9 @@ static void DrawImmediatePoints(imm_list_t list)
     glDisableVertexAttribArray(attrib_instance_position);
     glDisableVertexAttribArray(attrib_instance_texel);
     glDisableVertexAttribArray(attrib_instance_color);
-    VertexAttribDivisor(attrib_instance_position, 0);
-    VertexAttribDivisor(attrib_instance_texel, 0);
-    VertexAttribDivisor(attrib_instance_color, 0);
+    glVertexAttribDivisor(attrib_instance_position, 0);
+    glVertexAttribDivisor(attrib_instance_texel, 0);
+    glVertexAttribDivisor(attrib_instance_color, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
     glUseProgram(0); // todo: optimize
