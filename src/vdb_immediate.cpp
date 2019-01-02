@@ -77,17 +77,6 @@ void vdbColor3ubv(unsigned char *v, unsigned char a) { vdbColor4ub(v[0], v[1], v
 void vdbColor4fv(float *v)                           { vdbColor(v[0], v[1], v[2], v[3]); }
 void vdbColor3fv(float *v, float a)                  { vdbColor(v[0], v[1], v[2], a); }
 
-inline void UniformMatrix4fv(GLint u, int n, vdbMat4 &m)
-{
-    #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(u, n, GL_FALSE, m.data);
-    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
-    glUniformMatrix4fv(u, n, GL_TRUE, m.data);
-    #else
-    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
-    #endif
-}
-
 enum imm_prim_type_t
 {
     IMM_PRIM_NONE = 0,
@@ -255,8 +244,8 @@ static void DrawImmediatePoints(imm_list_t list)
 
     // set uniforms
     {
-        UniformMatrix4fv(uniform_projection, 1, transform::projection);
-        UniformMatrix4fv(uniform_model_to_view, 1, transform::view_model);
+        UniformMat4(uniform_projection, 1, transform::projection);
+        UniformMat4(uniform_model_to_view, 1, transform::view_model);
         glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
         if (!list.texel_specified)
             glBindTexture(GL_TEXTURE_2D, imm.default_texture);
@@ -385,7 +374,7 @@ static void DrawImmediateLinesThin(imm_list_t list)
     assert(program);
 
     glUseProgram(program); // todo: optimize
-    UniformMatrix4fv(uniform_pvm, 1, transform::pvm);
+    UniformMat4(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
@@ -447,7 +436,7 @@ static void DrawImmediateTriangles(imm_list_t list)
     assert(program);
 
     glUseProgram(program); // todo: optimize
-    UniformMatrix4fv(uniform_pvm, 1, transform::pvm);
+    UniformMat4(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);

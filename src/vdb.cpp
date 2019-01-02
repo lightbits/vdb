@@ -14,6 +14,10 @@
 #include "imgui/imgui_demo.cpp"
 #include "imgui/imgui_impl_sdl_gl3.h"
 #include "imgui/imgui_impl_sdl_gl3.cpp"
+
+typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
+GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
@@ -27,16 +31,12 @@
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
-
+#include "_matrix.cpp"
+#include "_matrix_stack.cpp"
 #include "vdb_keyboard.cpp"
 #include "vdb_mouse.cpp"
-
 #include "_window.cpp"
 #include "_uistuff.cpp"
-
-typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
-GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
-
 #include "vdb_image.cpp"
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"

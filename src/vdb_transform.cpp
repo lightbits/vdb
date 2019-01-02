@@ -1,6 +1,3 @@
-#include "_matrix.cpp"
-#include "_matrix_stack.cpp"
-
 namespace transform
 {
     static vdbMat4 projection = vdbMatIdentity();

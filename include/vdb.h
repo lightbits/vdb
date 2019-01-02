@@ -5,15 +5,24 @@ struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 
-// Enumerations (defined as int to be compatible with some c++ compilers)
 typedef int vdbKey;
 typedef int vdbTextureFormat;
 typedef int vdbTextureFilter;
 typedef int vdbTextureWrap;
-
+typedef int vdbColorMap;
 enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
-enum vdbTextureFilter_ { VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST };
-enum vdbTextureWrap_ { VDB_CLAMP, VDB_REPEAT };
+enum vdbTextureFilter_ { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
+enum vdbTextureWrap_ { VDB_CLAMP=0, VDB_REPEAT };
+enum vdbColorMap_ { VDB_COLORMAP_NONE=0, VDB_COLORMAP_INFERNO };
+struct vdbTextureOptions
+{
+    vdbVec4 vmin,vmax;
+    vdbVec4 selector;
+    vdbColorMap cmap;
+    vdbTextureFilter filter;
+    vdbTextureWrap wrap;
+    vdbTextureOptions() : vmin(), vmax(), selector(), cmap(0), filter(VDB_LINEAR), wrap(VDB_CLAMP) { }
+};
 
 // vdb.cpp
 void vdbDetachGLContext();
@@ -133,6 +142,7 @@ void vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *hei
 void vdbUnbindImage();
 void vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void vdbDrawImage(int slot, vdbTextureOptions options);
 
 // vdb_filter.cpp
 void vdbBeginTAA(int downscale, float blend_factor);

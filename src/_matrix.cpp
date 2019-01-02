@@ -8,6 +8,21 @@ struct vdbMat4
     #endif
 };
 
+inline void UniformMat4fv(GLint u, int n, float *v)
+{
+    #if defined(VDB_MATRIX_ROW_MAJOR)
+    glUniformMatrix4fv(u, n, GL_FALSE, v);
+    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
+    glUniformMatrix4fv(u, n, GL_TRUE, v);
+    #else
+    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
+    #endif
+}
+inline void UniformMat4(GLint u, int n, vdbMat4 &m) { UniformMat4fv(u, n, m.data); }
+inline void UniformVec4(GLuint u, vdbVec4 &v) { glUniform4f(u, v.x, v.y, v.z, v.w); }
+inline void UniformVec3(GLuint u, vdbVec3 &v) { glUniform3f(u, v.x, v.y, v.z); }
+inline void UniformVec2(GLuint u, vdbVec2 &v) { glUniform2f(u, v.x, v.y); }
+
 static vdbVec4 operator-(vdbVec4 a)              { return vdbVec4(-a.x, -a.y, -a.z, -a.w); }
 static vdbVec4 operator+(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
 static vdbVec4 operator-(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w); }
