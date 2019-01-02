@@ -76,19 +76,18 @@ bool vdbBeginFrame(const char *label)
 
     if (!vdb::initialized)
     {
+        vdb::initialized = true;
+
         settings_t &s = settings;
         s.LoadOrDefault(VDB_SETTINGS_FILENAME);
         window::Open(s.window_x, s.window_y, s.window_w, s.window_h);
+        CheckGLError();
+
         ImGui::CreateContext();
         ImGui_ImplSdlGL3_Init(window::sdl_window);
         ImGui::StyleColorsDark();
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
-        vdb::initialized = true;
-
-        // Assuming user uploads images that are one-byte packed?
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        CheckGLError();
     }
 
     window::EnsureGLContextIsCurrent();
@@ -128,9 +127,9 @@ bool vdbBeginFrame(const char *label)
     immediate_util::NewFrame();
     immediate::NewFrame();
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    CheckGLError();
 
     // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
@@ -170,6 +169,8 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureKeyboard = true;
         ImGui::GetIO().WantCaptureMouse = true;
     }
+
+    CheckGLError();
 
     return true;
 }

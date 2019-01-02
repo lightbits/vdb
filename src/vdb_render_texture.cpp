@@ -68,13 +68,11 @@ namespace render_texture
 
         glGenFramebuffers(1, &result.fbo);
         glBindFramebuffer(GL_FRAMEBUFFER, result.fbo);
-        CheckGLError();
 
         result.color = new GLuint[num_color_attachments];
         for (int i = 0; i < num_color_attachments; i++)
         {
             GLuint color = TexImage2D(NULL, width, height, data_format, data_type, mag_filter, min_filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, internal_color_format);
-            CheckGLError();
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color, 0);
             result.color[i] = color;
         }
@@ -95,7 +93,6 @@ namespace render_texture
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         assert(status == GL_FRAMEBUFFER_COMPLETE);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        CheckGLError();
 
         return result;
     }

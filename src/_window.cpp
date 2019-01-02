@@ -116,7 +116,6 @@ namespace window
         // printf("Renderer      : %s\n", glGetString(GL_RENDERER));
         // printf("Version       : %s\n", glGetString(GL_VERSION));
         // printf("Extensions    : %s\n", glGetString(GL_EXTENSIONS));
-        CheckGLError();
     }
 
     static void SwapBuffers(float dt)
