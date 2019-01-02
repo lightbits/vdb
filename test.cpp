@@ -37,8 +37,7 @@ int main(int, char **)
     VDBB("Hello VDB");
     {
         vdbClearColor(0.45f, 0.56f, 0.6f, 1.0f);
-        ImGui::Text("The program has now stopped and is running the\ncontent inside the brackets at 60 fps.");
-        ImGui::Text("Press F10 to continue.");
+        ImGui::TextWrapped("Press F10 to continue.");
     }
     VDBE();
 
@@ -58,10 +57,9 @@ int main(int, char **)
             };
             vdbClearColor(c[i%8][0], c[i%8][1], c[i%8][2], 1.0f);
 
-            ImGui::Text("Iteration: %d", i);
-            ImGui::Text("It works with for loops.");
-            ImGui::Text("F10 steps once.");
-            ImGui::Text("F5 skips to the next window.");
+            ImGui::TextWrapped("Iteration: %d", i);
+            ImGui::TextWrapped("F10 steps once.");
+            ImGui::TextWrapped("F5 skips to the next VDBB/VDBE block.");
         }
         VDBE();
     }
@@ -75,7 +73,86 @@ int main(int, char **)
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
 
-        ImGui::Text("Inside the loop you can draw stuff with OpenGL.");
+        ImGui::TextWrapped("Inside a block you can draw things, like this triangle.");
+    }
+    VDBE();
+
+    VDBB("3D");
+    {
+        static float t = 0.0f; t += 1.0f/60.0f;
+        vdbDepthTest(true);
+        vdbDepthWrite(true);
+        vdbClearDepth(1.0f);
+
+        vdbCameraTurntable();
+        // vdbCameraTrackball(); // try this one too!
+        vdbRotateXYZ(-3.14f/2.0f,0,0);
+        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
+        vdbPointSize(6.0f);
+        vdbBeginPoints();
+        {
+            int nx = 64;
+            int ny = 64;
+            for (int yi = 0; yi <= ny; yi++)
+            for (int xi = 0; xi <= nx; xi++)
+            {
+                float xt = (float)xi/nx;
+                float yt = (float)yi/ny;
+
+                float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
+                h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
+
+                float x = -1.0f + 2.0f*xt;
+                float y = -1.0f + 2.0f*yt;
+                float z = 0.2f*h;
+
+                float c = 0.5f+z;
+                vdbColor(c, 0.5f*c, 0.2f*c, 1.0f);
+                vdbVertex(x, y, z);
+            }
+        }
+        vdbEnd();
+
+        ImGui::TextWrapped("... or this 3D landscape (use mouse to move camera around).");
+    }
+    VDBE();
+
+    VDBB("Hovering");
+    {
+        vdbDepthTest(true);
+        vdbDepthWrite(true);
+        vdbClearDepth(1.0f);
+        vdbTranslate(0,0,-3);
+        vdbRotateXYZ(-0.9f,0,0.7f + 0.3f*vdbGetMousePosNDC().x);
+        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
+        vdbLineWidth(1.0f);
+        vdbColor(0.4f,0.4f,0.4f,1);
+        vdbLineGrid(-1,+1,-1,+1, 16);
+        vdbPointSize3D(0.05f);
+        vdbPointSegments(16);
+        vdbBeginPoints();
+        srand(128);
+        for (int i = 0; i < 256; i++)
+        {
+            float x = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            float y = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            float z = -1.0f + 2.0f*(rand()%1000)/1000.0f;
+            if (vdbWasMouseOver(x,y,z))
+            {
+                ImGui::SetTooltip("You can check if the mouse is over something,\nlike this dot, which has index %d", i);
+            }
+            vdbColor(0.5f+0.5f*x,0.5f+0.5f*y,0.5f+0.5f*z,1.0f);
+            vdbVertex(x,y,z);
+        }
+        vdbEnd();
+
+        vdbDepthTest(false);
+        vdbPoints(16.0f);
+        vdbColor(1.0f, 0.9f, 0.2f, 0.5f);
+        float x, y, z;
+        vdbGetMouseOverIndex(&x, &y, &z);
+        vdbVertex(x, y, z);
+        vdbEnd();
     }
     VDBE();
 
@@ -99,7 +176,7 @@ int main(int, char **)
     {
         vdbLoadImageUint8(0, data, width, height, 3);
         vdbDrawImage(0, VDB_NEAREST, VDB_CLAMP);
-        ImGui::TextWrapped("You can access variables outside the scope.");
+        ImGui::TextWrapped("You can access variables outside the block, like this RGB image.");
     }
     VDBE();
 
@@ -111,136 +188,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("Hovering");
-    {
-        struct item_t { float x,y; };
-        const int num_items = 128;
-        static item_t items[num_items];
-
-        srand(12345);
-        for (int i = 0; i < num_items; i++)
-        {
-            items[i].x = -1.0f + 2.0f*(rand() % 10000)/10000.0f;
-            items[i].y = -1.0f + 2.0f*(rand() % 10000)/10000.0f;
-        }
-
-        vdbOrtho(-1,+1,-1,+1);
-        vdbPoints(8.0f);
-        for (int i = 0; i < num_items; i++)
-        {
-            float x = items[i].x;
-            float y = items[i].y;
-            vdbColor(0.3f, 0.3f, 0.3f, 1.0f);
-            vdbVertex(x, y);
-
-            if (vdbWasMouseOver(x, y))
-                ImGui::SetTooltip("Hovered point\nx = %.2f\ny = %.2f", x, y);
-        }
-        vdbEnd();
-
-        {
-            float x,y;
-            int i = vdbGetMouseOverIndex(&x, &y);
-            vdbPoints(16.0f);
-            vdbColor(1.0f, 0.9f, 0.2f, 0.5f);
-            vdbVertex(x, y);
-            vdbEnd();
-
-            if (i < num_items-1)
-            {
-                float x2 = items[i+1].x;
-                float y2 = items[i+1].y;
-                vdbLines(2.0f);
-                vdbVertex(x, y); vdbVertex(x2, y2);
-                vdbEnd();
-            }
-        }
-
-        ImGui::TextWrapped("You can check if an item you just drew is hovered over by the mouse.");
-    }
-    VDBE();
-
-    VDBB("3D");
-    {
-        static float t = 0.0f; t += 1.0f/60.0f;
-        vdbDepthTest(true);
-        vdbDepthWrite(true);
-        vdbClearDepth(1.0f);
-
-        vdbCameraTurntable();
-        vdbRotateXYZ(-3.14f/2.0f,0,0);
-        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
-        vdbPoints(6.0f);
-        {
-            int nx = 64;
-            int ny = 64;
-            for (int yi = 0; yi <= ny; yi++)
-            for (int xi = 0; xi <= nx; xi++)
-            {
-                float xt = (float)xi/nx;
-                float yt = (float)yi/ny;
-
-                float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
-                h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
-
-                float x = -1.0f + 2.0f*xt;
-                float y = -1.0f + 2.0f*yt;
-                float z = 0.2f*h;
-
-                float c = 0.5f+z;
-                vdbColor(c, 0.5f*c, 0.2f*c, 1.0f);
-                vdbVertex(x, y, z);
-            }
-        }
-        vdbEnd();
-    }
-    VDBE();
-
-    VDBB("3D hover");
-    {
-        vdbDepthTest(true);
-        vdbDepthWrite(true);
-        vdbClearDepth(1.0f);
-        vdbTranslate(0,0,-3);
-        vdbRotateXYZ(-0.9f,0,0.7f + 0.3f*vdbGetMousePosNDC().x);
-        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
-        vdbLines(4.0f);
-        vdbColor(1,1,1, 0.5f);
-        vdbVertex(-1,-1,0); vdbVertex(+1,-1,0);
-        vdbVertex(-1, 0,0); vdbVertex(+1, 0,0);
-        vdbVertex(-1,+1,0); vdbVertex(+1,+1,0);
-        vdbVertex(-1,+1,0); vdbVertex(-1,-1,0);
-        vdbVertex( 0,+1,0); vdbVertex( 0,-1,0);
-        vdbVertex(+1,+1,0); vdbVertex(+1,-1,0);
-        vdbEnd();
-        vdbPoints(8.0f);
-        srand(128);
-        for (int i = 0; i < 256; i++)
-        {
-            float x = -1.0f + 2.0f*(rand()%1000)/1000.0f;
-            float y = -1.0f + 2.0f*(rand()%1000)/1000.0f;
-            float z = -1.0f + 2.0f*(rand()%1000)/1000.0f;
-            if (vdbWasMouseOver(x,y,z))
-            {
-                ImGui::SetTooltip("%d", i);
-            }
-            vdbColor(0.5f+0.5f*x,0.5f+0.5f*y,0.5f+0.5f*z,1.0f);
-            vdbVertex(x,y,z);
-        }
-        vdbEnd();
-
-        vdbPoints(16.0f);
-        vdbColor(1.0f, 0.9f, 0.2f, 0.5f);
-        float x, y, z;
-        vdbGetMouseOverIndex(&x, &y, &z);
-        vdbVertex(x, y, z);
-        vdbEnd();
-
-        ImGui::TextWrapped("Hovering also works in 3D");
-    }
-    VDBE();
-
-    VDBB("point clouds");
+    VDBB("Filters");
     {
         const int N = 8;
         const int num_points = N*N*N;
@@ -317,7 +265,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("3d");
+    VDBB("Notes");
     {
         static float t = 0.0f;
         t += 1.0f/60.0f;
@@ -335,7 +283,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("mouse position NDC");
+    VDBB("Mouse");
     {
         vdbClearColor(0.3f,0.5f,0.7f);
         vdbLines(2.0f);
@@ -350,7 +298,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("render textures");
+    VDBB("RenderTexture");
     {
         static int tile = 0;
         int tiles_x = 16;
