@@ -172,6 +172,15 @@ void vdbUnbindRenderTexture();
 void vdbBindRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
+inline bool vdbLoopFrame(const char *label)
+{
+    static bool need_end = false;
+    if (need_end) vdbEndFrame();
+    if (vdbBeginFrame(label)) { need_end = true; return true; }
+    else                      { need_end = false; return false; }
+}
+#define VDB(label) while (vdbLoopFrame(label))
+
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
 
