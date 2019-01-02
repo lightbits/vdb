@@ -1,4 +1,4 @@
-#include "colormap_inferno.h"
+#include "cmap/inferno.cpp"
 
 GLenum TextureFormatToGL(vdbTextureFormat format)
 {
@@ -242,8 +242,8 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
 
     // upload 1D colormap as 2D texture of height 1
     static GLuint color_map_tex = TexImage2D(
-        colormap_inferno,
-        colormap_inferno_length,
+        cmap_inferno,
+        cmap_inferno_length,
         1,
         GL_RGB,
         GL_FLOAT,

@@ -1,6 +1,6 @@
 #pragma once
 // Red, Green, Blue values (0.0 to 1.0) by linearly increasing source value
-const float colormap_inferno[] = {
+const float cmap_inferno[] = {
 1.46159096e-03f,   4.66127766e-04f,   1.38655200e-02f,
 2.25764007e-03f,   1.29495431e-03f,   1.83311461e-02f,
 3.27943222e-03f,   2.30452991e-03f,   2.37083291e-02f,
@@ -258,4 +258,4 @@ const float colormap_inferno[] = {
 9.87386827e-01f,   9.84287561e-01f,   7.42001547e-01f,
 9.87052509e-01f,   9.91437853e-01f,   7.49504188e-01f
 };
-const int colormap_inferno_length = sizeof(colormap_inferno)/sizeof(colormap_inferno[0])/3;
+const int cmap_inferno_length = sizeof(cmap_inferno)/sizeof(cmap_inferno[0])/3;
