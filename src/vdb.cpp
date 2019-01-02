@@ -1,6 +1,9 @@
-#define assert_LEVEL 2
 #include "SDL.h"
+#ifdef VDB_DEBUG
+#include "glad/glad_3_1_debug.c"
+#else
 #include "glad/glad_3_1_release.c"
+#endif
 #ifdef _WIN32
 #include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
 #undef WIN32_LEAN_AND_MEAN // defined by glad
