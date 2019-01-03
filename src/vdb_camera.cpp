@@ -19,7 +19,11 @@ void vdbCameraTrackball()
         if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= speed*ref_zoom*(1.0f/60.0f);
         if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += speed*ref_zoom*(1.0f/60.0f);
         ref_zoom -= 10.0f*vdbGetMouseWheel()*ref_zoom*(1.0f/60.0f);
+        #if VDB_CAMERA_SMOOTHING==1
         zoom += K_zoom*(ref_zoom - zoom)*(1.0f/60.0f);
+        #else
+        zoom = ref_zoom;
+        #endif
     }
 
     // translation
@@ -37,7 +41,11 @@ void vdbCameraTrackball()
         vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
         ref_T = ref_T + in_world_vel*(1.0f/60.0f);
+        #if VDB_CAMERA_SMOOTHING==1
         T = T + K_translate*(ref_T - T)*(1.0f/60.0f);
+        #else
+        T = ref_T;
+        #endif
     }
 
     float radius = 1.0f;
@@ -149,9 +157,15 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 
     ref_radius -= ref_radius*K_radius*vdbGetMouseWheel()*1.0f/60.0f;
 
+    #if VDB_CAMERA_SMOOTHING==1
     angle_x += K_track*(ref_angle_x - angle_x)*1.0f/60.0f;
     angle_y += K_track*(ref_angle_y - angle_y)*1.0f/60.0f;
     radius += K_track*(ref_radius - radius)*1.0f/60.0f;
+    #else
+    angle_x = ref_angle_x;
+    angle_y = ref_angle_y;
+    radius = ref_radius;
+    #endif
 
     #if 0
     ImGui::Begin("Camera controls");

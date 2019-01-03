@@ -19,6 +19,9 @@
 // Height of default font
 #define VDB_FONT_HEIGHT        18.0f
 
+// When enabled (1), camera motion (translation, rotation, zooming) is smoothed
+#define VDB_CAMERA_SMOOTHING 0
+
 // When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
 #define VDB_FLIP_IMAGE_TEXEL_Y 0
 
