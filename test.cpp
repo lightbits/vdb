@@ -1,17 +1,15 @@
 // HOW TO COMPILE
-// You will need SDL2 (http://www.libsdl.org):
-// Linux:
-//   apt-get install libsdl2-dev
-// Mac OS X:
-//   brew install sdl2
-// MSYS2:
-//   pacman -S mingw-w64-i686-SDL
+// You will need SDL2 (https://wiki.libsdl.org/Installation):
+// Linux: apt-get install libsdl2-dev
+// OSX: brew install sdl2
+// MSYS2: pacman -S mingw-w64-i686-SDL
+// Windows: Download pre-compiled binaries and place SDL2.dll in executable directory.
 //
 // Then, run the build script for your platform to generate a library version of vdb.
 // (build.bat for Windows, build.sh for Linux and Mac OSX).
 //
-// WINDOWS
-//   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" vdb.lib
+// Windows
+//   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" /LIBPATH:"path\to\sdl2" vdb.lib SDL2.lib SDL2main.lib
 //   Ensure that SDL2.dll is in the executable directory
 //   You may need to also link against opengl32.lib user32.lib gdi32.lib shell32.lib
 //
@@ -21,7 +19,6 @@
 // On Mac OSX
 //   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -framework OpenGL -framework CoreFoundation
 //
-// If you have problems with SDL2 see this page: https://wiki.libsdl.org/Installation
 #include <stdlib.h>
 #include <math.h>
 #include <vdb.h>
