@@ -78,9 +78,9 @@ bool vdbBeginFrame(const char *label)
     {
         vdb::initialized = true;
 
-        settings_t &s = settings;
-        s.LoadOrDefault(VDB_SETTINGS_FILENAME);
-        window::Open(s.window_x, s.window_y, s.window_w, s.window_h);
+        settings.LoadOrDefault(VDB_SETTINGS_FILENAME);
+        window_settings_t ws = settings.window;
+        window::Open(ws.x, ws.y, ws.width, ws.height);
         CheckGLError();
 
         ImGui::CreateContext();

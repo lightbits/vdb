@@ -1,22 +1,7 @@
-namespace camera_parameters
-{
-    static float mouse_sensitivity = 50.0f;
-    static float scroll_sensitivity = 10.0f;
-    static float move_speed_normal = 1.0f;
-    static float move_speed_slow = 0.5f;
-
-    #if VDB_CAMERA_SMOOTHING==1
-    static float Kp_zoom = 5.0f;
-    static float Kp_translate = 5.0f;
-    static float Kp_rotate = 10.0f;
-    #endif
-
-    static float dt = 1.0f/60.0f;
-}
-
 void vdbCameraTrackball()
 {
-    using namespace camera_parameters;
+    camera_settings_t cs = settings.camera;
+    const float dt = 1.0f/60.0f;
 
     static vdbMat4 R0 = vdbMatRotateXYZ(0.0f,0.0f,0.0f);
     static vdbVec4 T0 = vdbVec4(0.0f,0.0f,0.0f,1.0f);
@@ -25,16 +10,16 @@ void vdbCameraTrackball()
     static float zoom = 1.0f;
     static float ref_zoom = zoom;
 
-    float move_speed = move_speed_normal;
-    if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = move_speed_slow;
+    float move_speed = cs.move_speed_normal;
+    if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
 
     // zooming
     {
         if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= move_speed*ref_zoom*dt;
         if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += move_speed*ref_zoom*dt;
-        ref_zoom -= scroll_sensitivity*vdbGetMouseWheel()*ref_zoom*dt;
+        ref_zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*ref_zoom*dt;
         #if VDB_CAMERA_SMOOTHING==1
-        zoom += Kp_zoom*(ref_zoom - zoom)*dt;
+        zoom += cs.Kp_zoom*(ref_zoom - zoom)*dt;
         #else
         zoom = ref_zoom;
         #endif
@@ -56,7 +41,7 @@ void vdbCameraTrackball()
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
         ref_T = ref_T + in_world_vel*dt;
         #if VDB_CAMERA_SMOOTHING==1
-        T = T + Kp_translate*(ref_T - T)*dt;
+        T = T + cs.Kp_translate*(ref_T - T)*dt;
         #else
         T = ref_T;
         #endif
@@ -133,7 +118,8 @@ void vdbCameraTrackball()
 
 void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 {
-    using namespace camera_parameters;
+    camera_settings_t cs = settings.camera;
+    const float dt = 1.0f/60.0f;
 
     static float angle_x = 0.0f;
     static float angle_y = 0.0f;
@@ -157,20 +143,20 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     {
         float dx = vdbGetMousePosNDC().x*aspect - last_mouse_x;
         float dy = vdbGetMousePosNDC().y - last_mouse_y;
-        ref_angle_x += mouse_sensitivity*dy*dt;
-        ref_angle_y -= mouse_sensitivity*dx*dt;
+        ref_angle_x += cs.mouse_sensitivity*dy*dt;
+        ref_angle_y -= cs.mouse_sensitivity*dx*dt;
         last_mouse_x = mouse_x;
         last_mouse_y = mouse_y;
         if (!vdbIsMouseLeftDown())
             dragging = false;
     }
 
-    ref_radius -= ref_radius*scroll_sensitivity*vdbGetMouseWheel()*dt;
+    ref_radius -= ref_radius*cs.scroll_sensitivity*vdbGetMouseWheel()*dt;
 
     #if VDB_CAMERA_SMOOTHING==1
-    angle_x += Kp_rotate*(ref_angle_x - angle_x)*dt;
-    angle_y += Kp_rotate*(ref_angle_y - angle_y)*dt;
-    radius += Kp_zoom*(ref_radius - radius)*dt;
+    angle_x += cs.Kp_rotate*(ref_angle_x - angle_x)*dt;
+    angle_y += cs.Kp_rotate*(ref_angle_y - angle_y)*dt;
+    radius += cs.Kp_zoom*(ref_radius - radius)*dt;
     #else
     angle_x = ref_angle_x;
     angle_y = ref_angle_y;
