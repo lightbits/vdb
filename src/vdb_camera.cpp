@@ -1,26 +1,40 @@
+namespace camera_parameters
+{
+    static float mouse_sensitivity = 50.0f;
+    static float scroll_sensitivity = 10.0f;
+    static float move_speed_normal = 1.0f;
+    static float move_speed_slow = 0.5f;
+
+    #if VDB_CAMERA_SMOOTHING==1
+    static float Kp_zoom = 5.0f;
+    static float Kp_translate = 5.0f;
+    static float Kp_rotate = 10.0f;
+    #endif
+
+    static float dt = 1.0f/60.0f;
+}
+
 void vdbCameraTrackball()
 {
+    using namespace camera_parameters;
+
     static vdbMat4 R0 = vdbMatRotateXYZ(0.0f,0.0f,0.0f);
     static vdbVec4 T0 = vdbVec4(0.0f,0.0f,0.0f,1.0f);
     static vdbMat4 R = R0; // world to camera
     static vdbVec4 T = T0; // camera relative world in world
     static float zoom = 1.0f;
-
-    float speed = 1.0f;
-    if (vdbIsKeyDown(VDB_KEY_LSHIFT)) speed = 0.5f;
-
-    // tracking gain constants
-    static float K_zoom = 5.0f;
-    static float K_translate = 5.0f;
     static float ref_zoom = zoom;
+
+    float move_speed = move_speed_normal;
+    if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = move_speed_slow;
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= speed*ref_zoom*(1.0f/60.0f);
-        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += speed*ref_zoom*(1.0f/60.0f);
-        ref_zoom -= 10.0f*vdbGetMouseWheel()*ref_zoom*(1.0f/60.0f);
+        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= move_speed*ref_zoom*dt;
+        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += move_speed*ref_zoom*dt;
+        ref_zoom -= scroll_sensitivity*vdbGetMouseWheel()*ref_zoom*dt;
         #if VDB_CAMERA_SMOOTHING==1
-        zoom += K_zoom*(ref_zoom - zoom)*(1.0f/60.0f);
+        zoom += Kp_zoom*(ref_zoom - zoom)*dt;
         #else
         zoom = ref_zoom;
         #endif
@@ -32,17 +46,17 @@ void vdbCameraTrackball()
         float x = 0.0f;
         float y = 0.0f;
         float z = 0.0f;
-        if (vdbIsKeyDown(VDB_KEY_A))     x = -speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_D))     x = +speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_W))     z = -speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_S))     z = +speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*ref_zoom;
         vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
-        ref_T = ref_T + in_world_vel*(1.0f/60.0f);
+        ref_T = ref_T + in_world_vel*dt;
         #if VDB_CAMERA_SMOOTHING==1
-        T = T + K_translate*(ref_T - T)*(1.0f/60.0f);
+        T = T + Kp_translate*(ref_T - T)*dt;
         #else
         T = ref_T;
         #endif
@@ -119,18 +133,14 @@ void vdbCameraTrackball()
 
 void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 {
+    using namespace camera_parameters;
+
     static float angle_x = 0.0f;
     static float angle_y = 0.0f;
     static float radius = init_radius;
     static float ref_angle_x = 0.0f;
     static float ref_angle_y = 0.0f;
     static float ref_radius = init_radius;
-
-    // todo: multiply with current modelview
-
-    static float K_ref = 50.0f;
-    static float K_track = 10.0f;
-    static float K_radius = 5.0f;
 
     float aspect = vdbGetAspectRatio();
     static bool dragging = false;
@@ -147,34 +157,24 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     {
         float dx = vdbGetMousePosNDC().x*aspect - last_mouse_x;
         float dy = vdbGetMousePosNDC().y - last_mouse_y;
-        ref_angle_x += K_ref*dy*1.0f/60.0f;
-        ref_angle_y -= K_ref*dx*1.0f/60.0f;
+        ref_angle_x += mouse_sensitivity*dy*dt;
+        ref_angle_y -= mouse_sensitivity*dx*dt;
         last_mouse_x = mouse_x;
         last_mouse_y = mouse_y;
         if (!vdbIsMouseLeftDown())
             dragging = false;
     }
 
-    ref_radius -= ref_radius*K_radius*vdbGetMouseWheel()*1.0f/60.0f;
+    ref_radius -= ref_radius*scroll_sensitivity*vdbGetMouseWheel()*dt;
 
     #if VDB_CAMERA_SMOOTHING==1
-    angle_x += K_track*(ref_angle_x - angle_x)*1.0f/60.0f;
-    angle_y += K_track*(ref_angle_y - angle_y)*1.0f/60.0f;
-    radius += K_track*(ref_radius - radius)*1.0f/60.0f;
+    angle_x += Kp_rotate*(ref_angle_x - angle_x)*dt;
+    angle_y += Kp_rotate*(ref_angle_y - angle_y)*dt;
+    radius += Kp_zoom*(ref_radius - radius)*dt;
     #else
     angle_x = ref_angle_x;
     angle_y = ref_angle_y;
     radius = ref_radius;
-    #endif
-
-    #if 0
-    ImGui::Begin("Camera controls");
-    {
-        ImGui::SliderFloat("K_ref", &K_ref, 0.1f, 100.0f);
-        ImGui::SliderFloat("K_track", &K_track, 0.1f, 100.0f);
-        ImGui::SliderFloat("K_radius", &K_radius, 0.1f, 100.0f);
-    }
-    ImGui::End();
     #endif
 
     vdbTranslate(0.0f, 0.0f, -radius);
