@@ -110,7 +110,7 @@ int vdbGetWindowWidth(); // Note: the window size may not be the same as the fra
 int vdbGetWindowHeight();
 
 // vdb_camera.cpp
-void vdbCameraTrackball();
+void vdbCameraTrackball(float init_radius=1.0f);
 void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
 
 // vdb_keyboard.cpp
