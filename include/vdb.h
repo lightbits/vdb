@@ -29,6 +29,7 @@ void vdbDetachGLContext();
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();
+bool vdbIsDifferentLabel();
 
 // vdb_immediate.cpp
 void vdbInverseColor(bool enable);

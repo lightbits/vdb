@@ -51,11 +51,17 @@ namespace vdb
 {
     static bool initialized;
     static bool is_first_frame;
+    static bool is_different_label;
 }
 
 bool vdbIsFirstFrame()
 {
     return vdb::is_first_frame;
+}
+
+bool vdbIsDifferentLabel()
+{
+    return vdb::is_different_label;
 }
 
 void vdbDetachGLContext()
@@ -66,10 +72,11 @@ void vdbDetachGLContext()
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
-    // static const char *prev_label = NULL;
+    static const char *prev_label = NULL;
     static bool is_first_frame = true;
     vdb::is_first_frame = is_first_frame;
-    // prev_label = label;
+    vdb::is_different_label = label != prev_label;
+    prev_label = label; // todo: strdup
     if (skip_label == label)
         return false;
     is_first_frame = false; // todo: first frame detection is janky.

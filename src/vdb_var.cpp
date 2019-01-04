@@ -74,7 +74,7 @@ float vdbSlider1f(const char *name, float vmin, float vmax, float vinit)
 {
     using namespace quick_var;
     quick_var_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame())
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel()) // todo: better way to preserve variables for same-label windows
     {
         var->f.value = vinit;
         var->f.vmin = vmin;
@@ -88,7 +88,7 @@ int vdbSlider1i(const char *name, int vmin, int vmax, int vinit)
 {
     using namespace quick_var;
     quick_var_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame())
+    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->i.value = vinit;
         var->i.vmin = vmin;
@@ -102,7 +102,7 @@ bool vdbToggle(const char *name, bool init)
 {
     using namespace quick_var;
     quick_var_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame())
+    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->t.enabled = init;
         var->name = name;
@@ -114,7 +114,7 @@ bool vdbRadio(const char *name)
 {
     using namespace quick_var;
     quick_var_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame())
+    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->r.index = radiobutton_index++;
         var->name = name;
@@ -126,7 +126,7 @@ bool vdbButton(const char *name)
 {
     using namespace quick_var;
     quick_var_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame())
+    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->name = name;
         var->type = VAR_TYPE_BUTTON;
