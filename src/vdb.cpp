@@ -75,6 +75,7 @@ bool vdbBeginFrame(const char *label)
     static const char *skip_label = NULL;
     static const char *prev_label = NULL;
     static bool is_first_frame = true;
+    static frame_settings_t *frame_settings = NULL;
     vdb::is_first_frame = is_first_frame;
     vdb::is_different_label = label != prev_label;
     prev_label = label; // todo: strdup
@@ -98,6 +99,28 @@ bool vdbBeginFrame(const char *label)
         // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
+    }
+
+    if (vdbIsFirstFrame())
+    {
+        // see if we loaded a frame settings matching this frame's label
+        frame_settings = NULL;
+        for (int i = 0; i < settings.num_frames; i++)
+        {
+            if (strcmp(settings.frames[i].name, label) == 0)
+            {
+                frame_settings = settings.frames + i;
+                break;
+            }
+        }
+
+        // otherwise add a new one (but only if there's space)
+        if (!frame_settings && settings.num_frames < MAX_FRAME_SETTINGS)
+        {
+            frame_settings = settings.frames + (settings.num_frames++);
+            frame_settings->name = strdup(label);
+            // todo: initialize default frame settings
+        }
     }
 
     window::EnsureGLContextIsCurrent();
@@ -182,6 +205,36 @@ bool vdbBeginFrame(const char *label)
     }
 
     CheckGLError();
+
+    #if 0
+    if (frame_settings)
+    {
+        frame_settings_t *fs = frame_settings;
+        if (fs->camera_type == VDB_CAMERA_TRACKBALL)
+        {
+            vdbCameraTrackball(fs->init_radius);
+            vdbDepthTest(true);
+            vdbDepthWrite(true);
+            vdbClearDepth(1.0f);
+        }
+        else if (fs->camera_type == VDB_CAMERA_TURNTABLE)
+        {
+            vdbCameraTurntable(fs->init_radius, fs->init_look_at);
+            vdbDepthTest(true);
+            vdbDepthWrite(true);
+            vdbClearDepth(1.0f);
+        }
+        else // 2D
+        {
+
+        }
+
+        if (fs->projection_type == VDB_ORTHOGRAPHIC)
+            vdbOrtho(fs->left, fs->right, fs->bottom, fs->top);
+        else if (fs->projection_type == VDB_PERSPECTIVE)
+            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+    }
+    #endif
 
     return true;
 }

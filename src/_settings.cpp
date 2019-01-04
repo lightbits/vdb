@@ -1,6 +1,54 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+enum camera_type_t { VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
+enum projection_type_t { VDB_ORTHOGRAPHIC, VDB_PERSPECTIVE };
+enum { MAX_FRAME_SETTINGS = 1024 };
+
+static projection_type_t ProjectionTypeFromStr(const char *str)
+{
+    if (strcmp(str, "Orthographic") == 0) return VDB_ORTHOGRAPHIC;
+    else if (strcmp(str, "Perspective") == 0) return VDB_PERSPECTIVE;
+    return VDB_ORTHOGRAPHIC;
+}
+
+static camera_type_t CameraTypeFromStr(const char *str)
+{
+    if (strcmp(str, "2D") == 0) return VDB_CAMERA_2D;
+    else if (strcmp(str, "Trackball") == 0) return VDB_CAMERA_TRACKBALL;
+    else if (strcmp(str, "Turntable") == 0) return VDB_CAMERA_TURNTABLE;
+    return VDB_CAMERA_2D;
+}
+
+static const char *ProjectionTypeToStr(projection_type_t type)
+{
+    if (type == VDB_ORTHOGRAPHIC) return "Orthographic";
+    else if (type == VDB_PERSPECTIVE) return "Perspective";
+    return "Orthographic";
+}
+
+static const char *CameraTypeToStr(camera_type_t type)
+{
+    if (type == VDB_CAMERA_2D) return "2D";
+    else if (type == VDB_CAMERA_TRACKBALL) return "Trackball";
+    else if (type == VDB_CAMERA_TURNTABLE) return "Turntable";
+    return "2D";
+}
+
+struct frame_settings_t
+{
+    const char *name;
+    camera_type_t camera_type;
+    projection_type_t projection_type;
+    float init_radius;
+    vdbVec3 init_look_at;
+    float y_fov;
+    float min_depth;
+    float max_depth;
+    float left,right,bottom,top;
+    bool aspect;
+};
+
 struct camera_settings_t
 {
     float mouse_sensitivity;
@@ -23,6 +71,8 @@ struct settings_t
 {
     camera_settings_t camera;
     window_settings_t window;
+    frame_settings_t frames[MAX_FRAME_SETTINGS];
+    int num_frames;
     bool never_ask_on_exit;
 
     void LoadOrDefault(const char *filename);
@@ -45,6 +95,7 @@ void settings_t::LoadOrDefault(const char *filename)
     window.width = 1000;
     window.height = 600;
     never_ask_on_exit = false;
+    num_frames = 0;
 
     FILE *f = fopen(filename, "rb");
     if (!f) return;
@@ -53,13 +104,15 @@ void settings_t::LoadOrDefault(const char *filename)
     if (file_size <= 0)        { fclose(f); return; }
     if (fseek(f, 0, SEEK_SET)) { fclose(f); return; }
 
+    frame_settings_t *frame = NULL;
     char *line = (char*)malloc(file_size);
+    char *str = (char*)malloc(file_size);
     while (fgets(line, file_size, f))
     {
         int x,y;
         int i;
         float f;
-        if      (sscanf(line, "Pos=%d,%d", &x, &y) == 2)        { window.x = x; window.y = y; }
+        if (sscanf(line, "Pos=%d,%d", &x, &y) == 2)             { window.x = x; window.y = y; }
         else if (sscanf(line, "Size=%d,%d", &x, &y) == 2)       { window.width = x; window.height = y; }
         else if (sscanf(line, "NeverAskOnExit=%d", &i) == 1)    { never_ask_on_exit = (i != 0); }
         else if (sscanf(line, "MouseSensitivity=%f", &f) == 1)  { camera.mouse_sensitivity = f; }
@@ -69,13 +122,26 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_zoom=%f", &f) == 1)           { camera.Kp_zoom = f; }
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)      { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)         { camera.Kp_rotate = f; }
+        else if (sscanf(line, "[Frame]=%s", str) == 1)
+        {
+            assert(num_frames <= MAX_FRAME_SETTINGS);
+            frame = frames + (num_frames++);
+            frame->name = strdup(str);
+        }
+        else if (frame && sscanf(line, "Camera=%s", str) == 1)     { frame->camera_type = CameraTypeFromStr(str); }
+        else if (frame && sscanf(line, "Projection=%s", str) == 1) { frame->projection_type = ProjectionTypeFromStr(str); }
+        else if (frame && sscanf(line, "YFov=%f", &f) == 1)        { frame->y_fov = f; }
+        else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)    { frame->min_depth = f; }
+        else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)    { frame->max_depth = f; }
     }
     free(line);
+    free(str);
     fclose(f);
 }
 
 void settings_t::Save(const char *filename)
 {
+    // todo: don't save frame_settings that were not used
     FILE *f = fopen(filename, "wb+");
     if (!f)
     {
@@ -93,5 +159,15 @@ void settings_t::Save(const char *filename)
     fprintf(f, "Kp_zoom=%f\n", camera.Kp_zoom);
     fprintf(f, "Kp_translate=%f\n", camera.Kp_translate);
     fprintf(f, "Kp_rotate=%f\n", camera.Kp_rotate);
+    for (int i = 0; i < num_frames; i++)
+    {
+        frame_settings_t *frame = frames + i;
+        fprintf(f, "[Frame]=%s\n", frame->name);
+        fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
+        fprintf(f, "Projection=%s\n", ProjectionTypeToStr(frame->projection_type));
+        fprintf(f, "YFov=%f\n", frame->y_fov);
+        fprintf(f, "MinDepth=%f\n", frame->min_depth);
+        fprintf(f, "MaxDepth=%f\n", frame->max_depth);
+    }
     fclose(f);
 }
