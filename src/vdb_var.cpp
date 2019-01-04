@@ -129,7 +129,7 @@ bool vdbButton(const char *name)
     if (vdbIsFirstFrame())
     {
         var->name = name;
-        var->type = VAR_TYPE_RADIO;
+        var->type = VAR_TYPE_BUTTON;
     }
     return var->b.was_pressed;
 }
