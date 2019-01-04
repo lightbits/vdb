@@ -26,11 +26,13 @@ namespace quick_var
 
     static void EndFrame()
     {
+        static bool is_hovered = false;
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
         ImGui::SetNextWindowBgAlpha(0.0f);
         ImGui::SetNextWindowPos(ImVec2(0,0));
-        ImGui::SetNextWindowSize(ImVec2(0.4f*vdbGetWindowWidth(), -1));
+        ImGui::SetNextWindowSize(ImVec2(200.0f, -1));
         ImGuiWindowFlags flags =
             ImGuiWindowFlags_NoTitleBar |
             ImGuiWindowFlags_NoResize |
@@ -39,6 +41,8 @@ namespace quick_var
             ImGuiWindowFlags_NoScrollbar |
             ImGuiWindowFlags_NoCollapse;
         ImGui::Begin("Quick Var##vdb", NULL, flags);
+        is_hovered = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
+        ImGui::PushItemWidth(120.0f);
         // ImGui::Begin("Debug##Default");
         for (int i = 0; i < var_index; i++)
         {
@@ -52,7 +56,9 @@ namespace quick_var
             else if (var->type == VAR_TYPE_RADIO)
                 ImGui::RadioButton(var->name, &active_radiobutton_index, var->r.index);
         }
+        ImGui::PopItemWidth();
         ImGui::End();
+        ImGui::PopStyleVar();
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();
     }
