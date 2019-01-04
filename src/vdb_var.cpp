@@ -1,13 +1,17 @@
-enum quick_var_type_t { VAR_TYPE_FLOAT, VAR_TYPE_INT, VAR_TYPE_TOGGLE, VAR_TYPE_RADIO };
+enum quick_var_type_t { VAR_TYPE_BUTTON, VAR_TYPE_FLOAT, VAR_TYPE_INT, VAR_TYPE_TOGGLE, VAR_TYPE_RADIO };
 
 struct quick_var_t
 {
     const char *name;
     quick_var_type_t type;
-    struct float_var_t { float value; float vmin; float vmax; } f;
-    struct int_var_t { int value; int vmin; int vmax; } i;
-    struct bool_var_t { bool enabled; } b;
-    struct radio_var_t { int index; } r;
+    union
+    {
+        struct float_var_t { float value; float vmin; float vmax; } f;
+        struct int_var_t { int value; int vmin; int vmax; } i;
+        struct toggle_var_t { bool enabled; } t;
+        struct radio_var_t { int index; } r;
+        struct button_var_t { bool was_pressed; } b;
+    };
 };
 
 namespace quick_var
@@ -52,9 +56,11 @@ namespace quick_var
             else if (var->type == VAR_TYPE_INT)
                 ImGui::SliderInt(var->name, &var->i.value, var->i.vmin, var->i.vmax);
             else if (var->type == VAR_TYPE_TOGGLE)
-                ImGui::Checkbox(var->name, &var->b.enabled);
+                ImGui::Checkbox(var->name, &var->t.enabled);
             else if (var->type == VAR_TYPE_RADIO)
                 ImGui::RadioButton(var->name, &active_radiobutton_index, var->r.index);
+            else if (var->type == VAR_TYPE_BUTTON)
+                var->b.was_pressed = ImGui::Button(var->name);
         }
         ImGui::PopItemWidth();
         ImGui::End();
@@ -98,11 +104,11 @@ bool vdbToggle(const char *name, bool init)
     quick_var_t *var = vars + (var_index++);
     if (vdbIsFirstFrame())
     {
-        var->b.enabled = init;
+        var->t.enabled = init;
         var->name = name;
         var->type = VAR_TYPE_TOGGLE;
     }
-    return var->b.enabled;
+    return var->t.enabled;
 }
 bool vdbRadio(const char *name)
 {
@@ -115,4 +121,15 @@ bool vdbRadio(const char *name)
         var->type = VAR_TYPE_RADIO;
     }
     return var->r.index == active_radiobutton_index;
+}
+bool vdbButton(const char *name)
+{
+    using namespace quick_var;
+    quick_var_t *var = vars + (var_index++);
+    if (vdbIsFirstFrame())
+    {
+        var->name = name;
+        var->type = VAR_TYPE_RADIO;
+    }
+    return var->b.was_pressed;
 }
