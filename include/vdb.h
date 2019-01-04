@@ -172,6 +172,12 @@ void vdbUnbindRenderTexture();
 void vdbBindRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
+// These generate easily accessible GUI elements. Useful for simple prototypes.
+float vdbSlider1f(const char *name, float vmin, float vmax, float v_init);
+int vdbSlider1i(const char *name, int vmin, int vmax, int v_init);
+bool vdbToggle(const char *name, bool init);
+bool vdbRadio(const char *name);
+
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
 

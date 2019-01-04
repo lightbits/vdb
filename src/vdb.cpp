@@ -45,6 +45,7 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
 #include "vdb_filter.cpp"
+#include "vdb_var.cpp"
 
 namespace vdb
 {
@@ -127,6 +128,7 @@ bool vdbBeginFrame(const char *label)
     immediate_util::NewFrame();
     immediate::NewFrame();
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
+    quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -177,6 +179,8 @@ bool vdbBeginFrame(const char *label)
 
 void vdbEndFrame()
 {
+    quick_var::EndFrame();
+
     ResetImmediateGLState();
 
     if (filter::taa_begun) vdbEndTAA();
