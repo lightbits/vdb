@@ -216,6 +216,7 @@ bool vdbBeginFrame(const char *label)
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
+            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
         }
         else if (fs->camera_type == VDB_CAMERA_TURNTABLE)
         {
@@ -223,16 +224,12 @@ bool vdbBeginFrame(const char *label)
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-        }
-        else // 2D
-        {
-
-        }
-
-        if (fs->projection_type == VDB_ORTHOGRAPHIC)
-            vdbOrtho(fs->left, fs->right, fs->bottom, fs->top);
-        else if (fs->projection_type == VDB_PERSPECTIVE)
             vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+        }
+        else
+        {
+            vdbCamera2D(fs->init_radius);
+        }
     }
     #endif
 

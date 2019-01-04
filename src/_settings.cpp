@@ -2,15 +2,7 @@
 #include <stdlib.h>
 
 enum camera_type_t { VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
-enum projection_type_t { VDB_ORTHOGRAPHIC, VDB_PERSPECTIVE };
 enum { MAX_FRAME_SETTINGS = 1024 };
-
-static projection_type_t ProjectionTypeFromStr(const char *str)
-{
-    if (strcmp(str, "Orthographic") == 0) return VDB_ORTHOGRAPHIC;
-    else if (strcmp(str, "Perspective") == 0) return VDB_PERSPECTIVE;
-    return VDB_ORTHOGRAPHIC;
-}
 
 static camera_type_t CameraTypeFromStr(const char *str)
 {
@@ -18,13 +10,6 @@ static camera_type_t CameraTypeFromStr(const char *str)
     else if (strcmp(str, "Trackball") == 0) return VDB_CAMERA_TRACKBALL;
     else if (strcmp(str, "Turntable") == 0) return VDB_CAMERA_TURNTABLE;
     return VDB_CAMERA_2D;
-}
-
-static const char *ProjectionTypeToStr(projection_type_t type)
-{
-    if (type == VDB_ORTHOGRAPHIC) return "Orthographic";
-    else if (type == VDB_PERSPECTIVE) return "Perspective";
-    return "Orthographic";
 }
 
 static const char *CameraTypeToStr(camera_type_t type)
@@ -39,14 +24,15 @@ struct frame_settings_t
 {
     const char *name;
     camera_type_t camera_type;
-    projection_type_t projection_type;
+
+    // camera initialization parameters
     float init_radius;
     vdbVec3 init_look_at;
+
+    // perspective projection parameters
     float y_fov;
     float min_depth;
     float max_depth;
-    float left,right,bottom,top;
-    bool aspect;
 };
 
 struct camera_settings_t
@@ -128,11 +114,11 @@ void settings_t::LoadOrDefault(const char *filename)
             frame = frames + (num_frames++);
             frame->name = strdup(str);
         }
-        else if (frame && sscanf(line, "Camera=%s", str) == 1)     { frame->camera_type = CameraTypeFromStr(str); }
-        else if (frame && sscanf(line, "Projection=%s", str) == 1) { frame->projection_type = ProjectionTypeFromStr(str); }
-        else if (frame && sscanf(line, "YFov=%f", &f) == 1)        { frame->y_fov = f; }
-        else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)    { frame->min_depth = f; }
-        else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)    { frame->max_depth = f; }
+        else if (frame && sscanf(line, "Camera=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
+        else if (frame && sscanf(line, "CameraRadius=%f", &f) == 1) { frame->init_radius = f; }
+        else if (frame && sscanf(line, "YFov=%f", &f) == 1)         { frame->y_fov = f; }
+        else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)     { frame->min_depth = f; }
+        else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)     { frame->max_depth = f; }
     }
     free(line);
     free(str);
@@ -164,7 +150,7 @@ void settings_t::Save(const char *filename)
         frame_settings_t *frame = frames + i;
         fprintf(f, "[Frame]=%s\n", frame->name);
         fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
-        fprintf(f, "Projection=%s\n", ProjectionTypeToStr(frame->projection_type));
+        fprintf(f, "CameraRadius=%f\n", frame->init_radius);
         fprintf(f, "YFov=%f\n", frame->y_fov);
         fprintf(f, "MinDepth=%f\n", frame->min_depth);
         fprintf(f, "MaxDepth=%f\n", frame->max_depth);
