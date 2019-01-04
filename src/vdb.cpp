@@ -27,7 +27,8 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "_gl_error.cpp"
 #include "_settings.cpp"
 #include "_framegrab.cpp"
-#include "_source_sans_pro.cpp"
+#include "_open_sans_regular.cpp"
+// #include "_source_sans_pro.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
@@ -94,7 +95,8 @@ bool vdbBeginFrame(const char *label)
         ImGui::CreateContext();
         ImGui_ImplSdlGL3_Init(window::sdl_window);
         ImGui::StyleColorsDark();
-        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
+        // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
+        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
     }
 
