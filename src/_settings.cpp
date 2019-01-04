@@ -148,7 +148,7 @@ void settings_t::Save(const char *filename)
     for (int i = 0; i < num_frames; i++)
     {
         frame_settings_t *frame = frames + i;
-        fprintf(f, "[Frame]=%s\n", frame->name);
+        fprintf(f, "\n[Frame]=%s\n", frame->name);
         fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
         fprintf(f, "CameraRadius=%f\n", frame->init_radius);
         fprintf(f, "YFov=%f\n", frame->y_fov);

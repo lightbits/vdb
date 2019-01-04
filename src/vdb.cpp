@@ -53,6 +53,7 @@ namespace vdb
     static bool initialized;
     static bool is_first_frame;
     static bool is_different_label;
+    static frame_settings_t frame_settings;
 }
 
 bool vdbIsFirstFrame()
@@ -104,23 +105,32 @@ bool vdbBeginFrame(const char *label)
     if (vdbIsFirstFrame())
     {
         // see if we loaded a frame settings matching this frame's label
-        frame_settings = NULL;
+        frame_settings_t *fs = NULL;
         for (int i = 0; i < settings.num_frames; i++)
         {
             if (strcmp(settings.frames[i].name, label) == 0)
             {
-                frame_settings = settings.frames + i;
+                fs = settings.frames + i;
                 break;
             }
         }
 
         // otherwise add a new one (but only if there's space)
-        if (!frame_settings && settings.num_frames < MAX_FRAME_SETTINGS)
+        if (!fs && settings.num_frames < MAX_FRAME_SETTINGS)
         {
-            frame_settings = settings.frames + (settings.num_frames++);
-            frame_settings->name = strdup(label);
-            // todo: initialize default frame settings
+            fs = settings.frames + (settings.num_frames++);
+            fs->name = strdup(label);
+            fs->camera_type = VDB_CAMERA_2D;
+            fs->init_radius = 1.0f;
+            fs->init_look_at = vdbVec3(0.0f, 0.0f, 0.0f);
+            fs->y_fov = 0.7f;
+            fs->min_depth = 0.1f;
+            fs->max_depth = 50.0f;
         }
+
+        assert(fs);
+
+        vdb::frame_settings = *fs;
     }
 
     window::EnsureGLContextIsCurrent();
@@ -206,29 +216,28 @@ bool vdbBeginFrame(const char *label)
 
     CheckGLError();
 
-    #if 0
-    if (frame_settings)
+    #if 1
     {
-        frame_settings_t *fs = frame_settings;
-        if (fs->camera_type == VDB_CAMERA_TRACKBALL)
+        frame_settings_t fs = vdb::frame_settings;
+        if (fs.camera_type == VDB_CAMERA_TRACKBALL)
         {
-            vdbCameraTrackball(fs->init_radius);
+            vdbCameraTrackball(fs.init_radius);
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+            vdbPerspective(fs.y_fov, fs.min_depth, fs.max_depth);
         }
-        else if (fs->camera_type == VDB_CAMERA_TURNTABLE)
+        else if (fs.camera_type == VDB_CAMERA_TURNTABLE)
         {
-            vdbCameraTurntable(fs->init_radius, fs->init_look_at);
+            vdbCameraTurntable(fs.init_radius, fs.init_look_at);
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+            vdbPerspective(fs.y_fov, fs.min_depth, fs.max_depth);
         }
         else
         {
-            vdbCamera2D(fs->init_radius);
+            vdbCamera2D(fs.init_radius);
         }
     }
     #endif
