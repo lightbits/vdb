@@ -111,6 +111,8 @@ int vdbGetWindowWidth(); // Note: the window size may not be the same as the fra
 int vdbGetWindowHeight();
 
 // vdb_camera.cpp
+// These overwrite the view model matrix (i.e. they call vdbLoadMatrix internally; not vdbMultMatrix).
+void vdbCamera2D(float init_radius=1.0f);
 void vdbCameraTrackball(float init_radius=1.0f);
 void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
 

@@ -1,3 +1,81 @@
+enum camera_aspect_mode_t { VDB_STRETCH_TO_FIT, VDB_EQUAL_AXES };
+
+void vdbCamera2D(float init_zoom)
+{
+    const float dt = 1.0f/60.0f;
+
+    camera_settings_t cs = settings.camera;
+    static float zoom = 1.0f; if (vdbIsFirstFrame() && init_zoom != 0.0f) zoom = init_zoom;
+    static float position_x = 0.0f;
+    static float position_y = 0.0f;
+    static float angle = 0.0f;
+
+    // zooming
+    {
+        if (vdbIsKeyDown(VDB_KEY_Z)) zoom -= cs.scroll_sensitivity*zoom*dt;
+        if (vdbIsKeyDown(VDB_KEY_X)) zoom += cs.scroll_sensitivity*zoom*dt;
+        zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
+    }
+
+    // rotation
+    {
+        const float pi = 3.14159265359f;
+
+        float aspect = vdbGetAspectRatio();
+        static float last_mouse_angle = 0.0f;
+        float mouse_dx = vdbGetMousePosNDC().x*aspect;
+        float mouse_dy = vdbGetMousePosNDC().y;
+        float mouse_angle = atan2f(mouse_dy, mouse_dx);
+        float delta_angle = mouse_angle - last_mouse_angle;
+        last_mouse_angle = mouse_angle;
+        if (vdbIsMouseRightDown() && fabsf(delta_angle) < 1.9f*pi)
+        {
+            angle += cs.mouse_sensitivity*delta_angle*dt;
+        }
+
+        if (angle < 0.0f) angle += 2.0f*pi;
+        if (angle > 2.0f*pi) angle -= 2.0f*pi;
+
+        const float th = 0.05f;
+        if      (fabsf(angle - 0.0f*pi) < th) angle = 0.0f*pi;
+        else if (fabsf(angle - 0.5f*pi) < th) angle = 0.5f*pi;
+        else if (fabsf(angle - 1.0f*pi) < th) angle = 1.0f*pi;
+        else if (fabsf(angle - 1.5f*pi) < th) angle = 1.5f*pi;
+    }
+
+    // translation
+    {
+        float move_speed = cs.move_speed_normal;
+        if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
+
+        float aspect = vdbGetAspectRatio();
+        static bool dragging = false;
+        static float last_mouse_x = 0.0f, last_mouse_y = 0.0f;
+        float mouse_x = vdbGetMousePosNDC().x*aspect;
+        float mouse_y = vdbGetMousePosNDC().y;
+        float dx = mouse_x - last_mouse_x;
+        float dy = mouse_y - last_mouse_y;
+        last_mouse_x = mouse_x;
+        last_mouse_y = mouse_y;
+        if (vdbIsMouseLeftDown())
+        {
+            position_x += cs.mouse_sensitivity*zoom*dx*dt;
+            position_y += cs.mouse_sensitivity*zoom*dy*dt;
+        }
+    }
+
+    {
+        float W = (float)vdbGetFramebufferWidth();
+        float H = (float)vdbGetFramebufferHeight();
+        float A = W < H ? W : H;
+        vdbOrtho(-zoom*W/A, zoom*W/A, -zoom*H/A, zoom*H/A);
+    }
+    {
+        vdbMat4 M = vdbMatTranslate(position_x, position_y, 0.0f)*vdbMatRotateXYZ(0.0f,0.0f,angle);
+        vdbLoadMatrix(M.data);
+    }
+}
+
 void vdbCameraTrackball(float init_radius)
 {
     camera_settings_t cs = settings.camera;
@@ -15,8 +93,8 @@ void vdbCameraTrackball(float init_radius)
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= move_speed*ref_zoom*dt;
-        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += move_speed*ref_zoom*dt;
+        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= cs.scroll_sensitivity*ref_zoom*dt;
+        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += cs.scroll_sensitivity*ref_zoom*dt;
         ref_zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*ref_zoom*dt;
         #if VDB_CAMERA_SMOOTHING==1
         zoom += cs.Kp_zoom*(ref_zoom - zoom)*dt;
@@ -111,9 +189,11 @@ void vdbCameraTrackball(float init_radius)
             dragging = false;
         }
     }
-    vdbVec4 Tc = -(R*T);
-    vdbMat4 M = vdbMatTranslate(Tc.x,Tc.y,Tc.z - zoom)*R;
-    vdbMultMatrix(M.data);
+    {
+        vdbVec4 Tc = -(R*T);
+        vdbMat4 M = vdbMatTranslate(Tc.x,Tc.y,Tc.z - zoom)*R;
+        vdbLoadMatrix(M.data);
+    }
 }
 
 void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
@@ -163,7 +243,9 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     radius = ref_radius;
     #endif
 
-    vdbTranslate(0.0f, 0.0f, -radius);
-    vdbRotateXYZ(-angle_x, -angle_y, 0.0f);
+    {
+        vdbMat4 M = vdbMatTranslate(0.0f, 0.0f, -radius)*vdbMatRotateXYZ(-angle_x, -angle_y, 0.0f);
+        vdbLoadMatrix(M.data);
+    }
 }
 
