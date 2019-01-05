@@ -339,8 +339,6 @@ void vdbEndFrame()
 
     quick_var::EndFrame();
 
-    uistuff::CameraToolBar(vdb::frame_settings);
-
     if (uistuff::sketch_mode_active)
         vdbSketchModePresent();
 
@@ -391,6 +389,7 @@ void vdbEndFrame()
         uistuff::WindowSizeDialog();
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();
+        uistuff::CameraToolBar(vdb::frame_settings);
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }
