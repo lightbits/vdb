@@ -2,9 +2,9 @@
 #include <stdlib.h>
 
 typedef int camera_type_t;
-typedef int grid_mode_t;
+typedef int camera_floor_t;
 enum camera_type_ { VDB_CAMERA_USER=0, VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
-enum grid_mode_ { VDB_GRID_XY=0, VDB_GRID_XZ, VDB_GRID_YZ };
+enum camera_floor_ { VDB_FLOOR_XZ=0, VDB_FLOOR_XY, VDB_FLOOR_YZ };
 enum { MAX_FRAME_SETTINGS = 1024 };
 
 static camera_type_t CameraTypeFromStr(const char *str)
@@ -25,19 +25,19 @@ static const char *CameraTypeToStr(camera_type_t type)
     return "2D";
 }
 
-static grid_mode_t GridModeFromStr(const char *str)
+static camera_floor_t CameraFloorFromStr(const char *str)
 {
-    if (strcmp(str, "XY") == 0) return VDB_GRID_XY;
-    else if (strcmp(str, "XZ") == 0) return VDB_GRID_XZ;
-    else if (strcmp(str, "YZ") == 0) return VDB_GRID_YZ;
-    return VDB_GRID_XZ;
+    if (strcmp(str, "XY") == 0) return VDB_FLOOR_XY;
+    else if (strcmp(str, "XZ") == 0) return VDB_FLOOR_XZ;
+    else if (strcmp(str, "YZ") == 0) return VDB_FLOOR_YZ;
+    return VDB_FLOOR_XZ;
 }
 
-static const char *GridModeToStr(grid_mode_t mode)
+static const char *CameraFloorToStr(camera_floor_t mode)
 {
-    if (mode == VDB_GRID_XY) return "XY";
-    else if (mode == VDB_GRID_XZ) return "XZ";
-    else if (mode == VDB_GRID_YZ) return "YZ";
+    if (mode == VDB_FLOOR_XY) return "XY";
+    else if (mode == VDB_FLOOR_XZ) return "XZ";
+    else if (mode == VDB_FLOOR_YZ) return "YZ";
     return "XZ";
 }
 
@@ -55,9 +55,11 @@ struct frame_settings_t
     float min_depth;
     float max_depth;
 
+    camera_floor_t camera_floor;
     bool grid_visible;
-    grid_mode_t grid_mode;
     float grid_scale;
+    bool cube_visible;
+    float cube_scale;
 };
 
 struct camera_settings_t
@@ -102,7 +104,9 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->max_depth = 50.0f;
     fs->grid_visible = false;
     fs->grid_scale = 10.0f;
-    fs->grid_mode = VDB_GRID_XZ;
+    fs->camera_floor = VDB_FLOOR_XZ;
+    fs->cube_visible = false;
+    fs->cube_scale = 1.0f;
 }
 
 void settings_t::LoadOrDefault(const char *filename)
@@ -159,8 +163,10 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)     { frame->min_depth = f; }
         else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)     { frame->max_depth = f; }
         else if (frame && sscanf(line, "GridVisible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "Grid=%s", &str) == 1)       { frame->grid_mode = GridModeFromStr(str); }
         else if (frame && sscanf(line, "GridScale=%f", &f) == 1)    { frame->grid_scale = f; }
+        else if (frame && sscanf(line, "Floor=%s", &str) == 1)      { frame->camera_floor = CameraFloorFromStr(str); }
+        else if (frame && sscanf(line, "CubeVisible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "CubeScale=%f", &f) == 1)    { frame->cube_scale = f; }
     }
     free(line);
     free(str);
@@ -201,8 +207,10 @@ void settings_t::Save(const char *filename)
                 fprintf(f, "MaxDepth=%f\n", frame->max_depth);
             }
             fprintf(f, "GridVisible=%d\n", frame->grid_visible ? 1 : 0);
-            fprintf(f, "GridMode=%s\n", GridModeToStr(frame->grid_mode));
             fprintf(f, "GridScale=%f", frame->grid_scale);
+            fprintf(f, "Floor=%s\n", CameraFloorToStr(frame->camera_floor));
+            fprintf(f, "CubeVisible=%d\n", frame->cube_visible ? 1 : 0);
+            fprintf(f, "CubeScale=%f", frame->cube_scale);
         }
     }
     fclose(f);

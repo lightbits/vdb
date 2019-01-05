@@ -76,10 +76,14 @@ static void uistuff::CameraToolBar(frame_settings_t *fs)
         ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL); ImGui::SameLine();
         ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
         ImGui::Text("Grid:");
-        ImGui::Checkbox("Show grid", &fs->grid_visible);
-        ImGui::RadioButton("XY", &fs->grid_mode, VDB_GRID_XY); ImGui::SameLine();
-        ImGui::RadioButton("XZ", &fs->grid_mode, VDB_GRID_XZ); ImGui::SameLine();
-        ImGui::RadioButton("YZ", &fs->grid_mode, VDB_GRID_YZ);
+        ImGui::Checkbox("Show grid", &fs->grid_visible); ImGui::SameLine();
+        ImGui::DragFloat("Scale##grid", &fs->grid_scale);
+        ImGui::Checkbox("Show cube", &fs->cube_visible); ImGui::SameLine();
+        ImGui::DragFloat("Scale##cube", &fs->cube_scale);
+        ImGui::Text("Floor:");
+        ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
+        ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
+        ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
 
         if (ImGui::Button("OK##camera settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_RETURN])
         {

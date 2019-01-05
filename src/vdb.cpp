@@ -285,12 +285,18 @@ bool vdbBeginFrame(const char *label)
                 vdbPopMatrix();
             }
 
-            // apply camera pre-transformation
-            // todo: rename this to make it apparent that XY,YZ,XZ setting is independent of grid being drawn or not
-            switch (fs->grid_mode)
+            if (fs->cube_visible)
             {
-                case VDB_GRID_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
-                case VDB_GRID_YZ: vdbMultMatrix(vdbInitMat4(0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1).data); break;
+                vdbLineWidth(1.0f);
+                vdbColor(1.0f, 1.0f, 1.0f, 1.0f);
+                vdbLineCube(fs->cube_scale, fs->cube_scale, fs->cube_scale);
+            }
+
+            // apply camera pre-transformation
+            switch (fs->camera_floor)
+            {
+                case VDB_FLOOR_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
+                case VDB_FLOOR_YZ: vdbMultMatrix(vdbInitMat4(0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1).data); break;
             }
 
             // draw colored XYZ axes (only the two axes of the grid plane though)
@@ -298,7 +304,7 @@ bool vdbBeginFrame(const char *label)
             {
                 vdbLineWidth(1.0f);
                 vdbBeginLines();
-                if (fs->grid_mode != VDB_GRID_YZ) // hide x
+                if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
                 {
                     vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
                     vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -306,7 +312,7 @@ bool vdbBeginFrame(const char *label)
                     vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
                 }
 
-                if (fs->grid_mode != VDB_GRID_XZ) // hide y
+                if (fs->camera_floor != VDB_FLOOR_XZ) // hide y
                 {
                     vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
                     vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -314,7 +320,7 @@ bool vdbBeginFrame(const char *label)
                     vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
                 }
 
-                if (fs->grid_mode != VDB_GRID_XY) // hide z
+                if (fs->camera_floor != VDB_FLOOR_XY) // hide z
                 {
                     vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
                     vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
