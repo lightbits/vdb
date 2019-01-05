@@ -242,9 +242,7 @@ bool vdbBeginFrame(const char *label)
         if (fs->camera_type != VDB_CAMERA_2D)
         {
             // apply camera pre-transformation
-            if (fs->grid_visible)
-                vdbPushMatrix();
-
+            vdbPushMatrix(); // save current state for later (grid drawing)
             switch (fs->camera_floor)
             {
                 case VDB_FLOOR_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
@@ -264,7 +262,8 @@ void vdbEndFrame()
     if (filter::taa_begun) vdbEndTAA();
     if (filter::tss_begun) vdbEndTSS();
 
-    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER)
+    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER &&
+        vdb::frame_settings->camera_type != VDB_CAMERA_2D)
     {
         frame_settings_t *fs = vdb::frame_settings;
         float scale = fs->grid_scale;
@@ -278,10 +277,9 @@ void vdbEndFrame()
             vdbLineCube(fs->cube_scale, fs->cube_scale, fs->cube_scale);
         }
 
-        // draw major and minor grid lines
+        // draw colored XYZ axes (only the two axes of the grid plane though)
         if (fs->grid_visible)
         {
-            // draw colored XYZ axes (only the two axes of the grid plane though)
             vdbLineWidth(1.0f);
             vdbBeginLines();
             if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
@@ -308,9 +306,14 @@ void vdbEndFrame()
                 vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
             }
             vdbEnd();
+        }
 
-            // revert camera pre-transformation (grid is always drawn in xz camera space)
-            vdbPopMatrix();
+        // revert camera pre-transformation (grid is always drawn in xz camera space)
+        vdbPopMatrix();
+
+        // draw major and minor grid lines
+        if (fs->grid_visible)
+        {
             vdbLineWidth(1.0f);
             vdbPushMatrix();
             vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
@@ -321,7 +324,7 @@ void vdbEndFrame()
                 for (int minor = 1; minor <= 9; minor++)
                 {
                     float t = major/10.0f + minor/100.0f;
-                    float alpha = 0.31f*(1.0f - fabsf(t));
+                    float alpha = 0.25f*(1.0f - fabsf(t));
                     alpha *= alpha;
                     vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
                     vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
@@ -337,7 +340,7 @@ void vdbEndFrame()
                 if (major == 0)
                     continue;
                 float t = major/10.0f;
-                float alpha = 0.55f*(1.0f - fabsf(t));
+                float alpha = 0.40f*(1.0f - fabsf(t));
                 alpha *= alpha;
                 vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
                 vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
