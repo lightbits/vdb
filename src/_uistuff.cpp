@@ -68,29 +68,26 @@ static void uistuff::CameraToolBar(frame_settings_t *fs)
     ImGui::PopStyleColor();
     ImGui::PopStyleColor();
 
-    if (ImGui::BeginPopupModal("Built-in camera", NULL, ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar))
+    ImGui::SetNextWindowPos(ImVec2((float)vdbGetWindowWidth() - 160.0f, 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(160.0f, -1.0f));
+    if (ImGui::BeginPopup("Built-in camera", ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar))
     {
         ImGui::Text("Camera:");
-        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER); ImGui::SameLine();
-        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D); ImGui::SameLine();
-        ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL); ImGui::SameLine();
+        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER);
+        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D);
+        ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
         ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
-        ImGui::Text("Grid:");
-        ImGui::Checkbox("Show grid", &fs->grid_visible); ImGui::SameLine();
+        ImGui::PushItemWidth(-1.0f);
+        ImGui::Checkbox("Grid:", &fs->grid_visible);
         ImGui::DragFloat("Scale##grid", &fs->grid_scale);
-        ImGui::Checkbox("Show cube", &fs->cube_visible); ImGui::SameLine();
+        ImGui::Checkbox("Cube:", &fs->cube_visible);
         ImGui::DragFloat("Scale##cube", &fs->cube_scale);
-        ImGui::Text("Floor:");
+        ImGui::PopItemWidth();
         ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
         ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
         ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
 
-        if (ImGui::Button("OK##camera settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_RETURN])
-        {
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel##camera settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
             escape_eaten = true;
             ImGui::CloseCurrentPopup();
