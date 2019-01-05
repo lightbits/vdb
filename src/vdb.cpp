@@ -29,6 +29,7 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "_framegrab.cpp"
 #include "_open_sans_regular.cpp"
 // #include "_source_sans_pro.cpp"
+#include "_icon_camera.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
@@ -48,12 +49,19 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_filter.cpp"
 #include "vdb_var.cpp"
 
+struct icon_t
+{
+    GLuint handle;
+    int width,height;
+};
+
 namespace vdb
 {
     static bool initialized;
     static bool is_first_frame;
     static bool is_different_label;
     static frame_settings_t *frame_settings;
+    static icon_t icon_camera;
 }
 
 bool vdbIsFirstFrame()
@@ -99,6 +107,20 @@ bool vdbBeginFrame(const char *label)
         // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
+
+        {
+            int width,height,channels;
+            unsigned char *data = stbi_load_from_memory(
+                (const unsigned char*)icon_camera_data, icon_camera_size,
+                &width, &height, &channels, 4);
+            assert(data);
+            GLuint handle = TexImage2D(data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
+            free(data);
+
+            vdb::icon_camera.handle = handle;
+            vdb::icon_camera.width = width;
+            vdb::icon_camera.height = height;
+        }
     }
 
     if (vdbIsFirstFrame())
@@ -345,13 +367,30 @@ void vdbEndFrame()
         ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 80.0f), 0.0f));
         ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
         ImGui::Begin("##camera_vdb", NULL, flags);
-        if (ImGui::Button("User##camera_vdb"))
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
+        static ImVec4 tint_col = ImVec4(1,1,1, 0.4f);
+        if (ImGui::ImageButton(
+                (void*)(intptr_t)vdb::icon_camera.handle,
+                ImVec2(38.0f, 38.0f),
+                ImVec2(0,0),
+                ImVec2(1,1),
+                -1,
+                ImVec4(0,0,0,0),
+                tint_col))
         {
             if (fs->camera_type == VDB_CAMERA_USER)
                 fs->camera_type = VDB_CAMERA_2D;
             else
                 fs->camera_type = VDB_CAMERA_USER;
         }
+        if (ImGui::IsItemActive()) tint_col = ImVec4(1,1,1, 1.0f);
+        else if (ImGui::IsItemHovered()) tint_col = ImVec4(1,1,1, 0.7f);
+        else tint_col = ImVec4(1,1,1, 0.4f);
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
         ImGui::End();
         if (fs->camera_type != VDB_CAMERA_USER)
         {
