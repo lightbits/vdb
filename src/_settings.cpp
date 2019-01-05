@@ -1,12 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum camera_type_t { VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
+typedef int camera_type_t;
+typedef int grid_mode_t;
+enum camera_type_ { VDB_CAMERA_USER=0, VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
+enum grid_mode_ { VDB_GRID_XY=0, VDB_GRID_XZ, VDB_GRID_YZ };
 enum { MAX_FRAME_SETTINGS = 1024 };
 
 static camera_type_t CameraTypeFromStr(const char *str)
 {
-    if (strcmp(str, "2D") == 0) return VDB_CAMERA_2D;
+    if (strcmp(str, "User") == 0) return VDB_CAMERA_USER;
+    else if (strcmp(str, "2D") == 0) return VDB_CAMERA_2D;
     else if (strcmp(str, "Trackball") == 0) return VDB_CAMERA_TRACKBALL;
     else if (strcmp(str, "Turntable") == 0) return VDB_CAMERA_TURNTABLE;
     return VDB_CAMERA_2D;
@@ -14,10 +18,27 @@ static camera_type_t CameraTypeFromStr(const char *str)
 
 static const char *CameraTypeToStr(camera_type_t type)
 {
-    if (type == VDB_CAMERA_2D) return "2D";
+    if (type == VDB_CAMERA_USER) return "User";
+    else if (type == VDB_CAMERA_2D) return "2D";
     else if (type == VDB_CAMERA_TRACKBALL) return "Trackball";
     else if (type == VDB_CAMERA_TURNTABLE) return "Turntable";
     return "2D";
+}
+
+static grid_mode_t GridModeFromStr(const char *str)
+{
+    if (strcmp(str, "XY") == 0) return VDB_GRID_XY;
+    else if (strcmp(str, "XZ") == 0) return VDB_GRID_XZ;
+    else if (strcmp(str, "YZ") == 0) return VDB_GRID_YZ;
+    return VDB_GRID_XZ;
+}
+
+static const char *GridModeToStr(grid_mode_t mode)
+{
+    if (mode == VDB_GRID_XY) return "XY";
+    else if (mode == VDB_GRID_XZ) return "XZ";
+    else if (mode == VDB_GRID_YZ) return "YZ";
+    return "XZ";
 }
 
 struct frame_settings_t
@@ -33,6 +54,10 @@ struct frame_settings_t
     float y_fov;
     float min_depth;
     float max_depth;
+
+    bool grid_visible;
+    grid_mode_t grid_mode;
+    float grid_scale;
 };
 
 struct camera_settings_t
@@ -66,6 +91,19 @@ struct settings_t
 };
 
 static settings_t settings;
+
+void DefaultFrameSettings(frame_settings_t *fs)
+{
+    fs->camera_type = VDB_CAMERA_USER;
+    fs->init_radius = 1.0f;
+    fs->init_look_at = vdbVec3(0.0f, 0.0f, 0.0f);
+    fs->y_fov = 0.7f;
+    fs->min_depth = 0.1f;
+    fs->max_depth = 50.0f;
+    fs->grid_visible = false;
+    fs->grid_scale = 10.0f;
+    fs->grid_mode = VDB_GRID_XZ;
+}
 
 void settings_t::LoadOrDefault(const char *filename)
 {
@@ -113,12 +151,16 @@ void settings_t::LoadOrDefault(const char *filename)
             assert(num_frames <= MAX_FRAME_SETTINGS);
             frame = frames + (num_frames++);
             frame->name = strdup(str);
+            DefaultFrameSettings(frame);
         }
         else if (frame && sscanf(line, "Camera=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
         else if (frame && sscanf(line, "CameraRadius=%f", &f) == 1) { frame->init_radius = f; }
         else if (frame && sscanf(line, "YFov=%f", &f) == 1)         { frame->y_fov = f; }
         else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)     { frame->min_depth = f; }
         else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)     { frame->max_depth = f; }
+        else if (frame && sscanf(line, "GridVisible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "Grid=%s", &str) == 1)       { frame->grid_mode = GridModeFromStr(str); }
+        else if (frame && sscanf(line, "GridScale=%f", &f) == 1)    { frame->grid_scale = f; }
     }
     free(line);
     free(str);
@@ -127,7 +169,6 @@ void settings_t::LoadOrDefault(const char *filename)
 
 void settings_t::Save(const char *filename)
 {
-    // todo: don't save frame_settings that were not used
     FILE *f = fopen(filename, "wb+");
     if (!f)
     {
@@ -149,11 +190,20 @@ void settings_t::Save(const char *filename)
     {
         frame_settings_t *frame = frames + i;
         fprintf(f, "\n[Frame]=%s\n", frame->name);
-        fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
-        fprintf(f, "CameraRadius=%f\n", frame->init_radius);
-        fprintf(f, "YFov=%f\n", frame->y_fov);
-        fprintf(f, "MinDepth=%f\n", frame->min_depth);
-        fprintf(f, "MaxDepth=%f\n", frame->max_depth);
+        if (frame->camera_type != VDB_CAMERA_USER)
+        {
+            fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
+            fprintf(f, "CameraRadius=%f\n", frame->init_radius);
+            if (frame->camera_type != VDB_CAMERA_2D)
+            {
+                fprintf(f, "YFov=%f\n", frame->y_fov);
+                fprintf(f, "MinDepth=%f\n", frame->min_depth);
+                fprintf(f, "MaxDepth=%f\n", frame->max_depth);
+            }
+            fprintf(f, "GridVisible=%d\n", frame->grid_visible ? 1 : 0);
+            fprintf(f, "GridMode=%s\n", GridModeToStr(frame->grid_mode));
+            fprintf(f, "GridScale=%f", frame->grid_scale);
+        }
     }
     fclose(f);
 }

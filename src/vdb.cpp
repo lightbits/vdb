@@ -53,7 +53,7 @@ namespace vdb
     static bool initialized;
     static bool is_first_frame;
     static bool is_different_label;
-    static frame_settings_t frame_settings;
+    static frame_settings_t *frame_settings;
 }
 
 bool vdbIsFirstFrame()
@@ -76,7 +76,6 @@ bool vdbBeginFrame(const char *label)
     static const char *skip_label = NULL;
     static const char *prev_label = NULL;
     static bool is_first_frame = true;
-    static frame_settings_t *frame_settings = NULL;
     vdb::is_first_frame = is_first_frame;
     vdb::is_different_label = label != prev_label;
     prev_label = label; // todo: strdup
@@ -116,21 +115,19 @@ bool vdbBeginFrame(const char *label)
         }
 
         // otherwise add a new one (but only if there's space)
-        if (!fs && settings.num_frames < MAX_FRAME_SETTINGS)
+        if (!fs)
         {
-            fs = settings.frames + (settings.num_frames++);
+            if (settings.num_frames < MAX_FRAME_SETTINGS)
+                fs = settings.frames + (settings.num_frames++);
+            else
+                fs = new frame_settings_t; // will not be saved
             fs->name = strdup(label);
-            fs->camera_type = VDB_CAMERA_2D;
-            fs->init_radius = 1.0f;
-            fs->init_look_at = vdbVec3(0.0f, 0.0f, 0.0f);
-            fs->y_fov = 0.7f;
-            fs->min_depth = 0.1f;
-            fs->max_depth = 50.0f;
+            DefaultFrameSettings(fs);
         }
 
         assert(fs);
 
-        vdb::frame_settings = *fs;
+        vdb::frame_settings = fs;
     }
 
     window::EnsureGLContextIsCurrent();
@@ -217,27 +214,107 @@ bool vdbBeginFrame(const char *label)
     CheckGLError();
 
     #if 1
+    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER)
     {
-        frame_settings_t fs = vdb::frame_settings;
-        if (fs.camera_type == VDB_CAMERA_TRACKBALL)
+        frame_settings_t *fs = vdb::frame_settings;
+        if (fs->camera_type == VDB_CAMERA_TRACKBALL)
         {
-            vdbCameraTrackball(fs.init_radius);
+            vdbCameraTrackball(fs->init_radius);
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-            vdbPerspective(fs.y_fov, fs.min_depth, fs.max_depth);
+            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
         }
-        else if (fs.camera_type == VDB_CAMERA_TURNTABLE)
+        else if (fs->camera_type == VDB_CAMERA_TURNTABLE)
         {
-            vdbCameraTurntable(fs.init_radius, fs.init_look_at);
+            vdbCameraTurntable(fs->init_radius, fs->init_look_at);
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-            vdbPerspective(fs.y_fov, fs.min_depth, fs.max_depth);
+            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
         }
         else
         {
-            vdbCamera2D(fs.init_radius);
+            vdbCamera2D(fs->init_radius);
+        }
+
+        if (fs->grid_visible && fs->camera_type != VDB_CAMERA_2D)
+        {
+            float scale = fs->grid_scale;
+            vdbLineWidth(1.0f);
+            vdbPushMatrix();
+            vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
+            // todo: this should be a draw-list
+            vdbBeginLines();
+            for (int major = -9; major <= +9; major++)
+            {
+                for (int minor = 1; minor <= 9; minor++)
+                {
+                    float t = major/10.0f + minor/100.0f;
+                    float alpha = 1.0f - fabsf(t);
+                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+
+                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+                }
+
+                if (major == 0)
+                    continue;
+                float t = major/10.0f;
+                float alpha = 1.0f - fabsf(t);
+                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+
+                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
+                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
+                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+            }
+            vdbEnd();
+            vdbPopMatrix();
+
+            switch (fs->grid_mode)
+            {
+                case VDB_GRID_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
+                case VDB_GRID_YZ: vdbMultMatrix(vdbInitMat4(0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1).data); break;
+            }
+
+            // draw colored XYZ axes (only the two axes of the grid plane though)
+            {
+                vdbLineWidth(1.0f);
+                vdbBeginLines();
+                if (fs->grid_mode != VDB_GRID_YZ) // hide x
+                {
+                    vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
+                    vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
+                }
+
+                if (fs->grid_mode != VDB_GRID_XZ) // hide y
+                {
+                    vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
+                    vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
+                }
+
+                if (fs->grid_mode != VDB_GRID_XY) // hide z
+                {
+                    vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
+                    vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
+                }
+                vdbEnd();
+            }
         }
     }
     #endif
@@ -247,12 +324,71 @@ bool vdbBeginFrame(const char *label)
 
 void vdbEndFrame()
 {
-    quick_var::EndFrame();
-
     ResetImmediateGLState();
 
     if (filter::taa_begun) vdbEndTAA();
     if (filter::tss_begun) vdbEndTSS();
+
+    quick_var::EndFrame();
+
+    {
+        frame_settings_t *fs = vdb::frame_settings;
+        // If no vdbCamera* function was called by the user this frame it
+        // means they are seeing the default camera, so we should display
+        // the camera toolbar.
+        ImGuiWindowFlags flags =
+            ImGuiWindowFlags_NoTitleBar |
+            ImGuiWindowFlags_NoResize |
+            ImGuiWindowFlags_NoMove |
+            ImGuiWindowFlags_NoSavedSettings;
+        ImGui::SetNextWindowBgAlpha(0.0f);
+        ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 80.0f), 0.0f));
+        ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
+        ImGui::Begin("##camera_vdb", NULL, flags);
+        if (ImGui::Button("User##camera_vdb"))
+        {
+            if (fs->camera_type == VDB_CAMERA_USER)
+                fs->camera_type = VDB_CAMERA_2D;
+            else
+                fs->camera_type = VDB_CAMERA_USER;
+        }
+        ImGui::End();
+        if (fs->camera_type != VDB_CAMERA_USER)
+        {
+            ImGui::SetNextWindowBgAlpha(0.0f);
+            ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 300.0f), 0.0f));
+            ImGui::SetNextWindowSize(ImVec2(215.0f, -1.0f));
+            ImGui::Begin("##camera_bar_vdb", NULL, flags);
+            ImGui::SameLine();
+            if (ImGui::Button("2D##camera_vdb")) fs->camera_type = VDB_CAMERA_2D;
+            ImGui::SameLine();
+            if (ImGui::Button("3D_1##camera_vdb")) fs->camera_type = VDB_CAMERA_TRACKBALL;
+            ImGui::SameLine();
+            if (ImGui::Button("3D_2##camera_vdb")) fs->camera_type = VDB_CAMERA_TURNTABLE;
+            ImGui::SameLine();
+            if (ImGui::Button("Grid##camera_vdb")) ImGui::OpenPopup("##grid settings");
+            if (ImGui::BeginPopupModal("##grid settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::Checkbox("Visible##grid settings", &fs->grid_visible);
+                ImGui::RadioButton("XY", &fs->grid_mode, VDB_GRID_XY); ImGui::SameLine();
+                ImGui::RadioButton("XZ", &fs->grid_mode, VDB_GRID_XZ); ImGui::SameLine();
+                ImGui::RadioButton("YZ", &fs->grid_mode, VDB_GRID_YZ);
+
+                if (ImGui::Button("OK##grid settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_RETURN])
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel##grid settings", ImVec2(60,0)))
+                {
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::EndPopup();
+            }
+            ImGui::End();
+        }
+    }
 
     if (uistuff::sketch_mode_active)
         vdbSketchModePresent();
