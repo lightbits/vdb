@@ -176,6 +176,12 @@ static vdbMat4 vdbMatIdentity()
     return result;
 }
 
+static vdbMat4 vdbMatScale(float x, float y, float z)
+{
+    vdbMat4 result = { x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1};
+    return result;
+}
+
 static vdbMat4 vdbMatRotateZ(float t)
 {
     vdbMat4 a = vdbMatIdentity();
