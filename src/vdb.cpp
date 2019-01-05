@@ -241,93 +241,14 @@ bool vdbBeginFrame(const char *label)
 
         if (fs->camera_type != VDB_CAMERA_2D)
         {
-            float scale = fs->grid_scale;
-            // draw major and minor grid lines
-            if (fs->grid_visible)
-            {
-                vdbLineWidth(1.0f);
-                vdbPushMatrix();
-                vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
-                // todo: this should be a draw-list
-                vdbBeginLines();
-                for (int major = -9; major <= +9; major++)
-                {
-                    for (int minor = 1; minor <= 9; minor++)
-                    {
-                        float t = major/10.0f + minor/100.0f;
-                        float alpha = 1.0f - fabsf(t);
-                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
-                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
-
-                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
-                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
-                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
-                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
-                    }
-
-                    if (major == 0)
-                        continue;
-                    float t = major/10.0f;
-                    float alpha = 1.0f - fabsf(t);
-                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
-                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
-
-                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
-                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
-                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
-                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
-                }
-                vdbEnd();
-                vdbPopMatrix();
-            }
-
-            if (fs->cube_visible)
-            {
-                vdbLineWidth(1.0f);
-                vdbColor(1.0f, 1.0f, 1.0f, 1.0f);
-                vdbLineCube(fs->cube_scale, fs->cube_scale, fs->cube_scale);
-            }
-
             // apply camera pre-transformation
+            if (fs->grid_visible)
+                vdbPushMatrix();
+
             switch (fs->camera_floor)
             {
                 case VDB_FLOOR_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
                 case VDB_FLOOR_YZ: vdbMultMatrix(vdbInitMat4(0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1).data); break;
-            }
-
-            // draw colored XYZ axes (only the two axes of the grid plane though)
-            if (fs->grid_visible)
-            {
-                vdbLineWidth(1.0f);
-                vdbBeginLines();
-                if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
-                {
-                    vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
-                    vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
-                }
-
-                if (fs->camera_floor != VDB_FLOOR_XZ) // hide y
-                {
-                    vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
-                    vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
-                }
-
-                if (fs->camera_floor != VDB_FLOOR_XY) // hide z
-                {
-                    vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
-                    vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
-                }
-                vdbEnd();
             }
         }
     }
@@ -342,6 +263,98 @@ void vdbEndFrame()
 
     if (filter::taa_begun) vdbEndTAA();
     if (filter::tss_begun) vdbEndTSS();
+
+    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER)
+    {
+        frame_settings_t *fs = vdb::frame_settings;
+        float scale = fs->grid_scale;
+
+        vdbDepthTest(true);
+
+        if (fs->cube_visible)
+        {
+            vdbLineWidth(1.0f);
+            vdbColor(1.0f, 1.0f, 1.0f, 0.3f);
+            vdbLineCube(fs->cube_scale, fs->cube_scale, fs->cube_scale);
+        }
+
+        // draw major and minor grid lines
+        if (fs->grid_visible)
+        {
+            // draw colored XYZ axes (only the two axes of the grid plane though)
+            vdbLineWidth(1.0f);
+            vdbBeginLines();
+            if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
+            {
+                vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
+            }
+
+            if (fs->camera_floor != VDB_FLOOR_XZ) // hide y
+            {
+                vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
+                vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
+            }
+
+            if (fs->camera_floor != VDB_FLOOR_XY) // hide z
+            {
+                vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
+                vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
+            }
+            vdbEnd();
+
+            // revert camera pre-transformation (grid is always drawn in xz camera space)
+            vdbPopMatrix();
+            vdbLineWidth(1.0f);
+            vdbPushMatrix();
+            vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
+            // todo: this should be a draw-list
+            vdbBeginLines();
+            for (int major = -9; major <= +9; major++)
+            {
+                for (int minor = 1; minor <= 9; minor++)
+                {
+                    float t = major/10.0f + minor/100.0f;
+                    float alpha = 0.31f*(1.0f - fabsf(t));
+                    alpha *= alpha;
+                    vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                    vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+
+                    vdbColor(1,1,1, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                    vdbColor(1,1,1, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(1,1,1, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(1,1,1, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+                }
+
+                if (major == 0)
+                    continue;
+                float t = major/10.0f;
+                float alpha = 0.55f*(1.0f - fabsf(t));
+                alpha *= alpha;
+                vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
+                vdbColor(1,1,1, alpha); vdbVertex(t, 0.0f, 0.0f);
+                vdbColor(1,1,1, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+
+                vdbColor(1,1,1, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                vdbColor(1,1,1, alpha); vdbVertex(0.0f,   0.0f, t);
+                vdbColor(1,1,1, alpha); vdbVertex(0.0f,   0.0f, t);
+                vdbColor(1,1,1, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+            }
+            vdbEnd();
+            vdbPopMatrix();
+        }
+
+        vdbDepthTest(false);
+    }
 
     quick_var::EndFrame();
 
