@@ -164,7 +164,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)     { frame->max_depth = f; }
         else if (frame && sscanf(line, "GridVisible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
         else if (frame && sscanf(line, "GridScale=%f", &f) == 1)    { frame->grid_scale = f; }
-        else if (frame && sscanf(line, "Floor=%s", &str) == 1)      { frame->camera_floor = CameraFloorFromStr(str); }
+        else if (frame && sscanf(line, "Floor=%s", str) == 1)       { frame->camera_floor = CameraFloorFromStr(str); }
         else if (frame && sscanf(line, "CubeVisible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
         else if (frame && sscanf(line, "CubeScale=%f", &f) == 1)    { frame->cube_scale = f; }
     }
@@ -207,10 +207,10 @@ void settings_t::Save(const char *filename)
                 fprintf(f, "MaxDepth=%f\n", frame->max_depth);
             }
             fprintf(f, "GridVisible=%d\n", frame->grid_visible ? 1 : 0);
-            fprintf(f, "GridScale=%f", frame->grid_scale);
+            fprintf(f, "GridScale=%f\n", frame->grid_scale);
             fprintf(f, "Floor=%s\n", CameraFloorToStr(frame->camera_floor));
             fprintf(f, "CubeVisible=%d\n", frame->cube_visible ? 1 : 0);
-            fprintf(f, "CubeScale=%f", frame->cube_scale);
+            fprintf(f, "CubeScale=%f\n", frame->cube_scale);
         }
     }
     fclose(f);
