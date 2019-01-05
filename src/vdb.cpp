@@ -38,7 +38,6 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_keyboard.cpp"
 #include "vdb_mouse.cpp"
 #include "_window.cpp"
-#include "_uistuff.cpp"
 #include "vdb_image.cpp"
 #include "vdb_render_texture.cpp"
 #include "vdb_transform.cpp"
@@ -48,12 +47,7 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_shader.cpp"
 #include "vdb_filter.cpp"
 #include "vdb_var.cpp"
-
-struct icon_t
-{
-    GLuint handle;
-    int width,height;
-};
+#include "_uistuff.cpp"
 
 namespace vdb
 {
@@ -61,7 +55,6 @@ namespace vdb
     static bool is_first_frame;
     static bool is_different_label;
     static frame_settings_t *frame_settings;
-    static icon_t icon_camera;
 }
 
 bool vdbIsFirstFrame()
@@ -107,20 +100,6 @@ bool vdbBeginFrame(const char *label)
         // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
-
-        {
-            int width,height,channels;
-            unsigned char *data = stbi_load_from_memory(
-                (const unsigned char*)icon_camera_data, icon_camera_size,
-                &width, &height, &channels, 4);
-            assert(data);
-            GLuint handle = TexImage2D(data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
-            free(data);
-
-            vdb::icon_camera.handle = handle;
-            vdb::icon_camera.width = width;
-            vdb::icon_camera.height = height;
-        }
     }
 
     if (vdbIsFirstFrame())
@@ -260,48 +239,54 @@ bool vdbBeginFrame(const char *label)
             vdbCamera2D(fs->init_radius);
         }
 
-        if (fs->grid_visible && fs->camera_type != VDB_CAMERA_2D)
+        if (fs->camera_type != VDB_CAMERA_2D)
         {
             float scale = fs->grid_scale;
-            vdbLineWidth(1.0f);
-            vdbPushMatrix();
-            vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
-            // todo: this should be a draw-list
-            vdbBeginLines();
-            for (int major = -9; major <= +9; major++)
+            // draw major and minor grid lines
+            if (fs->grid_visible)
             {
-                for (int minor = 1; minor <= 9; minor++)
+                vdbLineWidth(1.0f);
+                vdbPushMatrix();
+                vdbMultMatrix(vdbMatScale(scale, scale, scale).data);
+                // todo: this should be a draw-list
+                vdbBeginLines();
+                for (int major = -9; major <= +9; major++)
                 {
-                    float t = major/10.0f + minor/100.0f;
+                    for (int minor = 1; minor <= 9; minor++)
+                    {
+                        float t = major/10.0f + minor/100.0f;
+                        float alpha = 1.0f - fabsf(t);
+                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+
+                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
+                        vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
+                        vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+                    }
+
+                    if (major == 0)
+                        continue;
+                    float t = major/10.0f;
                     float alpha = 1.0f - fabsf(t);
-                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
-                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
+                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
+                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
 
-                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
-                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
-                    vdbColor(0.15f, 0.15f, 0.15f, alpha); vdbVertex(0.0f,   0.0f, t);
-                    vdbColor(0.15f, 0.15f, 0.15f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
+                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
+                    vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
                 }
-
-                if (major == 0)
-                    continue;
-                float t = major/10.0f;
-                float alpha = 1.0f - fabsf(t);
-                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, -1.0f);
-                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(t, 0.0f, 0.0f);
-                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(t, 0.0f, +1.0f);
-
-                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(-1.0f, 0.0f, t);
-                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
-                vdbColor(0.26f, 0.26f, 0.26f, alpha); vdbVertex(0.0f,   0.0f, t);
-                vdbColor(0.26f, 0.26f, 0.26f, 0.0f);  vdbVertex(+1.0f, 0.0f, t);
+                vdbEnd();
+                vdbPopMatrix();
             }
-            vdbEnd();
-            vdbPopMatrix();
 
+            // apply camera pre-transformation
+            // todo: rename this to make it apparent that XY,YZ,XZ setting is independent of grid being drawn or not
             switch (fs->grid_mode)
             {
                 case VDB_GRID_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
@@ -309,6 +294,7 @@ bool vdbBeginFrame(const char *label)
             }
 
             // draw colored XYZ axes (only the two axes of the grid plane though)
+            if (fs->grid_visible)
             {
                 vdbLineWidth(1.0f);
                 vdbBeginLines();
@@ -353,81 +339,7 @@ void vdbEndFrame()
 
     quick_var::EndFrame();
 
-    {
-        frame_settings_t *fs = vdb::frame_settings;
-        // If no vdbCamera* function was called by the user this frame it
-        // means they are seeing the default camera, so we should display
-        // the camera toolbar.
-        ImGuiWindowFlags flags =
-            ImGuiWindowFlags_NoTitleBar |
-            ImGuiWindowFlags_NoResize |
-            ImGuiWindowFlags_NoMove |
-            ImGuiWindowFlags_NoSavedSettings;
-        ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 80.0f), 0.0f));
-        ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
-        ImGui::Begin("##camera_vdb", NULL, flags);
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
-        static ImVec4 tint_col = ImVec4(1,1,1, 0.4f);
-        if (ImGui::ImageButton(
-                (void*)(intptr_t)vdb::icon_camera.handle,
-                ImVec2(38.0f, 38.0f),
-                ImVec2(0,0),
-                ImVec2(1,1),
-                -1,
-                ImVec4(0,0,0,0),
-                tint_col))
-        {
-            if (fs->camera_type == VDB_CAMERA_USER)
-                fs->camera_type = VDB_CAMERA_2D;
-            else
-                fs->camera_type = VDB_CAMERA_USER;
-        }
-        if (ImGui::IsItemActive()) tint_col = ImVec4(1,1,1, 1.0f);
-        else if (ImGui::IsItemHovered()) tint_col = ImVec4(1,1,1, 0.7f);
-        else tint_col = ImVec4(1,1,1, 0.4f);
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::End();
-        if (fs->camera_type != VDB_CAMERA_USER)
-        {
-            ImGui::SetNextWindowBgAlpha(0.0f);
-            ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 300.0f), 0.0f));
-            ImGui::SetNextWindowSize(ImVec2(215.0f, -1.0f));
-            ImGui::Begin("##camera_bar_vdb", NULL, flags);
-            ImGui::SameLine();
-            if (ImGui::Button("2D##camera_vdb")) fs->camera_type = VDB_CAMERA_2D;
-            ImGui::SameLine();
-            if (ImGui::Button("3D_1##camera_vdb")) fs->camera_type = VDB_CAMERA_TRACKBALL;
-            ImGui::SameLine();
-            if (ImGui::Button("3D_2##camera_vdb")) fs->camera_type = VDB_CAMERA_TURNTABLE;
-            ImGui::SameLine();
-            if (ImGui::Button("Grid##camera_vdb")) ImGui::OpenPopup("##grid settings");
-            if (ImGui::BeginPopupModal("##grid settings", NULL, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::Checkbox("Visible##grid settings", &fs->grid_visible);
-                ImGui::RadioButton("XY", &fs->grid_mode, VDB_GRID_XY); ImGui::SameLine();
-                ImGui::RadioButton("XZ", &fs->grid_mode, VDB_GRID_XZ); ImGui::SameLine();
-                ImGui::RadioButton("YZ", &fs->grid_mode, VDB_GRID_YZ);
-
-                if (ImGui::Button("OK##grid settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_RETURN])
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel##grid settings", ImVec2(60,0)))
-                {
-                    ImGui::CloseCurrentPopup();
-                }
-
-                ImGui::EndPopup();
-            }
-            ImGui::End();
-        }
-    }
+    uistuff::CameraToolBar(vdb::frame_settings);
 
     if (uistuff::sketch_mode_active)
         vdbSketchModePresent();

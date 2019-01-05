@@ -1,12 +1,101 @@
+struct ui_icon_t
+{
+    GLuint handle;
+    int width,height;
+};
+
 namespace uistuff
 {
     static bool escape_eaten;
     static bool sketch_mode_active;
     static bool ruler_mode_active;
+    static ui_icon_t icon_camera;
 
+    static void CameraToolBar(frame_settings_t *fs);
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
+}
+
+static void uistuff::CameraToolBar(frame_settings_t *fs)
+{
+    using namespace uistuff;
+    if (!icon_camera.handle)
+    {
+        int width,height,channels;
+        unsigned char *data = stbi_load_from_memory(
+            (const unsigned char*)icon_camera_data, icon_camera_size,
+            &width, &height, &channels, 4);
+        assert(data);
+        GLuint handle = TexImage2D(data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
+        free(data);
+
+        icon_camera.handle = handle;
+        icon_camera.width = width;
+        icon_camera.height = height;
+    }
+    assert(icon_camera.handle);
+
+    ImGui::PushID("vdbCameraToolBar");
+    ImGuiWindowFlags flags =
+        ImGuiWindowFlags_NoTitleBar |
+        ImGuiWindowFlags_NoResize |
+        ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoSavedSettings;
+    ImGui::SetNextWindowBgAlpha(0.0f);
+    ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 60.0f), 0.0f));
+    ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
+    ImGui::Begin("", NULL, flags);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
+    static ImVec4 tint_col = ImVec4(1,1,1, 0.4f);
+    if (ImGui::ImageButton(
+            (void*)(intptr_t)icon_camera.handle,
+            ImVec2(38.0f, 38.0f),
+            ImVec2(0,0),
+            ImVec2(1,1),
+            -1,
+            ImVec4(0,0,0,0),
+            tint_col))
+    {
+        ImGui::OpenPopup("Built-in camera");
+    }
+    if (ImGui::IsItemActive()) tint_col = ImVec4(1,1,1, 1.0f);
+    else if (ImGui::IsItemHovered()) tint_col = ImVec4(1,1,1, 0.7f);
+    else tint_col = ImVec4(1,1,1, 0.4f);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleColor();
+
+    if (ImGui::BeginPopupModal("Built-in camera", NULL, ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar))
+    {
+        ImGui::Text("Camera:");
+        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER); ImGui::SameLine();
+        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D); ImGui::SameLine();
+        ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL); ImGui::SameLine();
+        ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
+        ImGui::Text("Grid:");
+        ImGui::Checkbox("Show grid", &fs->grid_visible);
+        ImGui::RadioButton("XY", &fs->grid_mode, VDB_GRID_XY); ImGui::SameLine();
+        ImGui::RadioButton("XZ", &fs->grid_mode, VDB_GRID_XZ); ImGui::SameLine();
+        ImGui::RadioButton("YZ", &fs->grid_mode, VDB_GRID_YZ);
+
+        if (ImGui::Button("OK##camera settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_RETURN])
+        {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel##camera settings", ImVec2(60,0)) || keys::pressed[SDL_SCANCODE_ESCAPE])
+        {
+            escape_eaten = true;
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+    ImGui::End();
+    ImGui::PopID();
 }
 
 static void uistuff::ExitDialog()
