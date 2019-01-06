@@ -92,12 +92,10 @@ void vdbCameraTrackball(float init_radius)
     static vdbMat4 R = R0; // world to camera
     static vdbVec4 T = T0; // camera relative world in world
     static float zoom = 1.0f;
-    static float ref_zoom = zoom;
 
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
     {
         if (init_radius != 0.0f) zoom = init_radius;
-        ref_zoom = zoom;
     }
 
     float move_speed = cs.move_speed_normal;
@@ -105,36 +103,25 @@ void vdbCameraTrackball(float init_radius)
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) ref_zoom -= cs.scroll_sensitivity*ref_zoom*dt;
-        if (vdbIsKeyDown(VDB_KEY_X)) ref_zoom += cs.scroll_sensitivity*ref_zoom*dt;
-        ref_zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*ref_zoom*dt;
-        #if VDB_CAMERA_SMOOTHING==1
-        zoom += cs.Kp_zoom*(ref_zoom - zoom)*dt;
-        #else
-        zoom = ref_zoom;
-        #endif
+        if (vdbIsKeyDown(VDB_KEY_Z)) zoom -= cs.scroll_sensitivity*zoom*dt;
+        if (vdbIsKeyDown(VDB_KEY_X)) zoom += cs.scroll_sensitivity*zoom*dt;
+        zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
     }
 
     // translation
     {
-        static vdbVec4 ref_T = T;
         float x = 0.0f;
         float y = 0.0f;
         float z = 0.0f;
-        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*ref_zoom;
-        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*ref_zoom;
+        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*zoom;
         vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
-        ref_T = ref_T + in_world_vel*dt;
-        #if VDB_CAMERA_SMOOTHING==1
-        T = T + cs.Kp_translate*(ref_T - T)*dt;
-        #else
-        T = ref_T;
-        #endif
+        T = T + in_world_vel*dt;
     }
 
     float radius = 1.0f;
@@ -216,14 +203,17 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     static float angle_x = 0.0f;
     static float angle_y = 0.0f;
     static float radius = 1.0f;
-    static float ref_angle_x = 0.0f;
-    static float ref_angle_y = 0.0f;
-    static float ref_radius = radius;
 
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
     {
         if (init_radius != 0.0f) radius = init_radius;
-        ref_radius = radius;
+    }
+
+    // zooming
+    {
+        if (vdbIsKeyDown(VDB_KEY_Z)) radius -= cs.scroll_sensitivity*radius*dt;
+        if (vdbIsKeyDown(VDB_KEY_X)) radius += cs.scroll_sensitivity*radius*dt;
+        radius -= cs.scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
     }
 
     float aspect = vdbGetAspectRatio();
@@ -241,25 +231,13 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     {
         float dx = vdbGetMousePosNDC().x*aspect - last_mouse_x;
         float dy = vdbGetMousePosNDC().y - last_mouse_y;
-        ref_angle_x += cs.mouse_sensitivity*dy*dt;
-        ref_angle_y -= cs.mouse_sensitivity*dx*dt;
+        angle_x += cs.mouse_sensitivity*dy*dt;
+        angle_y -= cs.mouse_sensitivity*dx*dt;
         last_mouse_x = mouse_x;
         last_mouse_y = mouse_y;
         if (!vdbIsMouseLeftDown())
             dragging = false;
     }
-
-    ref_radius -= ref_radius*cs.scroll_sensitivity*vdbGetMouseWheel()*dt;
-
-    #if VDB_CAMERA_SMOOTHING==1
-    angle_x += cs.Kp_rotate*(ref_angle_x - angle_x)*dt;
-    angle_y += cs.Kp_rotate*(ref_angle_y - angle_y)*dt;
-    radius += cs.Kp_zoom*(ref_radius - radius)*dt;
-    #else
-    angle_x = ref_angle_x;
-    angle_y = ref_angle_y;
-    radius = ref_radius;
-    #endif
 
     {
         vdbMat4 M = vdbMatTranslate(0.0f, 0.0f, -radius)*vdbMatRotateXYZ(-angle_x, -angle_y, 0.0f);
