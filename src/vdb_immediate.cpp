@@ -254,7 +254,17 @@ static void DrawImmediatePoints(imm_list_t list)
             // Note: point_size is treated as a radius inside the shader, but imm.point_size
             // is considered to be diameter (to be consistent with glPointSize). For efficiency
             // we divide by two before passing it in, so we don't have to do it in the shader.
-            glUniform2f(uniform_point_size, 0.5f*imm.point_size, 0.5f*imm.point_size);
+
+            // Note: The view_model matrix may have a scaling factor. Assuming the 3x3 upper-
+            // left matrix of view_model is a sequence of rotation and scaling matrices, we
+            // can isolate the scaling factors like so:
+            vdbMat4 TT = vdbMatTranspose(transform::view_model)*transform::view_model;
+            float sx = sqrtf(TT(0,0));
+            float sy = sqrtf(TT(1,1));
+            // If the scaling factors are not the same, we choose the smallest one:
+            float s = sx < sy ? sx : sy;
+
+            glUniform2f(uniform_point_size, 0.5f*s*imm.point_size, 0.5f*s*imm.point_size);
         }
         else
         {
