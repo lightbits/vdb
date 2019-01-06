@@ -240,13 +240,18 @@ bool vdbBeginFrame(const char *label)
 
         if (fs->camera_type != VDB_CAMERA_2D)
         {
-            // apply camera pre-transformation
-            vdbPushMatrix(); // save current state for later (grid drawing)
+            // We do PushMatrix to save current state for drawing grid in vdbEndFrame
+
+            // pre-permutation transform
+            vdbPushMatrix();
             switch (fs->camera_floor)
             {
                 case VDB_FLOOR_XY: vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1).data); break;
                 case VDB_FLOOR_YZ: vdbMultMatrix(vdbInitMat4(0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1).data); break;
             }
+
+            // pre-scaling transform
+            vdbPushMatrix();
             vdbMultMatrix(vdbMatScale(1.0f/fs->grid_scale, 1.0f/fs->grid_scale, 1.0f/fs->grid_scale).data);
         }
     }
@@ -266,44 +271,42 @@ void vdbEndFrame()
         vdb::frame_settings->camera_type != VDB_CAMERA_2D)
     {
         frame_settings_t *fs = vdb::frame_settings;
-        float scale = fs->grid_scale;
-
         vdbDepthTest(true);
+        vdbPopMatrix(); // pre-scaling
 
-        // draw colored XYZ axes (only the two axes of the grid plane though)
+        // draw colored XYZ axes
         if (fs->grid_visible)
         {
-            float t = 10.0f*fs->grid_scale;
+            float t = 10.0f;
             vdbLineWidth(1.0f);
             vdbBeginLines();
             if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
             {
                 vdbColor(1.0f, 0.2f, 0.32f, 0.0f); vdbVertex(-t, 0.0f, 0.0f);
-                vdbColor(1.0f, 0.2f, 0.32f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(1.0f, 0.2f, 0.32f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.2f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.5f); vdbVertex(0.0f, 0.0f, 0.0f);
                 vdbColor(1.0f, 0.2f, 0.32f, 0.0f); vdbVertex(+t, 0.0f, 0.0f);
             }
 
             if (fs->camera_floor != VDB_FLOOR_XZ) // hide y
             {
                 vdbColor(0.54f, 0.85f, 0.0f, 0.0f); vdbVertex(0.0f, -t, 0.0f);
-                vdbColor(0.54f, 0.85f, 0.0f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.54f, 0.85f, 0.0f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.2f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.5f); vdbVertex(0.0f, 0.0f, 0.0f);
                 vdbColor(0.54f, 0.85f, 0.0f, 0.0f); vdbVertex(0.0f, +t, 0.0f);
             }
 
             if (fs->camera_floor != VDB_FLOOR_XY) // hide z
             {
                 vdbColor(0.16f, 0.56f, 0.99f, 0.0f); vdbVertex(0.0f, 0.0f, -t);
-                vdbColor(0.16f, 0.56f, 0.99f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.16f, 0.56f, 0.99f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.2f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.5f); vdbVertex(0.0f, 0.0f, 0.0f);
                 vdbColor(0.16f, 0.56f, 0.99f, 0.0f); vdbVertex(0.0f, 0.0f, +t);
             }
             vdbEnd();
         }
 
-        // revert camera pre-transformation
-        vdbPopMatrix();
+        vdbPopMatrix(); // pre-permutation
 
         if (fs->cube_visible)
         {
@@ -356,7 +359,6 @@ void vdbEndFrame()
             vdbEnd();
             vdbPopMatrix();
         }
-
         vdbDepthTest(false);
     }
 
