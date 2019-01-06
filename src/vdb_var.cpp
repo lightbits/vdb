@@ -30,6 +30,8 @@ namespace quick_var
 
     static void EndFrame()
     {
+        if (var_index == 0)
+            return;
         static bool is_hovered = false;
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
