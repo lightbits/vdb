@@ -27,9 +27,8 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "_gl_error.cpp"
 #include "_settings.cpp"
 #include "_framegrab.cpp"
-#include "_open_sans_regular.cpp"
-// #include "_source_sans_pro.cpp"
-#include "_icon_camera.cpp"
+#include "data/open_sans_regular.cpp"
+// #include "data/source_sans_pro.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
 #include "_ruler_mode.cpp"
@@ -284,26 +283,26 @@ void vdbEndFrame()
             vdbBeginLines();
             if (fs->camera_floor != VDB_FLOOR_YZ) // hide x
             {
-                vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
-                vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(1.0f, 0.2f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(1.0f, 0.2f, 0.1f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.0f); vdbVertex(-scale, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(1.0f, 0.2f, 0.32f, 0.0f); vdbVertex(+scale, 0.0f, 0.0f);
             }
 
             if (fs->camera_floor != VDB_FLOOR_XZ) // hide y
             {
-                vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
-                vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.2f, 1.0f, 0.1f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.2f, 1.0f, 0.1f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.0f); vdbVertex(0.0f, -scale, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.54f, 0.85f, 0.0f, 0.0f); vdbVertex(0.0f, +scale, 0.0f);
             }
 
             if (fs->camera_floor != VDB_FLOOR_XY) // hide z
             {
-                vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
-                vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.1f, 0.2f, 1.0f, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                vdbColor(0.1f, 0.2f, 1.0f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.0f); vdbVertex(0.0f, 0.0f, -scale);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.4f); vdbVertex(0.0f, 0.0f, 0.0f);
+                vdbColor(0.16f, 0.56f, 0.99f, 0.0f); vdbVertex(0.0f, 0.0f, +scale);
             }
             vdbEnd();
         }

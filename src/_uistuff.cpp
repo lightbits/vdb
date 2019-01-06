@@ -1,3 +1,6 @@
+#include "data/icon_camera_inactive.cpp"
+#include "data/icon_camera_active.cpp"
+
 struct ui_icon_t
 {
     GLuint handle;
@@ -9,7 +12,8 @@ namespace uistuff
     static bool escape_eaten;
     static bool sketch_mode_active;
     static bool ruler_mode_active;
-    static ui_icon_t icon_camera;
+    static ui_icon_t icon_camera_inactive;
+    static ui_icon_t icon_camera_active;
 
     static void CameraToolBar(frame_settings_t *fs);
     static void ExitDialog();
@@ -17,24 +21,28 @@ namespace uistuff
     static void FramegrabDialog();
 }
 
+static void LoadIconIfNeeded(ui_icon_t *icon, const unsigned int *icon_data, unsigned int icon_size)
+{
+    if (!icon->handle)
+    {
+        int width,height,channels;
+        unsigned char *pixels = stbi_load_from_memory((const unsigned char*)icon_data, icon_size, &width, &height, &channels, 4);
+        assert(pixels);
+        GLuint handle = TexImage2D(pixels, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
+        free(pixels);
+        icon->handle = handle;
+        icon->width = width;
+        icon->height = height;
+    }
+}
+
 static void uistuff::CameraToolBar(frame_settings_t *fs)
 {
     using namespace uistuff;
-    if (!icon_camera.handle)
-    {
-        int width,height,channels;
-        unsigned char *data = stbi_load_from_memory(
-            (const unsigned char*)icon_camera_data, icon_camera_size,
-            &width, &height, &channels, 4);
-        assert(data);
-        GLuint handle = TexImage2D(data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
-        free(data);
-
-        icon_camera.handle = handle;
-        icon_camera.width = width;
-        icon_camera.height = height;
-    }
-    assert(icon_camera.handle);
+    LoadIconIfNeeded(&icon_camera_active, icon_camera_active_data, icon_camera_active_size);
+    LoadIconIfNeeded(&icon_camera_inactive, icon_camera_inactive_data, icon_camera_inactive_size);
+    assert(icon_camera_active.handle);
+    assert(icon_camera_inactive.handle);
 
     ImGui::PushID("vdbCameraToolBar");
     ImGuiWindowFlags flags =
@@ -46,27 +54,28 @@ static void uistuff::CameraToolBar(frame_settings_t *fs)
     ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 60.0f), 0.0f));
     ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
     ImGui::Begin("", NULL, flags);
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
-    static ImVec4 tint_col = ImVec4(1,1,1, 0.4f);
-    if (ImGui::ImageButton(
-            (void*)(intptr_t)icon_camera.handle,
-            ImVec2(38.0f, 38.0f),
-            ImVec2(0,0),
-            ImVec2(1,1),
-            -1,
-            ImVec4(0,0,0,0),
-            tint_col))
     {
-        ImGui::OpenPopup("Built-in camera");
+        static bool is_active = false;
+        static bool is_hovered = false;
+        ImVec2 size = ImVec2(42.0f, 42.0f);
+        ImVec4 tint = ImVec4(0.75f, 0.75f, 0.75f, 0.5f);
+        if (is_active) tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        else if (is_hovered) tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+        void *handle = (is_active || is_hovered) ?
+                        (void*)(intptr_t)icon_camera_active.handle :
+                        (void*)(intptr_t)icon_camera_inactive.handle;
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
+        if (ImGui::ImageButton(handle, size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), tint))
+            ImGui::OpenPopup("Built-in camera");
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleColor();
+        is_active = ImGui::IsItemActive();
+        is_hovered = ImGui::IsItemHovered();
     }
-    if (ImGui::IsItemActive()) tint_col = ImVec4(1,1,1, 1.0f);
-    else if (ImGui::IsItemHovered()) tint_col = ImVec4(1,1,1, 0.7f);
-    else tint_col = ImVec4(1,1,1, 0.4f);
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
-    ImGui::PopStyleColor();
 
     ImGui::SetNextWindowPos(ImVec2((float)vdbGetWindowWidth() - 160.0f, 0.0f));
     ImGui::SetNextWindowSize(ImVec2(160.0f, -1.0f));
