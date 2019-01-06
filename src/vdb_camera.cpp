@@ -5,10 +5,16 @@ void vdbCamera2D(float init_zoom)
     const float dt = 1.0f/60.0f;
 
     camera_settings_t cs = settings.camera;
-    static float zoom = 1.0f; if (vdbIsFirstFrame() && init_zoom != 0.0f) zoom = init_zoom;
+    static float zoom = 1.0f;
     static float position_x = 0.0f;
     static float position_y = 0.0f;
     static float angle = 0.0f;
+
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        // only set zoom if this is the first frame of a new vdb block
+        if (init_zoom != 0.0f) zoom = init_zoom;
+    }
 
     // zooming
     {
@@ -85,8 +91,14 @@ void vdbCameraTrackball(float init_radius)
     static vdbVec4 T0 = vdbVec4(0.0f,0.0f,0.0f,1.0f);
     static vdbMat4 R = R0; // world to camera
     static vdbVec4 T = T0; // camera relative world in world
-    static float zoom = 1.0f; if (vdbIsFirstFrame() && init_radius != 0.0f) zoom = init_radius;
-    static float ref_zoom = zoom; if (vdbIsFirstFrame() && init_radius != 0.0f) ref_zoom = zoom;
+    static float zoom = 1.0f;
+    static float ref_zoom = zoom;
+
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        if (init_radius != 0.0f) zoom = init_radius;
+        ref_zoom = zoom;
+    }
 
     float move_speed = cs.move_speed_normal;
     if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
@@ -203,10 +215,16 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 
     static float angle_x = 0.0f;
     static float angle_y = 0.0f;
-    static float radius = 1.0f; if (vdbIsFirstFrame() && init_radius != 0.0f) radius = init_radius;
+    static float radius = 1.0f;
     static float ref_angle_x = 0.0f;
     static float ref_angle_y = 0.0f;
-    static float ref_radius = radius; if (vdbIsFirstFrame() && init_radius != 0.0f) ref_radius = init_radius;
+    static float ref_radius = radius;
+
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        if (init_radius != 0.0f) radius = init_radius;
+        ref_radius = radius;
+    }
 
     float aspect = vdbGetAspectRatio();
     static bool dragging = false;
