@@ -86,11 +86,12 @@ static void uistuff::CameraToolBar(frame_settings_t *fs)
         ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
         ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
         ImGui::Checkbox("Show grid", &fs->grid_visible);
-        ImGui::Checkbox("Show unit cube", &fs->cube_visible);
-        ImGui::PushItemWidth(100.0f);
-        ImGui::DragFloat("Scale##grid", &fs->grid_scale);
+        ImGui::Checkbox("Show cube", &fs->cube_visible);
+        ImGui::PushItemWidth(60.0f);
+        ImGui::DragFloat("Major div.", &fs->grid_scale);
         // ImGui::DragFloat("Scale##cube", &fs->cube_scale);
         ImGui::PopItemWidth();
+        ImGui::SameLine(); ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
         ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
         ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);

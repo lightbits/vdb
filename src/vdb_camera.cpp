@@ -18,8 +18,6 @@ void vdbCamera2D(float init_zoom)
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) zoom -= cs.scroll_sensitivity*zoom*dt;
-        if (vdbIsKeyDown(VDB_KEY_X)) zoom += cs.scroll_sensitivity*zoom*dt;
         zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
     }
 
@@ -103,8 +101,6 @@ void vdbCameraTrackball(float init_radius)
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) zoom -= cs.scroll_sensitivity*zoom*dt;
-        if (vdbIsKeyDown(VDB_KEY_X)) zoom += cs.scroll_sensitivity*zoom*dt;
         zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
     }
 
@@ -211,8 +207,6 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 
     // zooming
     {
-        if (vdbIsKeyDown(VDB_KEY_Z)) radius -= cs.scroll_sensitivity*radius*dt;
-        if (vdbIsKeyDown(VDB_KEY_X)) radius += cs.scroll_sensitivity*radius*dt;
         radius -= cs.scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
     }
 
