@@ -43,7 +43,7 @@ static const char *CameraFloorToStr(camera_floor_t mode)
 
 struct frame_settings_t
 {
-    const char *name;
+    char *name;
     camera_type_t camera_type;
 
     // camera initialization parameters
@@ -150,11 +150,21 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_zoom=%f", &f) == 1)           { camera.Kp_zoom = f; }
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)      { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)         { camera.Kp_rotate = f; }
-        else if (sscanf(line, "[Frame]=%s", str) == 1)
+        else if (strstr(line, "[Frame]=") == line)
         {
-            assert(num_frames <= MAX_FRAME_SETTINGS);
+            if (num_frames == MAX_FRAME_SETTINGS)
+            {
+                frame = NULL;
+                printf("vdb: Reached max number of stored per-block settings. You should clean up your vdb.ini file!\n");
+                continue;
+            }
+            assert(num_frames < MAX_FRAME_SETTINGS);
             frame = frames + (num_frames++);
-            frame->name = strdup(str);
+            frame->name = strdup(line + strlen("[Frame]="));
+            // remove trailing newlines:
+            size_t len = strlen(frame->name);
+            while (len > 0 && (frame->name[len-1] == '\n' || frame->name[len-1] == '\r'))
+                frame->name[--len] = '\0';
             DefaultFrameSettings(frame);
         }
         else if (frame && sscanf(line, "Camera=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
