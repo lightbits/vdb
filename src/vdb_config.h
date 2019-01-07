@@ -16,6 +16,11 @@
 // #define VDB_MATRIX_COLUMN_MAJOR
 #define VDB_MATRIX_ROW_MAJOR
 
+// Enable this in order to use FreeType for font rendering inside ImGui (is nicer)
+// Note: You need to obtain FreeType binaries and link those with your application
+// Binaries for Win32 and Win64 are included in vdb/lib/freetype
+#define VDB_IMGUI_FREETYPE     0
+
 // Height of default font
 #define VDB_FONT_HEIGHT        18.0f
 

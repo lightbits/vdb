@@ -1,3 +1,5 @@
+#include "vdb_config.h"
+
 #include "SDL.h"
 #ifdef VDB_DEBUG
 #include "glad/glad_3_1_debug.c"
@@ -10,6 +12,10 @@
 #endif
 #include "SDL_syswm.h"
 #include "imgui/imgui.cpp"
+#if VDB_IMGUI_FREETYPE==1
+#include "imgui/imgui_freetype.h"
+#include "imgui/imgui_freetype.cpp"
+#endif
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"
 #include "imgui/imgui_impl_sdl_gl3.h"
@@ -23,7 +29,6 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "stb_image.h"
 #include "stb_image_write.h"
 #include "vdb.h"
-#include "vdb_config.h"
 #include "_gl_error.cpp"
 #include "_settings.cpp"
 #include "_framegrab.cpp"
@@ -99,6 +104,10 @@ bool vdbBeginFrame(const char *label)
         // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
+
+        #if VDB_IMGUI_FREETYPE==1
+        ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        #endif
     }
 
     if (vdbIsFirstFrame())

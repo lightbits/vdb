@@ -6,7 +6,7 @@ REM To link with vdb, see test.cpp for an example
 if not exist "lib" mkdir lib
 pushd lib
 
-set INC=-I..\include\ -I..\include\vdb\ -I..\include\sdl\
+set INC=-I..\include\ -I..\include\vdb\ -I..\include\sdl\ -I..\lib\freetype\include
 set CF=%INC% -Zi -nologo -Od -WX -W3 -wd4100 -wd4189 -wd4996 -wd4055 -DVDB_DEBUG
 set LF=
 
