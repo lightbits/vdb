@@ -422,7 +422,7 @@ void vdbEndFrame()
         uistuff::WindowSizeDialog();
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();
-        uistuff::CameraToolBar(vdb::frame_settings);
+        uistuff::MainMenuBar(vdb::frame_settings);
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }

@@ -1,111 +1,43 @@
-#include "data/icon_camera_inactive.cpp"
-#include "data/icon_camera_active.cpp"
-
-struct ui_icon_t
-{
-    GLuint handle;
-    int width,height;
-};
-
 namespace uistuff
 {
     static bool escape_eaten;
     static bool sketch_mode_active;
     static bool ruler_mode_active;
-    static ui_icon_t icon_camera_inactive;
-    static ui_icon_t icon_camera_active;
 
-    static void CameraToolBar(frame_settings_t *fs);
+    static void MainMenuBar(frame_settings_t *fs);
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
 }
 
-static void LoadIconIfNeeded(ui_icon_t *icon, const unsigned int *icon_data, unsigned int icon_size)
-{
-    if (!icon->handle)
-    {
-        int width,height,channels;
-        unsigned char *pixels = stbi_load_from_memory((const unsigned char*)icon_data, icon_size, &width, &height, &channels, 4);
-        assert(pixels);
-        GLuint handle = TexImage2D(pixels, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
-        free(pixels);
-        icon->handle = handle;
-        icon->width = width;
-        icon->height = height;
-    }
-}
-
-static void uistuff::CameraToolBar(frame_settings_t *fs)
+static void uistuff::MainMenuBar(frame_settings_t *fs)
 {
     using namespace uistuff;
-    LoadIconIfNeeded(&icon_camera_active, icon_camera_active_data, icon_camera_active_size);
-    LoadIconIfNeeded(&icon_camera_inactive, icon_camera_inactive_data, icon_camera_inactive_size);
-    assert(icon_camera_active.handle);
-    assert(icon_camera_inactive.handle);
-
-    ImGui::PushID("vdbCameraToolBar");
-    ImGuiWindowFlags flags =
-        ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoResize |
-        ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoSavedSettings;
-    ImGui::SetNextWindowBgAlpha(0.0f);
-    ImGui::SetNextWindowPos(ImVec2((float)(vdbGetWindowWidth() - 60.0f), 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(60.0f, -1.0f));
-    ImGui::Begin("", NULL, flags);
-    {
-        static bool is_active = false;
-        static bool is_hovered = false;
-        ImVec2 size = ImVec2(42.0f, 42.0f);
-        ImVec4 tint = ImVec4(0.75f, 0.75f, 0.75f, 0.5f);
-        if (is_active) tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        else if (is_hovered) tint = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-        void *handle = (is_active || is_hovered) ?
-                        (void*)(intptr_t)icon_camera_active.handle :
-                        (void*)(intptr_t)icon_camera_inactive.handle;
-
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0,0,0,0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0,0,0,0));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0,0,0,0));
-        if (ImGui::ImageButton(handle, size, ImVec2(0,0), ImVec2(1,1), -1, ImVec4(0,0,0,0), tint))
-            ImGui::OpenPopup("Built-in camera");
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        ImGui::PopStyleColor();
-        is_active = ImGui::IsItemActive();
-        is_hovered = ImGui::IsItemHovered();
-    }
-
-    ImGui::SetNextWindowPos(ImVec2((float)vdbGetWindowWidth() - 160.0f, 0.0f));
-    ImGui::SetNextWindowSize(ImVec2(160.0f, -1.0f));
-    if (ImGui::BeginPopup("Built-in camera", ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar))
+    ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
+    ImGui::BeginMainMenuBar();
+    if (ImGui::BeginMenu("Camera"))
     {
         ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER);
         ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D);
         ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
         ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Grid"))
+    {
         ImGui::Checkbox("Show grid", &fs->grid_visible);
         ImGui::Checkbox("Show cube", &fs->cube_visible);
         ImGui::PushItemWidth(60.0f);
         ImGui::DragFloat("Major div.", &fs->grid_scale);
-        // ImGui::DragFloat("Scale##cube", &fs->cube_scale);
         ImGui::PopItemWidth();
         ImGui::SameLine(); ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
         ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
         ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
-
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
-        {
-            escape_eaten = true;
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
+        ImGui::EndMenu();
     }
-    ImGui::End();
-    ImGui::PopID();
+    ImGui::EndMainMenuBar();
+    ImGui::PopStyleVar();
 }
 
 static void uistuff::ExitDialog()
