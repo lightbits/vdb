@@ -35,7 +35,6 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 // #include "data/source_sans_pro.cpp"
 #include "_shader.cpp"
 #include "_sketch_mode.cpp"
-#include "_ruler_mode.cpp"
 #include "_matrix.cpp"
 #include "_matrix_stack.cpp"
 #include "vdb_keyboard.cpp"
@@ -205,19 +204,7 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetIO().WantCaptureMouse = true;
     }
 
-    if (VDB_HOTKEY_RULER_MODE) uistuff::ruler_mode_active = !uistuff::ruler_mode_active;
-
-    if (uistuff::ruler_mode_active)
-    {
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
-        {
-            uistuff::ruler_mode_active = false;
-            uistuff::escape_eaten = true;
-        }
-        vdbRulerMode(vdbIsMouseLeftDown(), vdbGetMousePos());
-        ImGui::GetIO().WantCaptureKeyboard = true;
-        ImGui::GetIO().WantCaptureMouse = true;
-    }
+    uistuff::RulerNewFrame();
 
     CheckGLError();
 
@@ -375,9 +362,6 @@ void vdbEndFrame()
     if (uistuff::sketch_mode_active)
         vdbSketchModePresent();
 
-    if (uistuff::ruler_mode_active)
-        vdbRulerModePresent();
-
     if (framegrab::active)
     {
         framegrab_options_t opt = framegrab::options;
@@ -423,6 +407,7 @@ void vdbEndFrame()
         uistuff::WindowSizeDialog();
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();
+        uistuff::RulerEndFrame();
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }

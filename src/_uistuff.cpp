@@ -5,11 +5,21 @@ namespace uistuff
     static bool ruler_mode_active;
     static bool window_size_dialog_should_open;
     static bool framegrab_dialog_should_open;
+    static bool show_main_menu = true;
+
+    namespace ruler
+    {
+        // window coordinates (ImGui coordinates)
+        static vdbVec2 mouse;
+        static vdbVec2 a,b;
+    }
 
     static void MainMenuBar(frame_settings_t *fs);
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
+    static void RulerNewFrame();
+    static void RulerEndFrame();
 }
 
 static void uistuff::MainMenuBar(frame_settings_t *fs)
@@ -17,10 +27,9 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     using namespace uistuff;
 
     // hide/show menu
-    static bool show_menu = true;
     if (VDB_HOTKEY_TOGGLE_MENU)
-        show_menu = !show_menu;
-    if (!show_menu)
+        show_main_menu = !show_main_menu;
+    if (!show_main_menu)
         return;
 
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
@@ -48,17 +57,17 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Settings"))
     {
-        ImGui::MenuItem("Show menu", "ALT+M", &show_menu);
-        ImGui::MenuItem("Window size", "ALT+W", &window_size_dialog_should_open);
+        ImGui::MenuItem("Show menu", "Alt+M", &show_main_menu);
+        ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Tools"))
     {
-        ImGui::MenuItem("Take screenshot", "ALT+S", &framegrab_dialog_should_open);
-        ImGui::MenuItem("Record video", "ALT+S", &framegrab_dialog_should_open);
-        ImGui::MenuItem("Ruler", "ALT+R", &ruler_mode_active);
-        ImGui::MenuItem("Draw", "ALT+D", &sketch_mode_active);
+        ImGui::MenuItem("Take screenshot", "Alt+S", &framegrab_dialog_should_open);
+        ImGui::MenuItem("Record video", "Alt+S", &framegrab_dialog_should_open);
+        ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
+        ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
         ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -293,4 +302,84 @@ static void uistuff::FramegrabDialog()
         }
         EndPopup();
     }
+}
+
+static void uistuff::RulerNewFrame()
+{
+    if (VDB_HOTKEY_RULER_MODE)
+        ruler_mode_active = !ruler_mode_active;
+
+    if (ruler_mode_active)
+    {
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        {
+            ruler_mode_active = false;
+            escape_eaten = true;
+        }
+
+        static bool dragging = false;
+        ruler::mouse = vdbGetMousePos();
+        if (vdbIsMouseLeftDown())
+        {
+            if (!dragging)
+            {
+                dragging = true;
+                ruler::a = ruler::mouse;
+                ruler::b = ruler::mouse;
+            }
+            else
+            {
+                ruler::b = ruler::mouse;
+            }
+        }
+        else
+        {
+            dragging = false;
+        }
+
+        // force all subsequent calls to vdb{Is,Was}{Mouse,Key}{UpDownPressed} to return false
+        ImGui::GetIO().WantCaptureKeyboard = true;
+        ImGui::GetIO().WantCaptureMouse = true;
+    }
+}
+
+static void uistuff::RulerEndFrame()
+{
+    if (!ruler_mode_active)
+        return;
+
+    using namespace ruler;
+    vdbVec2 ndc_a = vdbWindowToNDC(a.x, a.y);
+    vdbVec3 model_a = vdbNDCToModel(ndc_a.x, ndc_a.y);
+    vdbVec2 ndc_b = vdbWindowToNDC(b.x, b.y);
+    vdbVec3 model_b = vdbNDCToModel(ndc_b.x, ndc_b.y);
+    float dx = model_b.x - model_a.x;
+    float dy = model_b.y - model_a.y;
+    float distance = sqrtf(dx*dx + dy*dy);
+    float distance_px = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
+
+    ImDrawList *draw = ImGui::GetOverlayDrawList();
+
+    ImU32 fg = IM_COL32(255,255,255,255);
+    ImU32 bg = IM_COL32(0,0,0,255);
+
+    if (distance_px > 1.0f)
+    {
+        float thickness = 2.0f;
+        draw->AddLine(ImVec2(a.x,a.y), ImVec2(b.x,b.y), bg, thickness+2.0f);
+        draw->AddCircleFilled(ImVec2(a.x,a.y), 5.0f, bg);
+        draw->AddCircleFilled(ImVec2(b.x,b.y), 5.0f, bg);
+        draw->AddLine(ImVec2(a.x,a.y), ImVec2(b.x,b.y), fg, thickness);
+        draw->AddCircleFilled(ImVec2(a.x,a.y), 4.0f, fg);
+        draw->AddCircleFilled(ImVec2(b.x,b.y), 4.0f, fg);
+    }
+
+    ImGui::BeginMainMenuBar();
+    ImGui::Separator();
+    ImGui::Text("%4d, %4d px", (int)mouse.x, (int)mouse.y);
+    ImGui::Separator();
+    ImGui::Text("%4d px", (int)distance_px);
+    ImGui::Separator();
+    ImGui::Text("%g user", distance);
+    ImGui::EndMainMenuBar();
 }
