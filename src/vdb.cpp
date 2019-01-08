@@ -13,8 +13,7 @@
 #include "SDL_syswm.h"
 #include "imgui/imgui.cpp"
 #if VDB_IMGUI_FREETYPE==1
-#include "imgui/imgui_freetype.h"
-#include "imgui/imgui_freetype.cpp"
+#include "_imgui_freetype.cpp"
 #endif
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"
@@ -106,7 +105,7 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetStyle().WindowBorderSize = 0.0f;
 
         #if VDB_IMGUI_FREETYPE==1
-        ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        imgui_freetype::Init();
         #endif
     }
 

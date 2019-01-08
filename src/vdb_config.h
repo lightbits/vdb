@@ -16,13 +16,21 @@
 // #define VDB_MATRIX_COLUMN_MAJOR
 #define VDB_MATRIX_ROW_MAJOR
 
-// Enable this in order to use FreeType for font rendering inside ImGui (is nicer)
-// Note: You need to obtain FreeType binaries and link those with your application
-// Binaries for Win32 and Win64 are included in vdb/lib/freetype
-#define VDB_IMGUI_FREETYPE     0
+// When enabled, ImGui will use FreeType for font rendering (less blurry for small
+// font sizes). Unless VDB_IMGUI_FREETYPE_DYNAMIC is enabled, you need to manually
+// link Freetype with your final executable. Precompiled library binaries for Win32
+// and Win64 are included in vdb/lib/freetype.
+#define VDB_IMGUI_FREETYPE         1
 
-// Height of default font
-#define VDB_FONT_HEIGHT        18.0f
+// If enabled, VDB will try to locate freetype.dll on startup and link it for you
+// dynamically. This means you don't have to change the build system for your final
+// executable, and only need to make sure that freetype.dll is accessible (e.g. in
+// the same directory), and matches the version of the header files provided in
+// vdb/lib/freetype/include. If freetype.dll is not found, freetype is not used.
+#define VDB_IMGUI_FREETYPE_DYNAMIC 1
+
+// For small font sizes (18 and below), I recommend using the Freetype renderer.
+#define VDB_FONT_HEIGHT        16.0f
 
 // When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
 #define VDB_FLIP_IMAGE_TEXEL_Y 0
@@ -49,24 +57,12 @@
 #define VDB_SETTINGS_FILENAME  "./vdb.ini"
 
 // Number of frames to pass between saving settings to disk
-#define VDB_SAVE_SETTINGS_PERIOD 64*5
+#define VDB_SAVE_SETTINGS_PERIOD 60*5
 
 // The state of ImGui windows is remembered between sessions.
 // This path specifies the path (relative to working directory)
 // where the information is stored.
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
-
-
-// This shader can be used to render points as colored meshes. This gives
-// you MSAA for free (if enabled), but you end up with non-perfect circles.
-// This option might be faster than the quad shader, especially for low
-// vertex counts.
-#define VDB_POINT_SHADER_VERTEX
-
-// This shader can be used to render points as pixel-perfect circles,
-// using textured quads. This option might be slower than the vertex version
-// especially if you restrict yourself to low vertex count.
-// #define VDB_POINT_SHADER_QUAD
 
 #define VDB_HOTKEY_FRAMEGRAB   keys::pressed[SDL_SCANCODE_S] && keys::down[SDL_SCANCODE_LALT]
 #define VDB_HOTKEY_WINDOW_SIZE keys::pressed[SDL_SCANCODE_W] && keys::down[SDL_SCANCODE_LALT]

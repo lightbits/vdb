@@ -24,10 +24,13 @@
 #include "imgui_freetype.h"
 #include "imgui_internal.h"   // ImMin,ImMax,ImFontAtlasBuild*,
 #include <stdint.h>
+#if VDB_IMGUI_FREETYPE_DYNAMIC==0
+// if ==1 we include it in vdb.cpp
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_SYNTHESIS_H
+#endif
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed (stb stuff)
@@ -37,7 +40,7 @@
 #pragma GCC diagnostic ignored "-Wunused-function"          // warning: 'xxxx' defined but not used
 #endif
 
-namespace 
+namespace
 {
     // Glyph metrics:
     // --------------
@@ -71,7 +74,7 @@ namespace
     //              |------------- advanceX ----------->|
 
     /// A structure that describe a glyph.
-    struct GlyphInfo 
+    struct GlyphInfo
     {
         float Width;		// Glyph's width in pixels.
         float Height;		// Glyph's height in pixels.
@@ -81,7 +84,7 @@ namespace
     };
 
     // Font parameters and metrics.
-    struct FontInfo 
+    struct FontInfo
     {
         uint32_t    PixelHeight;        // Size this font was generated with.
         float       Ascender;           // The pixel extents above the baseline in pixels (typically positive).
@@ -116,13 +119,13 @@ namespace
     bool FreeTypeFont::Init(const ImFontConfig& cfg, unsigned int extra_user_flags)
     {
         // FIXME: substitute allocator
-        FT_Error error = FT_Init_FreeType(&FreetypeLibrary);
+        FT_Error error = VDB_FT_Init_FreeType(&FreetypeLibrary);
         if (error != 0)
             return false;
-        error = FT_New_Memory_Face(FreetypeLibrary, (uint8_t*)cfg.FontData, (uint32_t)cfg.FontDataSize, (uint32_t)cfg.FontNo, &FreetypeFace);
+        error = VDB_FT_New_Memory_Face(FreetypeLibrary, (uint8_t*)cfg.FontData, (uint32_t)cfg.FontDataSize, (uint32_t)cfg.FontNo, &FreetypeFace);
         if (error != 0)
             return false;
-        error = FT_Select_Charmap(FreetypeFace, FT_ENCODING_UNICODE);
+        error = VDB_FT_Select_Charmap(FreetypeFace, FT_ENCODING_UNICODE);
         if (error != 0)
             return false;
 
@@ -135,11 +138,11 @@ namespace
         if (UserFlags & ImGuiFreeType::NoHinting)      FreetypeLoadFlags |= FT_LOAD_NO_HINTING;
         if (UserFlags & ImGuiFreeType::NoAutoHint)     FreetypeLoadFlags |= FT_LOAD_NO_AUTOHINT;
         if (UserFlags & ImGuiFreeType::ForceAutoHint)  FreetypeLoadFlags |= FT_LOAD_FORCE_AUTOHINT;
-        if (UserFlags & ImGuiFreeType::LightHinting)   
+        if (UserFlags & ImGuiFreeType::LightHinting)
             FreetypeLoadFlags |= FT_LOAD_TARGET_LIGHT;
-        else if (UserFlags & ImGuiFreeType::MonoHinting)   
+        else if (UserFlags & ImGuiFreeType::MonoHinting)
             FreetypeLoadFlags |= FT_LOAD_TARGET_MONO;
-        else                                                
+        else
             FreetypeLoadFlags |= FT_LOAD_TARGET_NORMAL;
 
         return true;
@@ -147,16 +150,16 @@ namespace
 
     void FreeTypeFont::Shutdown()
     {
-        if (FreetypeFace) 
+        if (FreetypeFace)
         {
-            FT_Done_Face(FreetypeFace);
+            VDB_FT_Done_Face(FreetypeFace);
             FreetypeFace = NULL;
-            FT_Done_FreeType(FreetypeLibrary);
+            VDB_FT_Done_FreeType(FreetypeLibrary);
             FreetypeLibrary = NULL;
         }
     }
 
-    void FreeTypeFont::SetPixelHeight(int pixel_height) 
+    void FreeTypeFont::SetPixelHeight(int pixel_height)
     {
         // I'm not sure how to deal with font sizes properly.
         // As far as I understand, currently ImGui assumes that the 'pixel_height' is a maximum height of an any given glyph,
@@ -167,7 +170,7 @@ namespace
         req.height = (uint32_t)pixel_height * 64;
         req.horiResolution = 0;
         req.vertResolution = 0;
-        FT_Request_Size(FreetypeFace, &req);
+        VDB_FT_Request_Size(FreetypeFace, &req);
 
         // update font info
         FT_Size_Metrics metrics = FreetypeFace->size->metrics;
@@ -181,10 +184,10 @@ namespace
 
     bool FreeTypeFont::CalcGlyphInfo(uint32_t codepoint, GlyphInfo &glyph_info, FT_Glyph& ft_glyph, FT_BitmapGlyph& ft_bitmap)
     {
-        uint32_t glyph_index = FT_Get_Char_Index(FreetypeFace, codepoint);
+        uint32_t glyph_index = VDB_FT_Get_Char_Index(FreetypeFace, codepoint);
         if (glyph_index == 0)
             return false;
-        FT_Error error = FT_Load_Glyph(FreetypeFace, glyph_index, FreetypeLoadFlags);
+        FT_Error error = VDB_FT_Load_Glyph(FreetypeFace, glyph_index, FreetypeLoadFlags);
         if (error)
             return false;
 
@@ -193,17 +196,17 @@ namespace
         IM_ASSERT(slot->format == FT_GLYPH_FORMAT_OUTLINE);
 
         if (UserFlags & ImGuiFreeType::Bold)
-            FT_GlyphSlot_Embolden(slot);
+            VDB_FT_GlyphSlot_Embolden(slot);
         if (UserFlags & ImGuiFreeType::Oblique)
-            FT_GlyphSlot_Oblique(slot);
+            VDB_FT_GlyphSlot_Oblique(slot);
 
         // Retrieve the glyph
-        error = FT_Get_Glyph(slot, &ft_glyph);
+        error = VDB_FT_Get_Glyph(slot, &ft_glyph);
         if (error != 0)
             return false;
 
         // Rasterize
-        error = FT_Glyph_To_Bitmap(&ft_glyph, FT_RENDER_MODE_NORMAL, NULL, true);
+        error = VDB_FT_Glyph_To_Bitmap(&ft_glyph, FT_RENDER_MODE_NORMAL, NULL, true);
         if (error != 0)
             return false;
 
@@ -266,7 +269,7 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
     // Count glyphs/ranges, initialize font
     int total_glyphs_count = 0;
     int total_ranges_count = 0;
-    for (int input_i = 0; input_i < atlas->ConfigData.Size; input_i++) 
+    for (int input_i = 0; input_i < atlas->ConfigData.Size; input_i++)
     {
         ImFontConfig& cfg = atlas->ConfigData[input_i];
         FreeTypeFont& font_face = fonts[input_i];
@@ -280,7 +283,7 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
 
         if (!cfg.GlyphRanges)
             cfg.GlyphRanges = atlas->GetGlyphRangesDefault();
-        for (const ImWchar* in_range = cfg.GlyphRanges; in_range[0] && in_range[ 1 ]; in_range += 2, total_ranges_count++) 
+        for (const ImWchar* in_range = cfg.GlyphRanges; in_range[0] && in_range[ 1 ]; in_range += 2, total_ranges_count++)
             total_glyphs_count += (in_range[1] - in_range[0]) + 1;
     }
 
@@ -290,7 +293,7 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
 
     // We don't do the original first pass to determine texture height, but just rough estimate.
     // Looks ugly inaccurate and excessive, but AFAIK with FreeType we actually need to render glyphs to get exact sizes.
-    // Alternatively, we could just render all glyphs into a big shadow buffer, get their sizes, do the rectangle packing and just copy back from the 
+    // Alternatively, we could just render all glyphs into a big shadow buffer, get their sizes, do the rectangle packing and just copy back from the
     // shadow buffer to the texture buffer. Will give us an accurate texture height, but eat a lot of temp memory. Probably no one will notice.)
     const int total_rects = total_glyphs_count + atlas->CustomRects.size();
     float min_rects_per_row = ceilf((atlas->TexWidth / (max_glyph_size.x + 1.0f)));
@@ -332,9 +335,9 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
         if (multiply_enabled)
             ImFontAtlasBuildMultiplyCalcLookupTable(multiply_table, cfg.RasterizerMultiply);
 
-        for (const ImWchar* in_range = cfg.GlyphRanges; in_range[0] && in_range[1]; in_range += 2) 
+        for (const ImWchar* in_range = cfg.GlyphRanges; in_range[0] && in_range[1]; in_range += 2)
         {
-            for (uint32_t codepoint = in_range[0]; codepoint <= in_range[1]; ++codepoint) 
+            for (uint32_t codepoint = in_range[0]; codepoint <= in_range[1]; ++codepoint)
             {
                 if (cfg.MergeMode && dst_font->FindGlyphNoFallback((unsigned short)codepoint))
                     continue;
@@ -354,17 +357,17 @@ bool ImGuiFreeType::BuildFontAtlas(ImFontAtlas* atlas, unsigned int extra_flags)
                 // Copy rasterized pixels to main texture
                 uint8_t* blit_dst = atlas->TexPixelsAlpha8 + rect.y * atlas->TexWidth + rect.x;
                 font_face.BlitGlyph(ft_glyph_bitmap, blit_dst, atlas->TexWidth, multiply_enabled ? multiply_table : NULL);
-                FT_Done_Glyph(ft_glyph);
+                VDB_FT_Done_Glyph(ft_glyph);
 
                 // Register glyph
-                dst_font->AddGlyph((ImWchar)codepoint, 
-                    glyph_info.OffsetX + off_x, 
-                    glyph_info.OffsetY + off_y, 
-                    glyph_info.OffsetX + off_x + glyph_info.Width, 
+                dst_font->AddGlyph((ImWchar)codepoint,
+                    glyph_info.OffsetX + off_x,
+                    glyph_info.OffsetY + off_y,
+                    glyph_info.OffsetX + off_x + glyph_info.Width,
                     glyph_info.OffsetY + off_y + glyph_info.Height,
-                    rect.x / (float)atlas->TexWidth, 
-                    rect.y / (float)atlas->TexHeight, 
-                    (rect.x + glyph_info.Width) / (float)atlas->TexWidth, 
+                    rect.x / (float)atlas->TexWidth,
+                    rect.y / (float)atlas->TexHeight,
+                    (rect.x + glyph_info.Width) / (float)atlas->TexWidth,
                     (rect.y + glyph_info.Height) / (float)atlas->TexHeight,
                     glyph_info.AdvanceX);
             }
