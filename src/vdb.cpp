@@ -419,10 +419,10 @@ void vdbEndFrame()
     }
     else
     {
+        uistuff::MainMenuBar(vdb::frame_settings);
         uistuff::WindowSizeDialog();
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();
-        uistuff::MainMenuBar(vdb::frame_settings);
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }

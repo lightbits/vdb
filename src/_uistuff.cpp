@@ -3,6 +3,8 @@ namespace uistuff
     static bool escape_eaten;
     static bool sketch_mode_active;
     static bool ruler_mode_active;
+    static bool window_size_dialog_should_open;
+    static bool framegrab_dialog_should_open;
 
     static void MainMenuBar(frame_settings_t *fs);
     static void ExitDialog();
@@ -13,6 +15,14 @@ namespace uistuff
 static void uistuff::MainMenuBar(frame_settings_t *fs)
 {
     using namespace uistuff;
+
+    // hide/show menu
+    static bool show_menu = true;
+    if (VDB_HOTKEY_TOGGLE_MENU)
+        show_menu = !show_menu;
+    if (!show_menu)
+        return;
+
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("Camera"))
@@ -34,6 +44,21 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
         ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
         ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
         ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Settings"))
+    {
+        ImGui::MenuItem("Show menu", "ALT+M", &show_menu);
+        ImGui::MenuItem("Window size", "ALT+W", &window_size_dialog_should_open);
+        ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Tools"))
+    {
+        ImGui::MenuItem("Take screenshot", "ALT+S", &framegrab_dialog_should_open);
+        ImGui::MenuItem("Record video", "ALT+S", &framegrab_dialog_should_open);
+        ImGui::MenuItem("Ruler", "ALT+R", &ruler_mode_active);
+        ImGui::MenuItem("Draw", "ALT+D", &sketch_mode_active);
         ImGui::EndMenu();
     }
     ImGui::EndMainMenuBar();
@@ -77,8 +102,9 @@ static void uistuff::ExitDialog()
 
 static void uistuff::WindowSizeDialog()
 {
-    if (VDB_HOTKEY_WINDOW_SIZE)
+    if (window_size_dialog_should_open || (VDB_HOTKEY_WINDOW_SIZE))
     {
+        window_size_dialog_should_open = false;
         ImGui::OpenPopup("Set window size##popup");
         ImGui::CaptureKeyboardFromApp(true);
     }
@@ -121,8 +147,9 @@ static void uistuff::FramegrabDialog()
     using namespace ImGui;
     bool enter_button = keys::pressed[SDL_SCANCODE_RETURN];
     bool escape_button = keys::pressed[SDL_SCANCODE_ESCAPE];
-    if (VDB_HOTKEY_FRAMEGRAB)
+    if (framegrab_dialog_should_open || (VDB_HOTKEY_FRAMEGRAB))
     {
+        framegrab_dialog_should_open = false;
         OpenPopup("Take screenshot##popup");
         CaptureKeyboardFromApp(true);
     }
