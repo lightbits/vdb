@@ -64,7 +64,8 @@
 // where the information is stored.
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
 
-#define VDB_HOTKEY_FRAMEGRAB   keys::pressed[SDL_SCANCODE_S] && keys::down[SDL_SCANCODE_LALT]
-#define VDB_HOTKEY_WINDOW_SIZE keys::pressed[SDL_SCANCODE_W] && keys::down[SDL_SCANCODE_LALT]
-#define VDB_HOTKEY_SKETCH_MODE keys::pressed[SDL_SCANCODE_D] && keys::down[SDL_SCANCODE_LALT]
-#define VDB_HOTKEY_RULER_MODE  keys::pressed[SDL_SCANCODE_R] && keys::down[SDL_SCANCODE_LALT]
+#define VDB_HOTKEY_FRAMEGRAB   (keys::pressed[SDL_SCANCODE_S] && keys::down[SDL_SCANCODE_LALT])
+#define VDB_HOTKEY_WINDOW_SIZE (keys::pressed[SDL_SCANCODE_W] && keys::down[SDL_SCANCODE_LALT])
+#define VDB_HOTKEY_SKETCH_MODE (keys::pressed[SDL_SCANCODE_D] && keys::down[SDL_SCANCODE_LALT])
+#define VDB_HOTKEY_RULER_MODE  (keys::pressed[SDL_SCANCODE_R] && keys::down[SDL_SCANCODE_LALT])
+#define VDB_HOTKEY_TOGGLE_MENU (keys::pressed[SDL_SCANCODE_M] && keys::down[SDL_SCANCODE_LALT])
