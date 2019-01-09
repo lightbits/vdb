@@ -40,15 +40,20 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     if (ImGui::BeginMenu("Camera"))
     {
         ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER);
+        ImGui::SameLine(); ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
         ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D);
+        ImGui::SameLine(); ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
         ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
+        ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
         ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
+        ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Grid"))
     {
         ImGui::Checkbox("Show grid", &fs->grid_visible);
         ImGui::Checkbox("Show cube", &fs->cube_visible);
+        ImGui::SameLine(); ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
         ImGui::PushItemWidth(60.0f);
         ImGui::DragFloat("Major div.", &fs->grid_scale);
         ImGui::PopItemWidth();

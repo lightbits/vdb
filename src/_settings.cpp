@@ -103,8 +103,8 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->min_depth = 0.1f;
     fs->max_depth = 50.0f;
     fs->grid_visible = false;
-    fs->grid_scale = 10.0f;
-    fs->camera_floor = VDB_FLOOR_XZ;
+    fs->grid_scale = 2.0f;
+    fs->camera_floor = VDB_FLOOR_XY;
     fs->cube_visible = false;
 }
 
