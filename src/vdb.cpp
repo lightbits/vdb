@@ -56,6 +56,7 @@ namespace vdb
     static bool initialized;
     static bool is_first_frame;
     static bool is_different_label;
+    static int loaded_font_size;
     static frame_settings_t *frame_settings;
 }
 
@@ -99,12 +100,20 @@ bool vdbBeginFrame(const char *label)
         ImGui::CreateContext();
         ImGui_ImplSdlGL3_Init(window::sdl_window);
         ImGui::StyleColorsDark();
-        // ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)source_sans_pro_compressed_data, source_sans_pro_compressed_size, VDB_FONT_HEIGHT);
-        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF((const char*)open_sans_regular_compressed_data, open_sans_regular_compressed_size, VDB_FONT_HEIGHT);
         ImGui::GetStyle().WindowBorderSize = 0.0f;
+    }
 
+    if (vdb::loaded_font_size != settings.font_size)
+    {
+        vdb::loaded_font_size = settings.font_size;
+        ImGui_ImplSdlGL3_InvalidateDeviceObjects();
+        ImGui::GetIO().Fonts->Clear();
+        const char *data = (const char*)open_sans_regular_compressed_data;
+        const unsigned int size = open_sans_regular_compressed_size;
+        float height = (float)settings.font_size;
+        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, size, height);
         #if VDB_IMGUI_FREETYPE==1
-        imgui_freetype::Init();
+        imgui_freetype::BuildFontAtlas();
         #endif
     }
 

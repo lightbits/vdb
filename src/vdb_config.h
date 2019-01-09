@@ -30,7 +30,7 @@
 #define VDB_IMGUI_FREETYPE_DYNAMIC 1
 
 // For small font sizes I recommend using the Freetype renderer.
-#define VDB_FONT_HEIGHT        18.0f
+#define VDB_DEFAULT_FONT_SIZE  18
 
 // When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
 #define VDB_FLIP_IMAGE_TEXEL_Y 0

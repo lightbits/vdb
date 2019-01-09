@@ -87,6 +87,7 @@ struct settings_t
     int num_frames;
     bool never_ask_on_exit;
     bool show_main_menu;
+    int font_size;
 
     void LoadOrDefault(const char *filename);
     void Save(const char *filename);
@@ -124,6 +125,7 @@ void settings_t::LoadOrDefault(const char *filename)
     never_ask_on_exit = false;
     show_main_menu = true;
     num_frames = 0;
+    font_size = (int)(VDB_DEFAULT_FONT_SIZE);
 
     FILE *f = fopen(filename, "rb");
     if (!f) return;
@@ -151,6 +153,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_zoom=%f", &f) == 1)           { camera.Kp_zoom = f; }
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)      { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)         { camera.Kp_rotate = f; }
+        else if (sscanf(line, "FontSize=%f", &f) == 1)          { font_size = (int)f; }
         else if (strstr(line, "[Frame]=") == line)
         {
             if (num_frames == MAX_FRAME_SETTINGS)
@@ -181,6 +184,9 @@ void settings_t::LoadOrDefault(const char *filename)
     free(line);
     free(str);
     fclose(f);
+
+    if (font_size <= 0)
+        font_size = 18;
 }
 
 void settings_t::Save(const char *filename)
@@ -196,13 +202,14 @@ void settings_t::Save(const char *filename)
     fprintf(f, "Size=%d,%d\n", window.width, window.height);
     fprintf(f, "NeverAskOnExit=%d\n", never_ask_on_exit);
     fprintf(f, "ShowMainMenu=%d\n", show_main_menu);
-    fprintf(f, "MouseSensitivity=%f\n", camera.mouse_sensitivity);
-    fprintf(f, "ScrollSensitivity=%f\n", camera.scroll_sensitivity);
-    fprintf(f, "MoveSpeedNormal=%f\n", camera.move_speed_normal);
-    fprintf(f, "MoveSpeedSlow=%f\n", camera.move_speed_slow);
-    fprintf(f, "Kp_zoom=%f\n", camera.Kp_zoom);
-    fprintf(f, "Kp_translate=%f\n", camera.Kp_translate);
-    fprintf(f, "Kp_rotate=%f\n", camera.Kp_rotate);
+    fprintf(f, "MouseSensitivity=%g\n", camera.mouse_sensitivity);
+    fprintf(f, "ScrollSensitivity=%g\n", camera.scroll_sensitivity);
+    fprintf(f, "MoveSpeedNormal=%g\n", camera.move_speed_normal);
+    fprintf(f, "MoveSpeedSlow=%g\n", camera.move_speed_slow);
+    fprintf(f, "Kp_zoom=%g\n", camera.Kp_zoom);
+    fprintf(f, "Kp_translate=%g\n", camera.Kp_translate);
+    fprintf(f, "Kp_rotate=%g\n", camera.Kp_rotate);
+    fprintf(f, "FontSize=%g\n", font_size);
     for (int i = 0; i < num_frames; i++)
     {
         frame_settings_t *frame = frames + i;
@@ -210,15 +217,15 @@ void settings_t::Save(const char *filename)
         if (frame->camera_type != VDB_CAMERA_USER)
         {
             fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
-            fprintf(f, "CameraRadius=%f\n", frame->init_radius);
+            fprintf(f, "CameraRadius=%g\n", frame->init_radius);
             if (frame->camera_type != VDB_CAMERA_2D)
             {
-                fprintf(f, "YFov=%f\n", frame->y_fov);
-                fprintf(f, "MinDepth=%f\n", frame->min_depth);
-                fprintf(f, "MaxDepth=%f\n", frame->max_depth);
+                fprintf(f, "YFov=%g\n", frame->y_fov);
+                fprintf(f, "MinDepth=%g\n", frame->min_depth);
+                fprintf(f, "MaxDepth=%g\n", frame->max_depth);
             }
             fprintf(f, "GridVisible=%d\n", frame->grid_visible ? 1 : 0);
-            fprintf(f, "GridScale=%f\n", frame->grid_scale);
+            fprintf(f, "GridScale=%g\n", frame->grid_scale);
             fprintf(f, "Floor=%s\n", CameraFloorToStr(frame->camera_floor));
             fprintf(f, "CubeVisible=%d\n", frame->cube_visible ? 1 : 0);
         }

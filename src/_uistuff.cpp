@@ -51,8 +51,8 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Grid"))
     {
-        ImGui::Checkbox("Show grid", &fs->grid_visible);
-        ImGui::Checkbox("Show cube", &fs->cube_visible);
+        ImGui::MenuItem("Show grid", NULL, &fs->grid_visible);
+        ImGui::MenuItem("Show cube", NULL, &fs->cube_visible);
         ImGui::SameLine(); ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
         ImGui::PushItemWidth(60.0f);
         ImGui::DragFloat("Major div.", &fs->grid_scale);
@@ -68,6 +68,14 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
+        if (ImGui::BeginMenu("Font"))
+        {
+            if (ImGui::MenuItem("Larger")) settings.font_size += 1;
+            if (ImGui::MenuItem("Smaller") && settings.font_size > 1) settings.font_size -= 1;
+            ImGui::Separator();
+            if (ImGui::MenuItem("Reset")) settings.font_size = (int)VDB_DEFAULT_FONT_SIZE;
+            ImGui::EndMenu();
+        }
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Tools"))

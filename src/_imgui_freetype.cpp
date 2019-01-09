@@ -51,31 +51,31 @@ PFNFTDONEGLYPH VDB_FT_Done_Glyph;
 // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
 namespace imgui_freetype
 {
-    static void Init()
+    static void BuildFontAtlas()
     {
         #if VDB_IMGUI_FREETYPE_DYNAMIC==1
-        void *freetype = SDL_LoadObject("freetype.dll");
+        static bool loaded = false;
+        static void *freetype = SDL_LoadObject("freetype.dll");
         if (freetype)
         {
-            bool success = true;
-            VDB_FT_Init_FreeType = (PFNFTINITFREETYPE)SDL_LoadFunction(freetype, "FT_Init_FreeType"); if (!VDB_FT_Init_FreeType) success = false;
-            VDB_FT_New_Memory_Face = (PFNFTNEWMEMORYFACE)SDL_LoadFunction(freetype, "FT_New_Memory_Face"); if (!VDB_FT_New_Memory_Face) success = false;
-            VDB_FT_Select_Charmap = (PFNFTSELECTCHARMAP)SDL_LoadFunction(freetype, "FT_Select_Charmap"); if (!VDB_FT_Select_Charmap) success = false;
-            VDB_FT_Done_Face = (PFNFTDONEFACE)SDL_LoadFunction(freetype, "FT_Done_Face"); if (!VDB_FT_Done_Face) success = false;
-            VDB_FT_Done_FreeType = (PFNFTDONEFREETYPE)SDL_LoadFunction(freetype, "FT_Done_FreeType"); if (!VDB_FT_Done_FreeType) success = false;
-            VDB_FT_Request_Size = (PFNFTREQUESTSIZE)SDL_LoadFunction(freetype, "FT_Request_Size"); if (!VDB_FT_Request_Size) success = false;
-            VDB_FT_Get_Char_Index = (PFNFTGETCHARINDEX)SDL_LoadFunction(freetype, "FT_Get_Char_Index"); if (!VDB_FT_Get_Char_Index) success = false;
-            VDB_FT_Load_Glyph = (PFNFTLOADGLYPH)SDL_LoadFunction(freetype, "FT_Load_Glyph"); if (!VDB_FT_Load_Glyph) success = false;
-            VDB_FT_GlyphSlot_Embolden = (PFNFTGLYPHSLOTEMBOLDEN)SDL_LoadFunction(freetype, "FT_GlyphSlot_Embolden"); if (!VDB_FT_GlyphSlot_Embolden) success = false;
-            VDB_FT_GlyphSlot_Oblique = (PFNFTGLYPHSLOTOBLIQUE)SDL_LoadFunction(freetype, "FT_GlyphSlot_Oblique"); if (!VDB_FT_GlyphSlot_Oblique) success = false;
-            VDB_FT_Get_Glyph = (PFNFTGETGLYPH)SDL_LoadFunction(freetype, "FT_Get_Glyph"); if (!VDB_FT_Get_Glyph) success = false;
-            VDB_FT_Glyph_To_Bitmap = (PFNFTGLYPHTOBITMAP)SDL_LoadFunction(freetype, "FT_Glyph_To_Bitmap"); if (!VDB_FT_Glyph_To_Bitmap) success = false;
-            VDB_FT_Done_Glyph = (PFNFTDONEGLYPH)SDL_LoadFunction(freetype, "FT_Done_Glyph"); if (!VDB_FT_Done_Glyph) success = false;
-            if (success)
-                ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+            loaded = true;
+            VDB_FT_Init_FreeType      = (PFNFTINITFREETYPE)      SDL_LoadFunction(freetype, "FT_Init_FreeType");      if (!VDB_FT_Init_FreeType) loaded = false;
+            VDB_FT_New_Memory_Face    = (PFNFTNEWMEMORYFACE)     SDL_LoadFunction(freetype, "FT_New_Memory_Face");    if (!VDB_FT_New_Memory_Face) loaded = false;
+            VDB_FT_Select_Charmap     = (PFNFTSELECTCHARMAP)     SDL_LoadFunction(freetype, "FT_Select_Charmap");     if (!VDB_FT_Select_Charmap) loaded = false;
+            VDB_FT_Done_Face          = (PFNFTDONEFACE)          SDL_LoadFunction(freetype, "FT_Done_Face");          if (!VDB_FT_Done_Face) loaded = false;
+            VDB_FT_Done_FreeType      = (PFNFTDONEFREETYPE)      SDL_LoadFunction(freetype, "FT_Done_FreeType");      if (!VDB_FT_Done_FreeType) loaded = false;
+            VDB_FT_Request_Size       = (PFNFTREQUESTSIZE)       SDL_LoadFunction(freetype, "FT_Request_Size");       if (!VDB_FT_Request_Size) loaded = false;
+            VDB_FT_Get_Char_Index     = (PFNFTGETCHARINDEX)      SDL_LoadFunction(freetype, "FT_Get_Char_Index");     if (!VDB_FT_Get_Char_Index) loaded = false;
+            VDB_FT_Load_Glyph         = (PFNFTLOADGLYPH)         SDL_LoadFunction(freetype, "FT_Load_Glyph");         if (!VDB_FT_Load_Glyph) loaded = false;
+            VDB_FT_GlyphSlot_Embolden = (PFNFTGLYPHSLOTEMBOLDEN) SDL_LoadFunction(freetype, "FT_GlyphSlot_Embolden"); if (!VDB_FT_GlyphSlot_Embolden) loaded = false;
+            VDB_FT_GlyphSlot_Oblique  = (PFNFTGLYPHSLOTOBLIQUE)  SDL_LoadFunction(freetype, "FT_GlyphSlot_Oblique");  if (!VDB_FT_GlyphSlot_Oblique) loaded = false;
+            VDB_FT_Get_Glyph          = (PFNFTGETGLYPH)          SDL_LoadFunction(freetype, "FT_Get_Glyph");          if (!VDB_FT_Get_Glyph) loaded = false;
+            VDB_FT_Glyph_To_Bitmap    = (PFNFTGLYPHTOBITMAP)     SDL_LoadFunction(freetype, "FT_Glyph_To_Bitmap");    if (!VDB_FT_Glyph_To_Bitmap) loaded = false;
+            VDB_FT_Done_Glyph         = (PFNFTDONEGLYPH)         SDL_LoadFunction(freetype, "FT_Done_Glyph");         if (!VDB_FT_Done_Glyph) loaded = false;
         }
-        #else
-        ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        if (!loaded)
+            return;
         #endif
+        ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
     }
 }
