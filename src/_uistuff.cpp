@@ -6,7 +6,10 @@ namespace uistuff
     static bool window_size_dialog_should_open;
     static bool take_screenshot_should_open;
     static bool record_video_should_open;
-    static float cached_main_menu_bar_height = 0.0f;
+
+    // note: this is in window coordinates (ImGui coordinates)
+    // note: this may change from frame to frame!
+    static float main_menu_bar_height = 0.0f;
 
     namespace ruler
     {
@@ -33,10 +36,14 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     if (VDB_HOTKEY_TOGGLE_MENU)
         settings.show_main_menu = !settings.show_main_menu;
     if (!settings.show_main_menu)
+    {
+        main_menu_bar_height = 0.0f;
         return;
+    }
 
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
     ImGui::BeginMainMenuBar();
+    main_menu_bar_height = ImGui::GetWindowHeight();
     if (ImGui::BeginMenu("Camera"))
     {
         ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_DISABLED);

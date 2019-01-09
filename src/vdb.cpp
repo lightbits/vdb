@@ -48,8 +48,8 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
 #include "vdb_filter.cpp"
-#include "vdb_var.cpp"
 #include "_uistuff.cpp"
+#include "vdb_var.cpp"
 
 namespace vdb
 {
