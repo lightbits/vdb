@@ -3,42 +3,42 @@
 
 typedef int camera_type_t;
 typedef int camera_floor_t;
-enum camera_type_ { VDB_CAMERA_USER=0, VDB_CAMERA_2D, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
-enum camera_floor_ { VDB_FLOOR_XZ=0, VDB_FLOOR_XY, VDB_FLOOR_YZ };
+enum camera_type_ { VDB_CAMERA_DISABLED=0, VDB_CAMERA_PLANAR, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
+enum camera_floor_ { VDB_FLOOR_XY=0, VDB_FLOOR_XZ, VDB_FLOOR_YZ };
 enum { MAX_FRAME_SETTINGS = 1024 };
 
 static camera_type_t CameraTypeFromStr(const char *str)
 {
-    if (strcmp(str, "User") == 0) return VDB_CAMERA_USER;
-    else if (strcmp(str, "2D") == 0) return VDB_CAMERA_2D;
-    else if (strcmp(str, "Trackball") == 0) return VDB_CAMERA_TRACKBALL;
-    else if (strcmp(str, "Turntable") == 0) return VDB_CAMERA_TURNTABLE;
-    return VDB_CAMERA_2D;
+    if (strcmp(str, "disabled") == 0) return VDB_CAMERA_DISABLED;
+    else if (strcmp(str, "planar") == 0) return VDB_CAMERA_PLANAR;
+    else if (strcmp(str, "trackball") == 0) return VDB_CAMERA_TRACKBALL;
+    else if (strcmp(str, "turntable") == 0) return VDB_CAMERA_TURNTABLE;
+    return VDB_CAMERA_DISABLED;
 }
 
 static const char *CameraTypeToStr(camera_type_t type)
 {
-    if (type == VDB_CAMERA_USER) return "User";
-    else if (type == VDB_CAMERA_2D) return "2D";
-    else if (type == VDB_CAMERA_TRACKBALL) return "Trackball";
-    else if (type == VDB_CAMERA_TURNTABLE) return "Turntable";
-    return "2D";
+    if (type == VDB_CAMERA_DISABLED) return "disabled";
+    else if (type == VDB_CAMERA_PLANAR) return "planar";
+    else if (type == VDB_CAMERA_TRACKBALL) return "trackball";
+    else if (type == VDB_CAMERA_TURNTABLE) return "turntable";
+    return "disabled";
 }
 
 static camera_floor_t CameraFloorFromStr(const char *str)
 {
-    if (strcmp(str, "XY") == 0) return VDB_FLOOR_XY;
-    else if (strcmp(str, "XZ") == 0) return VDB_FLOOR_XZ;
-    else if (strcmp(str, "YZ") == 0) return VDB_FLOOR_YZ;
-    return VDB_FLOOR_XZ;
+    if (strcmp(str, "xy") == 0) return VDB_FLOOR_XY;
+    else if (strcmp(str, "xz") == 0) return VDB_FLOOR_XZ;
+    else if (strcmp(str, "yz") == 0) return VDB_FLOOR_YZ;
+    return VDB_FLOOR_XY;
 }
 
 static const char *CameraFloorToStr(camera_floor_t mode)
 {
-    if (mode == VDB_FLOOR_XY) return "XY";
-    else if (mode == VDB_FLOOR_XZ) return "XZ";
-    else if (mode == VDB_FLOOR_YZ) return "YZ";
-    return "XZ";
+    if (mode == VDB_FLOOR_XY) return "xy";
+    else if (mode == VDB_FLOOR_XZ) return "xz";
+    else if (mode == VDB_FLOOR_YZ) return "yz";
+    return "xy";
 }
 
 struct frame_settings_t
@@ -97,7 +97,7 @@ static settings_t settings;
 
 void DefaultFrameSettings(frame_settings_t *fs)
 {
-    fs->camera_type = VDB_CAMERA_USER;
+    fs->camera_type = VDB_CAMERA_DISABLED;
     fs->init_radius = 1.0f;
     fs->init_look_at = vdbVec3(0.0f, 0.0f, 0.0f);
     fs->y_fov = 0.7f;
@@ -142,19 +142,19 @@ void settings_t::LoadOrDefault(const char *filename)
         int x,y;
         int i;
         float f;
-        if (sscanf(line, "Pos=%d,%d", &x, &y) == 2)             { window.x = x; window.y = y; }
-        else if (sscanf(line, "Size=%d,%d", &x, &y) == 2)       { window.width = x; window.height = y; }
-        else if (sscanf(line, "NeverAskOnExit=%d", &i) == 1)    { never_ask_on_exit = (i != 0); }
-        else if (sscanf(line, "ShowMainMenu=%d", &i) == 1)      { show_main_menu = (i != 0); }
-        else if (sscanf(line, "MouseSensitivity=%f", &f) == 1)  { camera.mouse_sensitivity = f; }
-        else if (sscanf(line, "ScrollSensitivity=%f", &f) == 1) { camera.scroll_sensitivity = f; }
-        else if (sscanf(line, "MoveSpeedNormal=%f", &f) == 1)   { camera.move_speed_normal = f; }
-        else if (sscanf(line, "MoveSpeedSlow=%f", &f) == 1)     { camera.move_speed_slow = f; }
-        else if (sscanf(line, "Kp_zoom=%f", &f) == 1)           { camera.Kp_zoom = f; }
-        else if (sscanf(line, "Kp_translate=%f", &f) == 1)      { camera.Kp_translate = f; }
-        else if (sscanf(line, "Kp_rotate=%f", &f) == 1)         { camera.Kp_rotate = f; }
-        else if (sscanf(line, "FontSize=%f", &f) == 1)          { font_size = (int)f; }
-        else if (strstr(line, "[Frame]=") == line)
+        if      (sscanf(line, "window_pos=%d,%d", &x, &y) == 2)  { window.x = x; window.y = y; }
+        else if (sscanf(line, "window_size=%d,%d", &x, &y) == 2) { window.width = x; window.height = y; }
+        else if (sscanf(line, "never_ask_on_exit=%d", &i) == 1)  { never_ask_on_exit = (i != 0); }
+        else if (sscanf(line, "show_main_menu=%d", &i) == 1)     { show_main_menu = (i != 0); }
+        else if (sscanf(line, "mouse_sensitivity=%f", &f) == 1)  { camera.mouse_sensitivity = f; }
+        else if (sscanf(line, "scroll_sensitivity=%f", &f) == 1) { camera.scroll_sensitivity = f; }
+        else if (sscanf(line, "move_speed_normal=%f", &f) == 1)  { camera.move_speed_normal = f; }
+        else if (sscanf(line, "move_speed_slow=%f", &f) == 1)    { camera.move_speed_slow = f; }
+        else if (sscanf(line, "Kp_zoom=%f", &f) == 1)            { camera.Kp_zoom = f; }
+        else if (sscanf(line, "Kp_translate=%f", &f) == 1)       { camera.Kp_translate = f; }
+        else if (sscanf(line, "Kp_rotate=%f", &f) == 1)          { camera.Kp_rotate = f; }
+        else if (sscanf(line, "font_size=%f", &f) == 1)          { font_size = (int)f; }
+        else if (strstr(line, "[frame]=") == line)
         {
             if (num_frames == MAX_FRAME_SETTINGS)
             {
@@ -164,22 +164,22 @@ void settings_t::LoadOrDefault(const char *filename)
             }
             assert(num_frames < MAX_FRAME_SETTINGS);
             frame = frames + (num_frames++);
-            frame->name = strdup(line + strlen("[Frame]="));
+            frame->name = strdup(line + strlen("[frame]="));
             // remove trailing newlines:
             size_t len = strlen(frame->name);
             while (len > 0 && (frame->name[len-1] == '\n' || frame->name[len-1] == '\r'))
                 frame->name[--len] = '\0';
             DefaultFrameSettings(frame);
         }
-        else if (frame && sscanf(line, "Camera=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
-        else if (frame && sscanf(line, "CameraRadius=%f", &f) == 1) { frame->init_radius = f; }
-        else if (frame && sscanf(line, "YFov=%f", &f) == 1)         { frame->y_fov = f; }
-        else if (frame && sscanf(line, "MinDepth=%f", &f) == 1)     { frame->min_depth = f; }
-        else if (frame && sscanf(line, "MaxDepth=%f", &f) == 1)     { frame->max_depth = f; }
-        else if (frame && sscanf(line, "GridVisible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "GridScale=%f", &f) == 1)    { frame->grid_scale = f; }
-        else if (frame && sscanf(line, "Floor=%s", str) == 1)       { frame->camera_floor = CameraFloorFromStr(str); }
-        else if (frame && sscanf(line, "CubeVisible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "camera_type=%s", str) == 1)  { frame->camera_type = CameraTypeFromStr(str); }
+        else if (frame && sscanf(line, "camera_radius=%f", &f) == 1) { frame->init_radius = f; }
+        else if (frame && sscanf(line, "y_fov=%f", &f) == 1)         { frame->y_fov = f; }
+        else if (frame && sscanf(line, "min_depth=%f", &f) == 1)     { frame->min_depth = f; }
+        else if (frame && sscanf(line, "max_depth=%f", &f) == 1)     { frame->max_depth = f; }
+        else if (frame && sscanf(line, "grid_visible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "grid_scale=%f", &f) == 1)    { frame->grid_scale = f; }
+        else if (frame && sscanf(line, "camera_floor=%s", str) == 1) { frame->camera_floor = CameraFloorFromStr(str); }
+        else if (frame && sscanf(line, "cube_visible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
     }
     free(line);
     free(str);
@@ -187,6 +187,8 @@ void settings_t::LoadOrDefault(const char *filename)
 
     if (font_size <= 0)
         font_size = 18;
+    if (font_size > 96)
+        font_size = 96;
 }
 
 void settings_t::Save(const char *filename)
@@ -198,36 +200,36 @@ void settings_t::Save(const char *filename)
         return;
     }
     fprintf(f, "[vdb]\n");
-    fprintf(f, "Pos=%d,%d\n", window.x, window.y);
-    fprintf(f, "Size=%d,%d\n", window.width, window.height);
-    fprintf(f, "NeverAskOnExit=%d\n", never_ask_on_exit);
-    fprintf(f, "ShowMainMenu=%d\n", show_main_menu);
-    fprintf(f, "MouseSensitivity=%g\n", camera.mouse_sensitivity);
-    fprintf(f, "ScrollSensitivity=%g\n", camera.scroll_sensitivity);
-    fprintf(f, "MoveSpeedNormal=%g\n", camera.move_speed_normal);
-    fprintf(f, "MoveSpeedSlow=%g\n", camera.move_speed_slow);
+    fprintf(f, "window_pos=%d,%d\n", window.x, window.y);
+    fprintf(f, "window_size=%d,%d\n", window.width, window.height);
+    fprintf(f, "never_ask_on_exit=%d\n", never_ask_on_exit);
+    fprintf(f, "show_main_menu=%d\n", show_main_menu);
+    fprintf(f, "mouse_sensitivity=%g\n", camera.mouse_sensitivity);
+    fprintf(f, "scroll_sensitivity=%g\n", camera.scroll_sensitivity);
+    fprintf(f, "move_speed_normal=%g\n", camera.move_speed_normal);
+    fprintf(f, "move_speed_slow=%g\n", camera.move_speed_slow);
     fprintf(f, "Kp_zoom=%g\n", camera.Kp_zoom);
     fprintf(f, "Kp_translate=%g\n", camera.Kp_translate);
     fprintf(f, "Kp_rotate=%g\n", camera.Kp_rotate);
-    fprintf(f, "FontSize=%g\n", font_size);
+    fprintf(f, "font_size=%d\n", font_size);
     for (int i = 0; i < num_frames; i++)
     {
         frame_settings_t *frame = frames + i;
-        fprintf(f, "\n[Frame]=%s\n", frame->name);
-        if (frame->camera_type != VDB_CAMERA_USER)
+        fprintf(f, "\n[frame]=%s\n", frame->name);
+        if (frame->camera_type != VDB_CAMERA_DISABLED)
         {
-            fprintf(f, "Camera=%s\n", CameraTypeToStr(frame->camera_type));
-            fprintf(f, "CameraRadius=%g\n", frame->init_radius);
-            if (frame->camera_type != VDB_CAMERA_2D)
+            fprintf(f, "camera_type=%s\n", CameraTypeToStr(frame->camera_type));
+            fprintf(f, "camera_radius=%g\n", frame->init_radius);
+            if (frame->camera_type != VDB_CAMERA_PLANAR)
             {
-                fprintf(f, "YFov=%g\n", frame->y_fov);
-                fprintf(f, "MinDepth=%g\n", frame->min_depth);
-                fprintf(f, "MaxDepth=%g\n", frame->max_depth);
+                fprintf(f, "y_fov=%g\n", frame->y_fov);
+                fprintf(f, "min_depth=%g\n", frame->min_depth);
+                fprintf(f, "max_depth=%g\n", frame->max_depth);
             }
-            fprintf(f, "GridVisible=%d\n", frame->grid_visible ? 1 : 0);
-            fprintf(f, "GridScale=%g\n", frame->grid_scale);
-            fprintf(f, "Floor=%s\n", CameraFloorToStr(frame->camera_floor));
-            fprintf(f, "CubeVisible=%d\n", frame->cube_visible ? 1 : 0);
+            fprintf(f, "grid_visible=%d\n", frame->grid_visible ? 1 : 0);
+            fprintf(f, "grid_scale=%g\n", frame->grid_scale);
+            fprintf(f, "camera_floor=%s\n", CameraFloorToStr(frame->camera_floor));
+            fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
         }
     }
     fclose(f);

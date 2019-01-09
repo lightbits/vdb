@@ -199,7 +199,7 @@ bool vdbBeginFrame(const char *label)
     CheckGLError();
 
     #if 1
-    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER)
+    if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
         frame_settings_t *fs = vdb::frame_settings;
         if (fs->camera_type == VDB_CAMERA_TRACKBALL)
@@ -223,7 +223,7 @@ bool vdbBeginFrame(const char *label)
             vdbCamera2D(fs->init_radius);
         }
 
-        if (fs->camera_type != VDB_CAMERA_2D)
+        if (fs->camera_type != VDB_CAMERA_PLANAR)
         {
             // We do PushMatrix to save current state for drawing grid in vdbEndFrame
 
@@ -252,8 +252,8 @@ void vdbEndFrame()
     if (filter::taa_begun) vdbEndTAA();
     if (filter::tss_begun) vdbEndTSS();
 
-    if (vdb::frame_settings->camera_type != VDB_CAMERA_USER &&
-        vdb::frame_settings->camera_type != VDB_CAMERA_2D)
+    if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
+        vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)
     {
         frame_settings_t *fs = vdb::frame_settings;
         vdbDepthTest(true);

@@ -39,9 +39,9 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     ImGui::BeginMainMenuBar();
     if (ImGui::BeginMenu("Camera"))
     {
-        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_USER);
+        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_DISABLED);
         ImGui::SameLine(); ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
-        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_2D);
+        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_PLANAR);
         ImGui::SameLine(); ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
         ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
         ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
