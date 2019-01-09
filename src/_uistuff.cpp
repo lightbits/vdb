@@ -4,8 +4,9 @@ namespace uistuff
     static bool sketch_mode_active;
     static bool ruler_mode_active;
     static bool window_size_dialog_should_open;
-    static bool framegrab_dialog_should_open;
-    static bool show_main_menu = true;
+    static bool take_screenshot_should_open;
+    static bool record_video_should_open;
+    static float cached_main_menu_bar_height = 0.0f;
 
     namespace ruler
     {
@@ -20,6 +21,8 @@ namespace uistuff
     static void FramegrabDialog();
     static void RulerNewFrame();
     static void RulerEndFrame();
+    static void SketchNewFrame();
+    static void SketchEndFrame();
 }
 
 static void uistuff::MainMenuBar(frame_settings_t *fs)
@@ -28,8 +31,8 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
 
     // hide/show menu
     if (VDB_HOTKEY_TOGGLE_MENU)
-        show_main_menu = !show_main_menu;
-    if (!show_main_menu)
+        settings.show_main_menu = !settings.show_main_menu;
+    if (!settings.show_main_menu)
         return;
 
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
@@ -57,15 +60,15 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Settings"))
     {
-        ImGui::MenuItem("Show menu", "Alt+M", &show_main_menu);
+        ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Tools"))
     {
-        ImGui::MenuItem("Take screenshot", "Alt+S", &framegrab_dialog_should_open);
-        ImGui::MenuItem("Record video", "Alt+S", &framegrab_dialog_should_open);
+        ImGui::MenuItem("Take screenshot", "Alt+S", &take_screenshot_should_open);
+        ImGui::MenuItem("Record video", "Alt+S", &record_video_should_open);
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
         ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
         ImGui::EndMenu();
@@ -156,9 +159,12 @@ static void uistuff::FramegrabDialog()
     using namespace ImGui;
     bool enter_button = keys::pressed[SDL_SCANCODE_RETURN];
     bool escape_button = keys::pressed[SDL_SCANCODE_ESCAPE];
-    if (framegrab_dialog_should_open || (VDB_HOTKEY_FRAMEGRAB))
+    if (take_screenshot_should_open ||
+        record_video_should_open ||
+        (VDB_HOTKEY_FRAMEGRAB))
     {
-        framegrab_dialog_should_open = false;
+        take_screenshot_should_open = false;
+        record_video_should_open = false;
         OpenPopup("Take screenshot##popup");
         CaptureKeyboardFromApp(true);
     }
@@ -207,7 +213,7 @@ static void uistuff::FramegrabDialog()
                 PushItemWidth(100.0f);
                 InputInt("Start from", &start_from);
             }
-            if (Button("OK", ImVec2(120,0)) || enter_button)
+            if (Button("OK [Enter]", ImVec2(120,0)) || enter_button)
             {
                 framegrab_options_t opt = {0};
                 opt.filename = filename;
@@ -244,7 +250,7 @@ static void uistuff::FramegrabDialog()
                 InputInt("Start from", &start_from);
             }
 
-            if (Button("Start", ImVec2(120,0)) || enter_button)
+            if (Button("Start [Enter]", ImVec2(120,0)) || enter_button)
             {
                 framegrab_options_t opt = {0};
                 opt.filename = filename;
@@ -274,7 +280,7 @@ static void uistuff::FramegrabDialog()
             SliderInt("Quality (lower is better)", &crf, 1, 51);
             InputFloat("Framerate", &framerate);
 
-            if (Button("Start", ImVec2(120,0)) || enter_button)
+            if (Button("Start [Enter]", ImVec2(120,0)) || enter_button)
             {
                 framegrab_options_t opt = {0};
                 opt.filename = filename;
@@ -382,4 +388,109 @@ static void uistuff::RulerEndFrame()
     ImGui::Separator();
     ImGui::Text("%g user", distance);
     ImGui::EndMainMenuBar();
+}
+
+static void uistuff::SketchNewFrame()
+{
+    if (VDB_HOTKEY_SKETCH_MODE)
+        sketch_mode_active = !sketch_mode_active;
+
+    if (sketch_mode_active)
+    {
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        {
+            uistuff::sketch_mode_active = false;
+            uistuff::escape_eaten = true;
+        }
+        bool undo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Z);
+        bool redo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Y);
+        bool clear = vdbWasKeyPressed(VDB_KEY_D);
+        bool click = vdbIsMouseLeftDown();
+        float x = vdbGetMousePos().x;
+        float y = vdbGetMousePos().y;
+        sketch_mode::Update(undo, redo, clear, click, x, y);
+
+        // force all subsequent calls to vdb{Is,Was}{Mouse,Key}{UpDownPressed} to return false
+        ImGui::GetIO().WantCaptureKeyboard = true;
+        ImGui::GetIO().WantCaptureMouse = true;
+    }
+}
+
+static void uistuff::SketchEndFrame()
+{
+    if (!uistuff::sketch_mode_active)
+        return;
+
+    static float width = 2.0f;
+    static float brightness = 0.0f;
+
+    // draw sketching tool bar
+    ImGui::BeginMainMenuBar();
+    float h_menu = ImGui::GetFrameHeight();
+    float h_rect = ImGui::GetTextLineHeight();
+    {
+        ImGui::Separator();
+        ImGui::PushID("sketch colors");
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2.0f,-1.0f));
+        ImDrawList *draw = ImGui::GetWindowDrawList();
+        for (int i = 0; i < sketch_mode::num_colors; i++)
+        {
+            ImGui::PushID(i);
+            ImGui::InvisibleButton("##", ImVec2(16.0f, h_rect));
+            ImVec2 a = ImGui::GetItemRectMin();
+            ImVec2 b = ImGui::GetItemRectMax();
+            a.y = 0.5f*(h_menu - h_rect);
+            b.y = 0.5f*(h_menu + h_rect);
+            ImU32 color = sketch_mode::palette[i];
+            draw->AddRectFilled(a, b, color);
+            if (ImGui::IsItemClicked())
+                sketch_mode::s.color_index = i;
+            ImGui::PopID();
+        }
+        ImGui::PopStyleVar();
+        ImGui::PushItemWidth(64.0f);
+        ImGui::SliderFloat("brightness", &brightness, -1.0f, +1.0f);
+        ImGui::PopItemWidth();
+        ImGui::PopID();
+    }
+    ImGui::EndMainMenuBar();
+
+    int num_lines = sketch_mode::s.num_lines;
+    sketch_mode_line_t *lines = sketch_mode::s.lines;
+    bool is_drawing = sketch_mode::s.is_drawing;
+
+    ImDrawList *user_draw_list = ImGui::GetOverlayDrawList();
+
+    // draw brightness overlay
+    {
+        int alpha = (int)(fabsf(brightness)*255);
+        ImU32 color = brightness > 0.0f ? IM_COL32(255,255,255,alpha) : IM_COL32(0,0,0,alpha);
+        ImVec2 a = ImVec2(0.0f, h_menu);
+        ImVec2 b = ImGui::GetIO().DisplaySize;
+        user_draw_list->AddRectFilled(a, b, color);
+    }
+
+    // draw lines
+    {
+        int n = (is_drawing) ? num_lines+1 : num_lines;
+        ImVec2 next_a;
+        for (int i = 0; i < n; i++)
+        {
+            ImVec2 a;
+            if (lines[i].connected)
+            {
+                assert(i > 0);
+                a = next_a;
+            }
+            else
+            {
+                a.x = lines[i].x1;
+                a.y = lines[i].y1;
+            }
+            ImVec2 b = ImVec2(lines[i].x2, lines[i].y2);
+            if (i < n-1 && lines[i+1].connected)
+                next_a = b;
+            user_draw_list->AddLine(a, b, lines[i].color, width);
+        }
+    }
 }

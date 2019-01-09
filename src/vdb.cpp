@@ -173,7 +173,18 @@ bool vdbBeginFrame(const char *label)
     mouse::NewFrame();
     immediate_util::NewFrame();
     immediate::NewFrame();
+
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
+    // Get main menu bar height. Note: do this before we set user's viewport
+    {
+        #if 0
+        ImGui::BeginMainMenuBar();
+        float h_screen = ImGui::GetWindowHeight();
+        int h_fb = (int)(h_screen*ImGui::GetIO().DisplayFramebufferScale);
+        ImGui::EndMainMenuBar();
+        #endif
+    }
+
     quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -182,28 +193,7 @@ bool vdbBeginFrame(const char *label)
     // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
     uistuff::escape_eaten = false;
-
-    if (VDB_HOTKEY_SKETCH_MODE) uistuff::sketch_mode_active = !uistuff::sketch_mode_active;
-
-    if (uistuff::sketch_mode_active)
-    {
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
-        {
-            uistuff::sketch_mode_active = false;
-            uistuff::escape_eaten = true;
-        }
-        bool undo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Z);
-        bool redo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Y);
-        bool clear = vdbWasKeyPressed(VDB_KEY_D);
-        bool click = vdbIsMouseLeftDown();
-        bool brightness = vdbIsKeyDown(VDB_KEY_LALT);
-        float x = vdbGetMousePos().x;
-        float y = vdbGetMousePos().y;
-        vdbSketchMode(undo, redo, clear, brightness, click, x, y);
-        ImGui::GetIO().WantCaptureKeyboard = true;
-        ImGui::GetIO().WantCaptureMouse = true;
-    }
-
+    uistuff::SketchNewFrame();
     uistuff::RulerNewFrame();
 
     CheckGLError();
@@ -359,9 +349,6 @@ void vdbEndFrame()
 
     quick_var::EndFrame();
 
-    if (uistuff::sketch_mode_active)
-        vdbSketchModePresent();
-
     if (framegrab::active)
     {
         framegrab_options_t opt = framegrab::options;
@@ -408,6 +395,7 @@ void vdbEndFrame()
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();
         uistuff::RulerEndFrame();
+        uistuff::SketchEndFrame();
         ImGui::Render();
         ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
     }

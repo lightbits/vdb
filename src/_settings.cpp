@@ -87,6 +87,7 @@ struct settings_t
     frame_settings_t frames[MAX_FRAME_SETTINGS];
     int num_frames;
     bool never_ask_on_exit;
+    bool show_main_menu;
 
     void LoadOrDefault(const char *filename);
     void Save(const char *filename);
@@ -123,6 +124,7 @@ void settings_t::LoadOrDefault(const char *filename)
     window.width = 1000;
     window.height = 600;
     never_ask_on_exit = false;
+    show_main_menu = true;
     num_frames = 0;
 
     FILE *f = fopen(filename, "rb");
@@ -143,6 +145,7 @@ void settings_t::LoadOrDefault(const char *filename)
         if (sscanf(line, "Pos=%d,%d", &x, &y) == 2)             { window.x = x; window.y = y; }
         else if (sscanf(line, "Size=%d,%d", &x, &y) == 2)       { window.width = x; window.height = y; }
         else if (sscanf(line, "NeverAskOnExit=%d", &i) == 1)    { never_ask_on_exit = (i != 0); }
+        else if (sscanf(line, "ShowMainMenu=%d", &i) == 1)      { show_main_menu = (i != 0); }
         else if (sscanf(line, "MouseSensitivity=%f", &f) == 1)  { camera.mouse_sensitivity = f; }
         else if (sscanf(line, "ScrollSensitivity=%f", &f) == 1) { camera.scroll_sensitivity = f; }
         else if (sscanf(line, "MoveSpeedNormal=%f", &f) == 1)   { camera.move_speed_normal = f; }
@@ -195,6 +198,7 @@ void settings_t::Save(const char *filename)
     fprintf(f, "Pos=%d,%d\n", window.x, window.y);
     fprintf(f, "Size=%d,%d\n", window.width, window.height);
     fprintf(f, "NeverAskOnExit=%d\n", never_ask_on_exit);
+    fprintf(f, "ShowMainMenu=%d\n", show_main_menu);
     fprintf(f, "MouseSensitivity=%f\n", camera.mouse_sensitivity);
     fprintf(f, "ScrollSensitivity=%f\n", camera.scroll_sensitivity);
     fprintf(f, "MoveSpeedNormal=%f\n", camera.move_speed_normal);
