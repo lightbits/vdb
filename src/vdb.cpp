@@ -175,15 +175,6 @@ bool vdbBeginFrame(const char *label)
     immediate::NewFrame();
 
     ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
-    // Get main menu bar height. Note: do this before we set user's viewport
-    {
-        #if 0
-        ImGui::BeginMainMenuBar();
-        float h_screen = ImGui::GetWindowHeight();
-        int h_fb = (int)(h_screen*ImGui::GetIO().DisplayFramebufferScale);
-        ImGui::EndMainMenuBar();
-        #endif
-    }
 
     quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed

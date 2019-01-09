@@ -33,7 +33,7 @@ int main(int, char **)
 {
     VDBB("Hello VDB");
     {
-        vdbClearColor(0.45f, 0.56f, 0.6f, 1.0f);
+        vdbClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         ImGui::TextWrapped("Press F10 to continue.");
     }
     VDBE();

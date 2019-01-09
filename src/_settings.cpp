@@ -59,7 +59,6 @@ struct frame_settings_t
     bool grid_visible;
     float grid_scale;
     bool cube_visible;
-    float cube_scale;
 };
 
 struct camera_settings_t
@@ -107,7 +106,6 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->grid_scale = 10.0f;
     fs->camera_floor = VDB_FLOOR_XZ;
     fs->cube_visible = false;
-    fs->cube_scale = 1.0f;
 }
 
 void settings_t::LoadOrDefault(const char *filename)
@@ -179,7 +177,6 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (frame && sscanf(line, "GridScale=%f", &f) == 1)    { frame->grid_scale = f; }
         else if (frame && sscanf(line, "Floor=%s", str) == 1)       { frame->camera_floor = CameraFloorFromStr(str); }
         else if (frame && sscanf(line, "CubeVisible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "CubeScale=%f", &f) == 1)    { frame->cube_scale = f; }
     }
     free(line);
     free(str);
@@ -224,7 +221,6 @@ void settings_t::Save(const char *filename)
             fprintf(f, "GridScale=%f\n", frame->grid_scale);
             fprintf(f, "Floor=%s\n", CameraFloorToStr(frame->camera_floor));
             fprintf(f, "CubeVisible=%d\n", frame->cube_visible ? 1 : 0);
-            fprintf(f, "CubeScale=%f\n", frame->cube_scale);
         }
     }
     fclose(f);
