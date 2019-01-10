@@ -26,12 +26,17 @@ namespace lowpass_filter
             for (int i = 0; i < 2; i++)
             {
                 EnableRenderTexture(&rt_accumulator[i]);
-                glClearColor(0,0,0,1);
-                glClear(GL_COLOR_BUFFER_BIT);
+                glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+                glClearDepth(1.0f);
+                glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
                 DisableRenderTexture(&rt_accumulator[i]);
             }
         }
         EnableRenderTexture(&rt_frame);
+        glClearDepth(1.0f);
+        glDepthMask(GL_TRUE);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glDepthMask(GL_FALSE);
     }
     void End()
     {

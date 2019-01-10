@@ -82,6 +82,10 @@ namespace upsample_filter
         }
         upsample = n;
         EnableRenderTexture(&lowres);
+        glClearDepth(1.0f);
+        glDepthMask(GL_TRUE);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glDepthMask(GL_FALSE);
     }
     void End()
     {

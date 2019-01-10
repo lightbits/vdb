@@ -187,8 +187,11 @@ bool vdbBeginFrame(const char *label)
 
     quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
+    glDepthMask(GL_TRUE);
+    glClearDepth(1.0f);
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glDepthMask(GL_FALSE);
 
     // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
