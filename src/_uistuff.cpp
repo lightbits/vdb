@@ -46,14 +46,16 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     main_menu_bar_height = ImGui::GetWindowHeight();
     if (ImGui::BeginMenu("Camera"))
     {
-        ImGui::RadioButton("Disabled", &fs->camera_type, VDB_CAMERA_DISABLED);
-        ImGui::SameLine(); ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
-        ImGui::RadioButton("Planar", &fs->camera_type, VDB_CAMERA_PLANAR);
-        ImGui::SameLine(); ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
-        ImGui::RadioButton("Trackball", &fs->camera_type, VDB_CAMERA_TRACKBALL);
-        ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
-        ImGui::RadioButton("Turntable", &fs->camera_type, VDB_CAMERA_TURNTABLE);
-        ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
+        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera_type == e)) fs->camera_type = e;
+        ITEM("Disabled", VDB_CAMERA_DISABLED);
+        // ImGui::SameLine(); ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
+        ITEM("Planar", VDB_CAMERA_PLANAR);
+        // ImGui::SameLine(); ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
+        ITEM("Trackball", VDB_CAMERA_TRACKBALL);
+        // ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
+        ITEM("Turntable", VDB_CAMERA_TURNTABLE);
+        // ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
+        #undef ITEM
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Grid"))
@@ -87,8 +89,8 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Tools"))
     {
-        ImGui::MenuItem("Take screenshot", "Alt+S", &take_screenshot_should_open);
-        ImGui::MenuItem("Record video", "Alt+S", &record_video_should_open);
+        if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
+        if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
         ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
         ImGui::EndMenu();
