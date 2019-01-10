@@ -135,3 +135,21 @@ bool vdbButton(const char *name)
     }
     return var->b.was_pressed;
 }
+
+void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt, bool transpose)
+{
+    if (!m)
+        return;
+    ImGui::PushID("vdbPrintMatrix");
+    ImGui::Begin(name);
+    for (int row = 0; row < rows; row++)
+    for (int col = 0; col < cols; col++)
+    {
+        if (transpose) ImGui::Text(fmt, m[col + 4*row]);
+        else ImGui::Text(fmt, m[row + 4*col]);
+        if (col < cols-1)
+            ImGui::SameLine();
+    }
+    ImGui::End();
+    ImGui::PopID();
+}

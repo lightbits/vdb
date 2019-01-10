@@ -181,6 +181,7 @@ int vdbSlider1i(const char *name, int vmin, int vmax, int v_init);
 bool vdbToggle(const char *name, bool init);
 bool vdbRadio(const char *name);
 bool vdbButton(const char *name);
+void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt="%5.2f", bool transpose=false);
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
