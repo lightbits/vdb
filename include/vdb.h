@@ -148,12 +148,6 @@ void vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap w
 void vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void vdbDrawImage(int slot, vdbTextureOptions options);
 
-// vdb_filter.cpp
-void vdbBeginTAA(int downscale, float blend_factor);
-void vdbBeginTSS(int width, int height, int upscale, float *dx, float *dy);
-void vdbEndTAA();
-void vdbEndTSS();
-
 // vdb_shader.cpp
 void vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void vdbBeginShader(int slot);

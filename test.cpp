@@ -211,24 +211,6 @@ int main(int, char **)
             }
             vdbEnd();
         }
-        // temporal super sampling
-        #if 0
-        {
-            float dx,dy;
-            vdbBeginTSS(160,120,2,&dx,&dy);
-            vdbPerspective(3.14f/4.0f, 0.1f, 10.0f, dx, dy);
-        }
-        #else
-        // temporal anti-aliasing (really just low-pass filtering)
-        {
-            vdbBeginTAA(0, 0.9f);
-            float pixel_width = 2.0f/vdbGetFramebufferWidth();
-            float pixel_height = 2.0f/vdbGetFramebufferHeight();
-            float dx = pixel_width*(-1.0f + 2.0f*frand());
-            float dy = pixel_height*(-1.0f + 2.0f*frand());
-            vdbPerspective(3.14f/4.0f, 0.1f, 10.0f, dx, dy);
-        }
-        #endif
         static float t = 0.0f; t += 1.0f/60.0f;
         vdbTranslate(0,0,-5);
         vdbRotateXYZ(0.3f,0.1f*t,0);
