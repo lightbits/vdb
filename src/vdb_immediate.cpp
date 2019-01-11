@@ -582,7 +582,7 @@ void vdbVertex(float x, float y, float z, float w)
 
 void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
 void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
-void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
+void vdbPointSize(float size)       { imm.point_size = size*vdbGetRenderScale(); imm.point_size_is_3D = false; }
 void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
 void vdbPointSegments(int segments) { assert(segments >= 3); imm.point_segments = segments; }
 void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
