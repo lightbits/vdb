@@ -80,6 +80,9 @@ namespace render_scaler
             FreeRenderTexture(&output);
             output = MakeRenderTexture(w<<n, h<<n, GL_NEAREST, GL_NEAREST, false);
             subpixel = 0;
+            EnableRenderTexture(&output);
+            glClear(GL_COLOR_BUFFER_BIT);
+            DisableRenderTexture(&output);
         }
         upsample = n;
         EnableRenderTexture(&lowres);
