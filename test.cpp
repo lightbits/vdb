@@ -190,41 +190,6 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("Filters");
-    {
-        const int N = 8;
-        const int num_points = N*N*N;
-        if (vdbIsFirstFrame())
-        {
-            vdbBeginList(0);
-            vdbBeginPoints();
-            for (int i = 0; i < num_points; i++)
-            {
-                float r = (i % N)/(float)N;
-                float g = ((i / N) % N)/(float)N;
-                float b = ((i / N) / N)/(float)N;
-                float x = -1.0f+2.0f*(r + 0.5f/N);
-                float y = -1.0f+2.0f*(g + 0.5f/N);
-                float z = -1.0f+2.0f*(b + 0.5f/N);
-                vdbColor(r, g, 0.5f + 0.5f*b, 1.0f);
-                vdbVertex(x, y, z);
-            }
-            vdbEnd();
-        }
-        static float t = 0.0f; t += 1.0f/60.0f;
-        vdbTranslate(0,0,-5);
-        vdbRotateXYZ(0.3f,0.1f*t,0);
-        vdbDepthTest(true);
-        vdbDepthWrite(true);
-        vdbClearDepth(1.0f);
-        vdbClearColor(0,0,0,1);
-
-        vdbPointSize3D(0.2f);
-        vdbPointSegments(32);
-        vdbDrawList(0);
-    }
-    VDBE();
-
     VDBB("shader");
     {
         #define SHADER(S) "#version 150\n" #S
@@ -309,5 +274,69 @@ int main(int, char **)
             tile = 0;
     }
     VDBE();
+
+    VDBB("Test raycasting");
+    {
+        if (vdbIsFirstFrame())
+        {
+            #define glsl(x) "#version 150\n" #x
+            const char *fs = glsl(
+            uniform vec2 resolution;
+            uniform vec2 ndc_offset;
+            uniform mat4 model_to_view;
+            uniform mat4 projection;
+            out vec4 color;
+            void main() {
+                color = vec4(0.0,0.0,0.0,0.0);
+                gl_FragDepth = 1.0;
+                vec2 ndc = vec2(-1.0) + 2.0*gl_FragCoord.xy/resolution.xy;
+                ndc += ndc_offset;
+                mat4 view_to_model = inverse(model_to_view);
+                vec3 rd = normalize((inverse(projection)*vec4(ndc, -1.0, 1.0)).xyz);
+                rd = normalize((view_to_model*vec4(rd, 0.0)).xyz);
+                vec3 ro = (view_to_model*vec4(0.0,0.0,0.0,1.0)).xyz;
+                float t = 0.0;
+                for (int i = 0; i < 64; i++) {
+                    vec3 p = ro + rd*t;
+                    float d = length(p) - 0.5;
+                    if (d < 0.001) {
+                        vec3 n = normalize(p);
+                        color.rgb = 0.5*(vec3(0.5) + 0.5*n);
+                        color.a = 1.0;
+                        vec4 clip = projection*model_to_view*vec4(p, 1.0);
+                        float z_ndc = clip.z/clip.w;
+                        gl_FragDepth = 0.5 + 0.5*z_ndc;
+                        break;
+                    }
+                    t += d;
+                }
+            });
+            vdbLoadShader(0, fs);
+        }
+
+        float model_to_view[4*4];
+        vdbGetMatrix(model_to_view);
+
+        float projection[4*4];
+        vdbGetProjection(projection);
+
+        vdbBeginShader(0);
+        vdbUniform2f("resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
+        vdbVec2 offset = vdbGetRenderOffset();
+        vdbUniform2f("ndc_offset", offset.x, offset.y);
+        vdbUniformMatrix4fv("model_to_view", model_to_view);
+        vdbUniformMatrix4fv("projection", projection);
+        vdbEndShader();
+
+        vdbTriangles();
+        vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-1.0f, 0.5f, -1.0f);
+        vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+1.0f, 0.5f, -1.0f);
+        vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+1.0f, 0.5f, +1.0f);
+        vdbEnd();
+
+        ImGui::TextWrapped("Mixing immediate mode rendering and ray-tracing. (Select a 3D camera.)");
+    }
+    VDBE();
+
     return 0;
 }
