@@ -29,8 +29,11 @@ namespace render_scaler
     static render_texture_t output;
     static render_texture_t lowres;
     static int subpixel;
-    static int upsample;
     static bool has_begun;
+    static int scale_down;
+    static int scale_up;
+    static vdbVec2 offset_ndc;
+
     void GetSubpixelOffsetI(int w, int h, int n, int *idx, int *idy)
     {
         // todo: nicer sampling pattern for any upsampling factor
@@ -64,29 +67,33 @@ namespace render_scaler
         *dx = (-0.5f*num_samples_x + 0.5f + idx)*pixel_width;
         *dy = (-0.5f*num_samples_x + 0.5f + idy)*pixel_height;
     }
-    void Begin(int w, int h, int n)
+    void Begin(int w, int h, int n_down, int n_up)
     {
         using namespace render_texture;
 
+        scale_down = n_down;
+        scale_up = n_up;
         has_begun = true;
+
         if (lowres.width != w || lowres.height != h)
         {
             FreeRenderTexture(&lowres);
             lowres = MakeRenderTexture(w, h, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
         }
-        if (output.width != w<<n || output.height != h<<n)
+        if (output.width != w<<n_up || output.height != h<<n_up)
         {
             FreeRenderTexture(&output);
-            output = MakeRenderTexture(w<<n, h<<n, GL_NEAREST, GL_NEAREST, false);
+            output = MakeRenderTexture(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, false);
             subpixel = 0;
             EnableRenderTexture(&output);
             glClear(GL_COLOR_BUFFER_BIT);
             DisableRenderTexture(&output);
         }
-        upsample = n;
         EnableRenderTexture(&lowres);
         glClear(GL_DEPTH_BUFFER_BIT);
+
+        GetSubpixelOffset(w, h, n_down, &offset_ndc.x, &offset_ndc.y);
     }
     void End()
     {
@@ -158,11 +165,12 @@ namespace render_scaler
         vdbCullFace(false);
         vdbDepthTest(false);
         vdbDepthWrite(false);
+        SetImmediateRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
 
         // interleave just-rendered frame into full resolution framebuffer
         {
             int idx,idy;
-            GetSubpixelOffsetI(lowres.width,lowres.height,upsample,&idx,&idy);
+            GetSubpixelOffsetI(lowres.width, lowres.height, scale_up, &idx, &idy);
 
             static GLuint vao = 0;
             static GLuint vbo = 0;
@@ -186,7 +194,7 @@ namespace render_scaler
             glBindTexture(GL_TEXTURE_2D, lowres.color[0]);
             glUniform1f(uniform_dx, (float)idx);
             glUniform1f(uniform_dy, (float)idy);
-            glUniform1f(uniform_tile_dim, (float)(1<<upsample));
+            glUniform1f(uniform_tile_dim, (float)(1<<scale_up));
             glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(attrib_position);
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -217,7 +225,25 @@ namespace render_scaler
         vdbProjection(last_projection);
 
         // just a linear sampling order. want something nicer in the future
-        int num_subpixels = (1<<upsample)*(1<<upsample);
+        int num_subpixels = (1<<scale_up)*(1<<scale_up);
         subpixel = (subpixel+1)%num_subpixels;
     }
+}
+
+void vdbBeginCustomRenderScaler(int down, int up)
+{
+    assert(!render_scaler::has_begun && "You have to disable the built-in render scaler (set to 1/1 in settings).");
+    assert(down >= 0);
+    assert(up >= 0);
+    int w = window::framebuffer_width >> down;
+    int h = window::framebuffer_height >> down;
+    render_scaler::Begin(w, h, down, up);
+    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+}
+
+void vdbEndCustomRenderScaler()
+{
+    assert(render_scaler::has_begun);
+    render_scaler::End();
+    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
 }

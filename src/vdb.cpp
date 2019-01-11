@@ -77,26 +77,18 @@ void vdbDetachGLContext()
 
 vdbVec2 vdbGetRenderScale()
 {
-    if (vdb::frame_settings->render_scale_down > 0)
+    if (render_scaler::has_begun)
     {
-        float scale_down = 1.0f / (1 << vdb::frame_settings->render_scale_down);
-        return vdbVec2(scale_down, scale_down);
+        float w = 1.0f / (1 << render_scaler::scale_down);
+        return vdbVec2(w, w);
     }
     return vdbVec2(1.0f, 1.0f);
 }
 
 vdbVec2 vdbGetRenderOffset()
 {
-    int n_down = vdb::frame_settings->render_scale_down;
-    int n_up = vdb::frame_settings->render_scale_up;
-    if (n_up > 0)
-    {
-        int w = window::framebuffer_width >> n_down;
-        int h = window::framebuffer_height >> n_down;
-        vdbVec2 d;
-        render_scaler::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
-        return d;
-    }
+    if (render_scaler::has_begun)
+        return render_scaler::offset_ndc;
     return vdbVec2(0.0f, 0.0f);
 }
 
@@ -227,10 +219,11 @@ bool vdbBeginFrame(const char *label)
 
     if (vdb::frame_settings->render_scale_down > 0)
     {
-        int n = vdb::frame_settings->render_scale_down;
-        int w = window::framebuffer_width >> n;
-        int h = window::framebuffer_height >> n;
-        render_scaler::Begin(w, h, vdb::frame_settings->render_scale_up);
+        int n_down = vdb::frame_settings->render_scale_down;
+        int n_up = vdb::frame_settings->render_scale_up;
+        int w = window::framebuffer_width >> n_down;
+        int h = window::framebuffer_height >> n_down;
+        render_scaler::Begin(w, h, n_down, n_up);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -280,10 +273,9 @@ void vdbEndFrame()
     ResetImmediateGLState();
 
     if (vdb::frame_settings->render_scale_down > 0)
-    {
-        SetImmediateRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
         render_scaler::End();
-    }
+
+    assert(!render_scaler::has_begun && "Missing call to vdbEndCustomRenderScaler");
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
         vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)

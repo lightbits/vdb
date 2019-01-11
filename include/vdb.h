@@ -179,6 +179,11 @@ bool vdbRadio(const char *name);
 bool vdbButton(const char *name);
 void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt="%5.2f", bool transpose=false);
 
+// Deprecated: manually control the scaling and multisampling for a block of code
+// Can't be used in conjunction with built-in scaler.
+void vdbBeginCustomRenderScaler(int down, int up);
+void vdbEndCustomRenderScaler();
+
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
 
