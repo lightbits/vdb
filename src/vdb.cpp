@@ -47,7 +47,7 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_immediate.cpp"
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
-#include "_upsample_filter.cpp"
+#include "_render_scaler.cpp"
 #include "_uistuff.cpp"
 #include "vdb_var.cpp"
 
@@ -213,7 +213,7 @@ bool vdbBeginFrame(const char *label)
         int n = vdb::frame_settings->render_scale_down;
         int w = window::framebuffer_width >> n;
         int h = window::framebuffer_height >> n;
-        upsample_filter::Begin(w, h, vdb::frame_settings->render_scale_up);
+        render_scaler::Begin(w, h, vdb::frame_settings->render_scale_up);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -228,7 +228,7 @@ bool vdbBeginFrame(const char *label)
         int w = window::framebuffer_width >> n_down;
         int h = window::framebuffer_height >> n_down;
         vdbVec2 d;
-        upsample_filter::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
+        render_scaler::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
         SetImmediateOffsetNDC(d);
     }
     else
@@ -278,7 +278,7 @@ void vdbEndFrame()
     if (vdb::frame_settings->render_scale_down > 0)
     {
         SetImmediateOffsetNDC(vdbVec2(0.0f, 0.0f));
-        upsample_filter::End();
+        render_scaler::End();
     }
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&

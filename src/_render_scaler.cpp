@@ -24,7 +24,7 @@
 //                                   -----------------
 // In this example, it would take 4 frames before the output is stable,
 // assuming a static scene.
-namespace upsample_filter
+namespace render_scaler
 {
     static render_texture_t output;
     static render_texture_t lowres;
