@@ -132,7 +132,7 @@ struct imm_t
 
 static imm_t imm;
 
-static void SetImmediateOffsetNDC(vdbVec2 ndc_offset)
+static void SetImmediateRenderOffsetNDC(vdbVec2 ndc_offset)
 {
     imm.ndc_offset = ndc_offset;
 }

@@ -79,8 +79,22 @@ float vdbGetRenderScale()
 {
     if (vdb::frame_settings->render_scale_down > 0)
         return 1.0f / (1 << vdb::frame_settings->render_scale_down);
-    else
-        return 1.0f;
+    return 1.0f;
+}
+
+vdbVec2 vdbGetRenderOffset()
+{
+    int n_down = vdb::frame_settings->render_scale_down;
+    int n_up = vdb::frame_settings->render_scale_up;
+    if (n_up > 0)
+    {
+        int w = window::framebuffer_width >> n_down;
+        int h = window::framebuffer_height >> n_down;
+        vdbVec2 d;
+        render_scaler::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
+        return d;
+    }
+    return vdbVec2(0.0f, 0.0f);
 }
 
 bool vdbBeginFrame(const char *label)
@@ -221,20 +235,7 @@ bool vdbBeginFrame(const char *label)
         glDepthMask(GL_FALSE);
     }
 
-    if (vdb::frame_settings->render_scale_up > 0)
-    {
-        int n_down = vdb::frame_settings->render_scale_down;
-        int n_up = vdb::frame_settings->render_scale_up;
-        int w = window::framebuffer_width >> n_down;
-        int h = window::framebuffer_height >> n_down;
-        vdbVec2 d;
-        render_scaler::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
-        SetImmediateOffsetNDC(d);
-    }
-    else
-    {
-        SetImmediateOffsetNDC(vdbVec2(0.0f, 0.0f));
-    }
+    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
@@ -277,7 +278,7 @@ void vdbEndFrame()
 
     if (vdb::frame_settings->render_scale_down > 0)
     {
-        SetImmediateOffsetNDC(vdbVec2(0.0f, 0.0f));
+        SetImmediateRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
         render_scaler::End();
     }
 
