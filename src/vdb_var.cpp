@@ -4,13 +4,18 @@ struct quick_var_t
 {
     const char *name;
     quick_var_type_t type;
+    struct float_var_t { float value; float vmin; float vmax; };
+    struct int_var_t { int value; int vmin; int vmax; };
+    struct toggle_var_t { bool enabled; };
+    struct radio_var_t { int index; };
+    struct button_var_t { bool was_pressed; };
     union
     {
-        struct float_var_t { float value; float vmin; float vmax; } f;
-        struct int_var_t { int value; int vmin; int vmax; } i;
-        struct toggle_var_t { bool enabled; } t;
-        struct radio_var_t { int index; } r;
-        struct button_var_t { bool was_pressed; } b;
+         float_var_t f;
+         int_var_t i;
+         toggle_var_t t;
+         radio_var_t r;
+         button_var_t b;
     };
 };
 

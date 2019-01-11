@@ -49,11 +49,7 @@ void vdbCamera2D(float init_zoom)
 
     // translation
     {
-        float move_speed = cs.move_speed_normal;
-        if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
-
         float aspect = vdbGetAspectRatio();
-        static bool dragging = false;
         static float last_mouse_x = 0.0f, last_mouse_y = 0.0f;
         float mouse_x = vdbGetMousePosNDC().x*aspect;
         float mouse_y = vdbGetMousePosNDC().y;
