@@ -6,6 +6,8 @@ typedef int camera_floor_t;
 enum camera_type_ { VDB_CAMERA_DISABLED=0, VDB_CAMERA_PLANAR, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
 enum camera_floor_ { VDB_FLOOR_XY=0, VDB_FLOOR_XZ, VDB_FLOOR_YZ };
 enum { MAX_FRAME_SETTINGS = 1024 };
+enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
+enum { VDB_MAX_RENDER_SCALE_UP = 3 };
 
 static camera_type_t CameraTypeFromStr(const char *str)
 {
@@ -59,6 +61,9 @@ struct frame_settings_t
     bool grid_visible;
     float grid_scale;
     bool cube_visible;
+
+    int render_scale_down;
+    int render_scale_up;
 };
 
 struct camera_settings_t
@@ -95,6 +100,13 @@ struct settings_t
 
 static settings_t settings;
 
+int ClampSetting(int x, int x_min, int x_max)
+{
+    if (x < x_min) return x_min;
+    else if (x > x_max) return x_max;
+    return x;
+}
+
 void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera_type = VDB_CAMERA_DISABLED;
@@ -107,6 +119,8 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->grid_scale = 2.0f;
     fs->camera_floor = VDB_FLOOR_XY;
     fs->cube_visible = false;
+    fs->render_scale_down = 0;
+    fs->render_scale_up = 0;
 }
 
 void settings_t::LoadOrDefault(const char *filename)
@@ -153,7 +167,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_zoom=%f", &f) == 1)            { camera.Kp_zoom = f; }
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)       { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)          { camera.Kp_rotate = f; }
-        else if (sscanf(line, "font_size=%f", &f) == 1)          { font_size = (int)f; }
+        else if (sscanf(line, "font_size=%f", &f) == 1)          { font_size = ClampSetting((int)f, 6, 96); }
         else if (strstr(line, "[frame]=") == line)
         {
             if (num_frames == MAX_FRAME_SETTINGS)
@@ -171,24 +185,21 @@ void settings_t::LoadOrDefault(const char *filename)
                 frame->name[--len] = '\0';
             DefaultFrameSettings(frame);
         }
-        else if (frame && sscanf(line, "camera_type=%s", str) == 1)  { frame->camera_type = CameraTypeFromStr(str); }
-        else if (frame && sscanf(line, "camera_radius=%f", &f) == 1) { frame->init_radius = f; }
-        else if (frame && sscanf(line, "y_fov=%f", &f) == 1)         { frame->y_fov = f; }
-        else if (frame && sscanf(line, "min_depth=%f", &f) == 1)     { frame->min_depth = f; }
-        else if (frame && sscanf(line, "max_depth=%f", &f) == 1)     { frame->max_depth = f; }
-        else if (frame && sscanf(line, "grid_visible=%d", &i) == 1)  { frame->grid_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "grid_scale=%f", &f) == 1)    { frame->grid_scale = f; }
-        else if (frame && sscanf(line, "camera_floor=%s", str) == 1) { frame->camera_floor = CameraFloorFromStr(str); }
-        else if (frame && sscanf(line, "cube_visible=%d", &i) == 1)  { frame->cube_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "camera_type=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
+        else if (frame && sscanf(line, "camera_radius=%f", &f) == 1)     { frame->init_radius = f; }
+        else if (frame && sscanf(line, "y_fov=%f", &f) == 1)             { frame->y_fov = f; }
+        else if (frame && sscanf(line, "min_depth=%f", &f) == 1)         { frame->min_depth = f; }
+        else if (frame && sscanf(line, "max_depth=%f", &f) == 1)         { frame->max_depth = f; }
+        else if (frame && sscanf(line, "grid_visible=%d", &i) == 1)      { frame->grid_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "grid_scale=%f", &f) == 1)        { frame->grid_scale = f; }
+        else if (frame && sscanf(line, "camera_floor=%s", str) == 1)     { frame->camera_floor = CameraFloorFromStr(str); }
+        else if (frame && sscanf(line, "cube_visible=%d", &i) == 1)      { frame->cube_visible = (i == 1) ? true : false; }
+        else if (frame && sscanf(line, "render_scale_down=%d", &i) == 1) { frame->render_scale_down = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_DOWN); }
+        else if (frame && sscanf(line, "render_scale_up=%d", &i) == 1)   { frame->render_scale_up = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_UP); }
     }
     free(line);
     free(str);
     fclose(f);
-
-    if (font_size <= 0)
-        font_size = 18;
-    if (font_size > 96)
-        font_size = 96;
 }
 
 void settings_t::Save(const char *filename)
@@ -230,6 +241,8 @@ void settings_t::Save(const char *filename)
             fprintf(f, "grid_scale=%g\n", frame->grid_scale);
             fprintf(f, "camera_floor=%s\n", CameraFloorToStr(frame->camera_floor));
             fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
+            fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);
+            fprintf(f, "render_scale_up=%d\n", frame->render_scale_up);
         }
     }
     fclose(f);

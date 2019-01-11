@@ -85,6 +85,29 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
             if (ImGui::MenuItem("Reset")) settings.font_size = (int)VDB_DEFAULT_FONT_SIZE;
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Render scale"))
+        {
+            #define ITEM(label, down, up) \
+                if (ImGui::MenuItem(label, NULL, fs->render_scale_down==down && fs->render_scale_up==up)) { \
+                    fs->render_scale_down = down; \
+                    fs->render_scale_up = up; \
+                }
+            ITEM("1/1", 0, 0);
+            ITEM("1/2", 1, 0);
+            ITEM("1/4", 2, 0);
+            ITEM("1/8", 3, 0);
+            ImGui::Separator();
+            ITEM("2/2", 1, 1);
+            ITEM("2/4", 2, 1);
+            ITEM("2/8", 3, 1);
+            ImGui::Separator();
+            ITEM("4/4", 2, 2);
+            ITEM("4/8", 3, 2);
+            ImGui::Separator();
+            ITEM("8/8", 3, 3);
+            #undef ITEM
+            ImGui::EndMenu();
+        }
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Tools"))

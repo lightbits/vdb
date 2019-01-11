@@ -201,7 +201,6 @@ bool vdbBeginFrame(const char *label)
 
     CheckGLError();
 
-    #if 1
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
         frame_settings_t *fs = vdb::frame_settings;
@@ -243,7 +242,6 @@ bool vdbBeginFrame(const char *label)
             vdbMultMatrix(vdbMatScale(1.0f/fs->grid_scale, 1.0f/fs->grid_scale, 1.0f/fs->grid_scale).data);
         }
     }
-    #endif
 
     return true;
 }
