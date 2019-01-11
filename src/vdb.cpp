@@ -213,7 +213,7 @@ bool vdbBeginFrame(const char *label)
         int n = vdb::frame_settings->render_scale_down;
         int w = window::framebuffer_width >> n;
         int h = window::framebuffer_height >> n;
-        upsample_filter::Begin(w, h, 0);
+        upsample_filter::Begin(w, h, vdb::frame_settings->render_scale_up);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -221,6 +221,20 @@ bool vdbBeginFrame(const char *label)
         glDepthMask(GL_FALSE);
     }
 
+    if (vdb::frame_settings->render_scale_up > 0)
+    {
+        int n_down = vdb::frame_settings->render_scale_down;
+        int n_up = vdb::frame_settings->render_scale_up;
+        int w = window::framebuffer_width >> n_down;
+        int h = window::framebuffer_height >> n_down;
+        vdbVec2 d;
+        upsample_filter::GetSubpixelOffset(w, h, n_up, &d.x, &d.y);
+        SetImmediateOffsetNDC(d);
+    }
+    else
+    {
+        SetImmediateOffsetNDC(vdbVec2(0.0f, 0.0f));
+    }
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
@@ -262,7 +276,10 @@ void vdbEndFrame()
     ResetImmediateGLState();
 
     if (vdb::frame_settings->render_scale_down > 0)
+    {
+        SetImmediateOffsetNDC(vdbVec2(0.0f, 0.0f));
         upsample_filter::End();
+    }
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
         vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)

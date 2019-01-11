@@ -126,9 +126,16 @@ struct imm_t
 
     imm_list_t *list;
     imm_list_t lists[IMM_MAX_LISTS];
+
+    vdbVec2 ndc_offset;
 };
 
 static imm_t imm;
+
+static void SetImmediateOffsetNDC(vdbVec2 ndc_offset)
+{
+    imm.ndc_offset = ndc_offset;
+}
 
 static void BeginImmediate(imm_prim_type_t prim_type)
 {
@@ -221,6 +228,7 @@ static void DrawImmediatePoints(imm_list_t list)
     static GLint uniform_projection = 0;
     static GLint uniform_model_to_view = 0;
     static GLint uniform_sampler0 = 0;
+    static GLint uniform_ndc_offset = 0;
     static GLint uniform_point_size = 0;
     static GLint uniform_size_is_3D = 0;
     if (!program)
@@ -236,6 +244,7 @@ static void DrawImmediatePoints(imm_list_t list)
         uniform_model_to_view = glGetUniformLocation(program, "model_to_view");
         uniform_point_size    = glGetUniformLocation(program, "point_size");
         uniform_sampler0      = glGetUniformLocation(program, "sampler0");
+        uniform_ndc_offset    = glGetUniformLocation(program, "ndc_offset");
         uniform_size_is_3D    = glGetUniformLocation(program, "size_is_3D");
     }
     assert(program);
@@ -275,6 +284,7 @@ static void DrawImmediatePoints(imm_list_t list)
                         imm.point_size/vdbGetFramebufferHeight());
         }
         glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
+        glUniform2f(uniform_ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
     }
 
     // generate primitive geometry
@@ -434,6 +444,7 @@ static void DrawImmediateTriangles(imm_list_t list)
     static GLint attrib_color = 0;
     static GLint uniform_sampler0 = 0;
     static GLint uniform_pvm = 0;
+    static GLint ndc_offset = 0;
     if (!program)
     {
         program = LoadShaderFromMemory(shader_triangles_vs, shader_triangles_fs);
@@ -442,12 +453,14 @@ static void DrawImmediateTriangles(imm_list_t list)
         attrib_color = glGetAttribLocation(program, "color");
         uniform_pvm = glGetUniformLocation(program, "pvm");
         uniform_sampler0 = glGetUniformLocation(program, "sampler0");
+        ndc_offset = glGetUniformLocation(program, "ndc_offset");
     }
     assert(program);
 
     glUseProgram(program); // todo: optimize
     UniformMat4(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
+    glUniform2f(ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
     if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
     glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...

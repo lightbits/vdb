@@ -241,9 +241,9 @@ void settings_t::Save(const char *filename)
             fprintf(f, "grid_scale=%g\n", frame->grid_scale);
             fprintf(f, "camera_floor=%s\n", CameraFloorToStr(frame->camera_floor));
             fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
-            fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);
-            fprintf(f, "render_scale_up=%d\n", frame->render_scale_up);
         }
+        fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);
+        fprintf(f, "render_scale_up=%d\n", frame->render_scale_up);
     }
     fclose(f);
 }

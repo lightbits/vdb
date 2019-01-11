@@ -14,6 +14,7 @@ in vec4 instance_color;
 uniform mat4 projection;
 uniform mat4 model_to_view;
 uniform vec2 point_size;
+uniform vec2 ndc_offset;
 uniform int size_is_3D;
 uniform sampler2D sampler0;
 out vec4 vertex_color;
@@ -35,6 +36,7 @@ void main()
         float w = gl_Position.w;
         gl_Position.xy += point_size*in_position*w;
     }
+    gl_Position.xy -= ndc_offset*gl_Position.w;
 }
 );
 
