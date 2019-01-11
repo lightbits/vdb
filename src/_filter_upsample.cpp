@@ -77,7 +77,7 @@ namespace upsample_filter
         if (output.width != w<<n || output.height != h<<n)
         {
             FreeRenderTexture(&output);
-            output = MakeRenderTexture(w<<n, h<<n, GL_LINEAR, GL_LINEAR, false);
+            output = MakeRenderTexture(w<<n, h<<n, GL_NEAREST, GL_NEAREST, false);
             subpixel = 0;
         }
         upsample = n;
@@ -120,13 +120,9 @@ namespace upsample_filter
                 float ix = trunc(mod(gl_FragCoord.x,tile_dim));
                 float iy = trunc(mod(gl_FragCoord.y,tile_dim));
                 if (ix == dx && iy == dy)
-                {
                     out_color = texture(sampler0,texel);
-                }
                 else
-                {
-                    out_color = vec4(0.0);
-                }
+                    discard;
             }
             );
             #undef SHADER
@@ -154,9 +150,7 @@ namespace upsample_filter
         vdbProjection(NULL);
         vdbPushMatrix();
         vdbLoadMatrix(NULL);
-        glEnable(GL_BLEND);
-        glBlendEquation(GL_FUNC_ADD);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        vdbBlendNone();
         vdbCullFace(false);
         vdbDepthTest(false);
         vdbDepthWrite(false);

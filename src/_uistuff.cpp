@@ -96,6 +96,7 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
             ITEM("1/2", 1, 0);
             ITEM("1/4", 2, 0);
             ITEM("1/8", 3, 0);
+            #if 0
             ImGui::Separator();
             ITEM("2/2", 1, 1);
             ITEM("2/4", 2, 1);
@@ -105,6 +106,7 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
             ITEM("4/8", 3, 2);
             ImGui::Separator();
             ITEM("8/8", 3, 3);
+            #endif
             #undef ITEM
             ImGui::EndMenu();
         }

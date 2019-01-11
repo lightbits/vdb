@@ -30,6 +30,7 @@ bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();
 bool vdbIsDifferentLabel();
+float vdbGetRenderScale();
 
 // vdb_immediate.cpp
 void vdbInverseColor(bool enable);

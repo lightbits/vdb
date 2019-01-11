@@ -75,6 +75,14 @@ void vdbDetachGLContext()
     window::DetachGLContext();
 }
 
+float vdbGetRenderScale()
+{
+    if (vdb::frame_settings->render_scale_down > 0)
+        return 1.0f / (1 << vdb::frame_settings->render_scale_down);
+    else
+        return 1.0f;
+}
+
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
@@ -187,11 +195,6 @@ bool vdbBeginFrame(const char *label)
 
     quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
-    glDepthMask(GL_TRUE);
-    glClearDepth(1.0f);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-    glDepthMask(GL_FALSE);
 
     // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
@@ -199,34 +202,40 @@ bool vdbBeginFrame(const char *label)
     uistuff::SketchNewFrame();
     uistuff::RulerNewFrame();
 
-    CheckGLError();
+    glDepthMask(GL_TRUE);
+    glClearDepth(1.0f);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    glDepthMask(GL_FALSE);
+
+    if (vdb::frame_settings->render_scale_down > 0)
+    {
+        int n = vdb::frame_settings->render_scale_down;
+        int w = window::framebuffer_width >> n;
+        int h = window::framebuffer_height >> n;
+        upsample_filter::Begin(w, h, 0);
+        glDepthMask(GL_TRUE);
+        glClearDepth(1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glDepthMask(GL_FALSE);
+    }
+
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
         frame_settings_t *fs = vdb::frame_settings;
-        if (fs->camera_type == VDB_CAMERA_TRACKBALL)
-        {
-            vdbCameraTrackball(fs->init_radius);
-            vdbDepthTest(true);
-            vdbDepthWrite(true);
-            vdbClearDepth(1.0f);
-            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
-        }
-        else if (fs->camera_type == VDB_CAMERA_TURNTABLE)
-        {
-            vdbCameraTurntable(fs->init_radius, fs->init_look_at);
-            vdbDepthTest(true);
-            vdbDepthWrite(true);
-            vdbClearDepth(1.0f);
-            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
-        }
-        else
-        {
-            vdbCamera2D(fs->init_radius);
-        }
+        if      (fs->camera_type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball(fs->init_radius);
+        else if (fs->camera_type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable(fs->init_radius, fs->init_look_at);
+        else                                              vdbCamera2D(fs->init_radius);
 
         if (fs->camera_type != VDB_CAMERA_PLANAR)
         {
+            vdbDepthTest(true);
+            vdbDepthWrite(true);
+            vdbClearDepth(1.0f);
+            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+
             // We do PushMatrix to save current state for drawing grid in vdbEndFrame
 
             // pre-permutation transform
@@ -243,6 +252,8 @@ bool vdbBeginFrame(const char *label)
         }
     }
 
+    CheckGLError();
+
     return true;
 }
 
@@ -250,8 +261,8 @@ void vdbEndFrame()
 {
     ResetImmediateGLState();
 
-    if (filter::taa_begun) vdbEndTAA();
-    if (filter::tss_begun) vdbEndTSS();
+    if (vdb::frame_settings->render_scale_down > 0)
+        upsample_filter::End();
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
         vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)
