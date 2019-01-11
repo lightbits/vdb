@@ -60,8 +60,9 @@ namespace render_scaler
         GetSubpixelOffsetI(w,h,n,&idx,&idy);
         float pixel_width = 2.0f/(w<<n); // width in NDC [-1,+1] space
         float pixel_height = 2.0f/(h<<n); // width in NDC [-1,+1] space
-        *dx = idx*pixel_width;
-        *dy = idy*pixel_height;
+        int num_samples_x = 1 << n;
+        *dx = (-0.5f*num_samples_x + 0.5f + idx)*pixel_width;
+        *dy = (-0.5f*num_samples_x + 0.5f + idy)*pixel_height;
     }
     void Begin(int w, int h, int n)
     {
