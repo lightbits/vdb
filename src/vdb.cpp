@@ -77,9 +77,9 @@ void vdbDetachGLContext()
 
 vdbVec2 vdbGetRenderScale()
 {
-    if (render_scaler::has_begun)
+    if (vdb::frame_settings->render_scale_down > 0)
     {
-        float w = 1.0f / (1 << render_scaler::scale_down);
+        float w = 1.0f / (1 << vdb::frame_settings->render_scale_down);
         return vdbVec2(w, w);
     }
     return vdbVec2(1.0f, 1.0f);
@@ -223,7 +223,7 @@ bool vdbBeginFrame(const char *label)
         int n_up = vdb::frame_settings->render_scale_up;
         int w = window::framebuffer_width >> n_down;
         int h = window::framebuffer_height >> n_down;
-        render_scaler::Begin(w, h, n_down, n_up);
+        render_scaler::Begin(w, h, n_up);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);

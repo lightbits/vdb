@@ -181,8 +181,9 @@ void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *
 
 // Deprecated: manually control the scaling and multisampling for a block of code
 // Can't be used in conjunction with built-in scaler.
-void vdbBeginCustomRenderScaler(int down, int up);
-void vdbEndCustomRenderScaler();
+void vdbBeginRenderScale(int down, int up);
+void vdbBeginRenderScale(int width, int height, int up);
+void vdbEndRenderScale();
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }

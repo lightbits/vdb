@@ -30,7 +30,6 @@ namespace render_scaler
     static render_texture_t lowres;
     static int subpixel;
     static bool has_begun;
-    static int scale_down;
     static int scale_up;
     static vdbVec2 offset_ndc;
 
@@ -67,11 +66,10 @@ namespace render_scaler
         *dx = (-0.5f*num_samples_x + 0.5f + idx)*pixel_width;
         *dy = (-0.5f*num_samples_x + 0.5f + idy)*pixel_height;
     }
-    void Begin(int w, int h, int n_down, int n_up)
+    void Begin(int w, int h, int n_up)
     {
         using namespace render_texture;
 
-        scale_down = n_down;
         scale_up = n_up;
         has_begun = true;
 
@@ -93,7 +91,7 @@ namespace render_scaler
         EnableRenderTexture(&lowres);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        GetSubpixelOffset(w, h, n_down, &offset_ndc.x, &offset_ndc.y);
+        GetSubpixelOffset(w, h, n_up, &offset_ndc.x, &offset_ndc.y);
     }
     void End()
     {
@@ -230,18 +228,25 @@ namespace render_scaler
     }
 }
 
-void vdbBeginCustomRenderScaler(int down, int up)
+void vdbBeginRenderScale(int width, int height, int up)
+{
+    assert(!render_scaler::has_begun && "You have to disable the built-in render scaler (set to 1/1 in settings).");
+    assert(up >= 0);
+    render_scaler::Begin(width, height, up);
+    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+}
+
+void vdbBeginRenderScale(int down, int up)
 {
     assert(!render_scaler::has_begun && "You have to disable the built-in render scaler (set to 1/1 in settings).");
     assert(down >= 0);
     assert(up >= 0);
-    int w = window::framebuffer_width >> down;
-    int h = window::framebuffer_height >> down;
-    render_scaler::Begin(w, h, down, up);
-    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+    int width = window::framebuffer_width >> down;
+    int height = window::framebuffer_height >> down;
+    vdbBeginRenderScale(width, height, up);
 }
 
-void vdbEndCustomRenderScaler()
+void vdbEndRenderScale()
 {
     assert(render_scaler::has_begun);
     render_scaler::End();
