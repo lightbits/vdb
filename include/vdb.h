@@ -30,12 +30,8 @@ bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();
 bool vdbIsDifferentLabel();
-
-// The render scale can be controlled in the Settings main menu tab to allow
-// rendering at 1/2, 1/4, 1/8 of original resolution (to increase framerate).
-// The active scaling factor can be obtained through vdbGetRenderScale().
-vdbVec2 vdbGetRenderScale();
-vdbVec2 vdbGetRenderOffset();
+vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
+vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
 // vdb_immediate.cpp
 void vdbInverseColor(bool enable);
@@ -266,3 +262,25 @@ enum vdbKey_
     VDB_KEY_RALT = 230, /**< alt gr, option */
     VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
 };
+
+/*
+FREQUENTLY ASKED QUESTIONS
+==========================
+
+Q: What are the scaling factors 2/2, 2/4, 4/4, 8/8, etc. in the Settings menu tab?
+A:  The render scale lets you render at a lower resolution. Useful for increasing
+    framerate or saving battery life. vdbGetRenderScale() returns the active scale
+    factor (1/1 = 1.0, 1/2 = 0.5, etc.).
+
+    Scaling options a/b where a > 1 enables temporal multi-sampling, where multiple
+    frames are interleaved together over time to form a high resolution result. For
+    example: 2/2 means render frames at 1/2 resolution and upsample 2x. The result
+    is a original-resolution output that takes 4 frames to fully flush.
+
+    This is done by having each frame render a slightly different view of the scene
+    by translating incoming geometry by a subpixel offset, which is equivalent to
+    changing the pixel sampling center. To get this effect when using custom shaders
+    (i.e. NOT when using the immediate API), you should use vdbGetRenderOffset().
+
+    See test.cpp for example usage in a fragment shader-based ray-tracer.
+*/
