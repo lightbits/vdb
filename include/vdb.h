@@ -31,7 +31,10 @@ void vdbEndFrame();
 bool vdbIsFirstFrame();
 bool vdbIsDifferentLabel();
 
-float vdbGetRenderScale();
+// The render scale can be controlled in the Settings main menu tab to allow
+// rendering at 1/2, 1/4, 1/8 of original resolution (to increase framerate).
+// The active scaling factor can be obtained through vdbGetRenderScale().
+vdbVec2 vdbGetRenderScale();
 vdbVec2 vdbGetRenderOffset();
 
 // vdb_immediate.cpp

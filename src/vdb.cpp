@@ -75,11 +75,14 @@ void vdbDetachGLContext()
     window::DetachGLContext();
 }
 
-float vdbGetRenderScale()
+vdbVec2 vdbGetRenderScale()
 {
     if (vdb::frame_settings->render_scale_down > 0)
-        return 1.0f / (1 << vdb::frame_settings->render_scale_down);
-    return 1.0f;
+    {
+        float scale_down = 1.0f / (1 << vdb::frame_settings->render_scale_down);
+        return vdbVec2(scale_down, scale_down);
+    }
+    return vdbVec2(1.0f, 1.0f);
 }
 
 vdbVec2 vdbGetRenderOffset()
