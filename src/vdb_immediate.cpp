@@ -1,6 +1,7 @@
 #pragma once
 #include "shaders/points.cpp"
 #include "shaders/lines.cpp"
+#include "shaders/thick_lines.cpp"
 #include "shaders/triangles.cpp"
 
 void vdbInverseColor(bool enable)
@@ -417,9 +418,165 @@ static void DrawImmediateLinesThin(imm_list_t list)
 
 static void DrawImmediateLinesThick(imm_list_t list)
 {
+    #if 1
+    assert(imm.vao);
+    assert(imm.default_texture);
+
+    if (!glVertexAttribDivisor)
+        glVertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
+    assert(glVertexAttribDivisor && "Your system's OpenGL driver doesn't support glVertexAttribDivisor.");
+
+    static GLuint program = 0;
+    static GLint attrib_in_position = 0;
+    static GLint attrib_instance_position0 = 0;
+    static GLint attrib_instance_texel0 = 0;
+    static GLint attrib_instance_color0 = 0;
+    static GLint attrib_instance_position1 = 0;
+    static GLint attrib_instance_texel1 = 0;
+    static GLint attrib_instance_color1 = 0;
+    static GLint uniform_projection = 0;
+    static GLint uniform_model_to_view = 0;
+    static GLint uniform_sampler0 = 0;
+    static GLint uniform_ndc_offset = 0;
+    static GLint uniform_line_width = 0;
+    static GLint uniform_aspect = 0;
+    static GLint uniform_width_is_3D = 0;
+    if (!program)
+    {
+        program = LoadShaderFromMemory(shader_thick_lines_vs, shader_thick_lines_fs);
+
+        attrib_in_position       = glGetAttribLocation(program, "in_position");
+        attrib_instance_position0 = glGetAttribLocation(program, "instance_position0");
+        attrib_instance_texel0    = glGetAttribLocation(program, "instance_texel0");
+        attrib_instance_color0    = glGetAttribLocation(program, "instance_color0");
+        attrib_instance_position1 = glGetAttribLocation(program, "instance_position1");
+        attrib_instance_texel1    = glGetAttribLocation(program, "instance_texel1");
+        attrib_instance_color1    = glGetAttribLocation(program, "instance_color1");
+
+        uniform_projection    = glGetUniformLocation(program, "projection");
+        uniform_model_to_view = glGetUniformLocation(program, "model_to_view");
+        uniform_line_width    = glGetUniformLocation(program, "line_width");
+        uniform_aspect        = glGetUniformLocation(program, "aspect");
+        uniform_sampler0      = glGetUniformLocation(program, "sampler0");
+        uniform_ndc_offset    = glGetUniformLocation(program, "ndc_offset");
+        uniform_width_is_3D   = glGetUniformLocation(program, "width_is_3D");
+    }
+    assert(program);
+
+    glUseProgram(program);
+
+    // set uniforms
+    {
+        UniformMat4(uniform_projection, 1, transform::projection);
+        UniformMat4(uniform_model_to_view, 1, transform::view_model);
+        glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
+        if (!list.texel_specified)
+            glBindTexture(GL_TEXTURE_2D, imm.default_texture);
+        if (imm.line_width_is_3D)
+        {
+            assert(false && "Not implemented yet");
+            // Note: point_size is treated as a radius inside the shader, but imm.point_size
+            // is considered to be diameter (to be consistent with glPointSize). For efficiency
+            // we divide by two before passing it in, so we don't have to do it in the shader.
+
+            // Note: The view_model matrix may have a scaling factor. Assuming the 3x3 upper-
+            // left matrix of view_model is a sequence of rotation and scaling matrices, we
+            // can isolate the scaling factors like so:
+            vdbMat4 TT = vdbMatTranspose(transform::view_model)*transform::view_model;
+            float sx = sqrtf(TT(0,0));
+            float sy = sqrtf(TT(1,1));
+            // If the scaling factors are not the same, we choose the smallest one:
+            float s = sx < sy ? sx : sy;
+
+            glUniform2f(uniform_line_width, 0.5f*s*imm.line_width, 0.5f*s*imm.line_width);
+        }
+        else
+        {
+            // Convert point size units from screen pixels to NDC.
+            // Note: Division by two as per above.
+            glUniform2f(uniform_line_width,
+                        imm.line_width/vdbGetFramebufferWidth(),
+                        imm.line_width/vdbGetFramebufferHeight());
+        }
+        glUniform1f(uniform_aspect, (float)vdbGetFramebufferWidth()/vdbGetFramebufferHeight());
+        glUniform1i(uniform_width_is_3D, imm.line_width_is_3D ? 1 : 0);
+        glUniform2f(uniform_ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
+    }
+
+    // generate primitive geometry
+    static int rasterization_count = 0;
+    static GLenum rasterization_mode = 0;
+    static GLuint point_geometry_vbo = 0;
+    if (!point_geometry_vbo)
+    {
+        static float quad[] = { -1,-1, +1,-1, +1,+1, +1,+1, -1,+1, -1,-1 };
+        glGenBuffers(1, &point_geometry_vbo);
+        assert(point_geometry_vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_DYNAMIC_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        rasterization_mode = GL_TRIANGLES;
+        rasterization_count = 6;
+    }
+    assert(rasterization_count);
+    assert(rasterization_mode);
+    assert(point_geometry_vbo);
+
+    glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
+
+    // todo: move these calls out, and optimize wrt buffer binding changes
+
+    // instance geometry
+    glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
+    glEnableVertexAttribArray(attrib_instance_position0);
+    glEnableVertexAttribArray(attrib_instance_texel0);
+    glEnableVertexAttribArray(attrib_instance_color0);
+    glEnableVertexAttribArray(attrib_instance_position1);
+    glEnableVertexAttribArray(attrib_instance_texel1);
+    glEnableVertexAttribArray(attrib_instance_color1);
+    glVertexAttribPointer(attrib_instance_position0, 4, GL_FLOAT, GL_FALSE,        2*sizeof(imm_vertex_t), (const void*)(0));
+    glVertexAttribPointer(attrib_instance_texel0,    2, GL_FLOAT, GL_FALSE,        2*sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
+    glVertexAttribPointer(attrib_instance_color0,    4, GL_UNSIGNED_BYTE, GL_TRUE, 2*sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
+    glVertexAttribPointer(attrib_instance_position1, 4, GL_FLOAT, GL_FALSE,        2*sizeof(imm_vertex_t), (const void*)(0 + sizeof(imm_vertex_t)));
+    glVertexAttribPointer(attrib_instance_texel1,    2, GL_FLOAT, GL_FALSE,        2*sizeof(imm_vertex_t), (const void*)(4*sizeof(float) + sizeof(imm_vertex_t)));
+    glVertexAttribPointer(attrib_instance_color1,    4, GL_UNSIGNED_BYTE, GL_TRUE, 2*sizeof(imm_vertex_t), (const void*)(6*sizeof(float) + sizeof(imm_vertex_t)));
+    glVertexAttribDivisor(attrib_instance_position0, 1);
+    glVertexAttribDivisor(attrib_instance_texel0, 1);
+    glVertexAttribDivisor(attrib_instance_color0, 1);
+    glVertexAttribDivisor(attrib_instance_position1, 1);
+    glVertexAttribDivisor(attrib_instance_texel1, 1);
+    glVertexAttribDivisor(attrib_instance_color1, 1);
+
+    // primitive geometry
+    glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
+    glEnableVertexAttribArray(attrib_in_position);
+    glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
+
+    glDrawArraysInstanced(rasterization_mode, 0, rasterization_count, list.count/2);
+
+    glDisableVertexAttribArray(attrib_in_position);
+
+    glDisableVertexAttribArray(attrib_instance_position0);
+    glDisableVertexAttribArray(attrib_instance_texel0);
+    glDisableVertexAttribArray(attrib_instance_color0);
+    glDisableVertexAttribArray(attrib_instance_position1);
+    glDisableVertexAttribArray(attrib_instance_texel1);
+    glDisableVertexAttribArray(attrib_instance_color1);
+    glVertexAttribDivisor(attrib_instance_position0, 0);
+    glVertexAttribDivisor(attrib_instance_texel0, 0);
+    glVertexAttribDivisor(attrib_instance_color0, 0);
+    glVertexAttribDivisor(attrib_instance_position1, 0);
+    glVertexAttribDivisor(attrib_instance_texel1, 0);
+    glVertexAttribDivisor(attrib_instance_color1, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
+    glUseProgram(0); // todo: optimize
+    #else
     glLineWidth(imm.line_width); // todo: deprecated
     DrawImmediateLinesThin(list);
     glLineWidth(1.0f);
+    #endif
 }
 
 static void DrawImmediateLines(imm_list_t list)
@@ -427,7 +584,7 @@ static void DrawImmediateLines(imm_list_t list)
     assert(imm.initialized);
     assert(list.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
 
-    if (imm.line_width_is_3D || imm.line_width > 1.0f)
+    if (imm.line_width_is_3D || imm.line_width != 1.0f)
         DrawImmediateLinesThick(list);
     else
         DrawImmediateLinesThin(list);
@@ -593,7 +750,7 @@ void vdbVertex(float x, float y, float z, float w)
     }
 }
 
-void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
+void vdbLineWidth(float width)      { imm.line_width = width*vdbGetRenderScale().x; imm.line_width_is_3D = false; }
 void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
 void vdbPointSize(float size)       { imm.point_size = size*vdbGetRenderScale().x; imm.point_size_is_3D = false; }
 void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
