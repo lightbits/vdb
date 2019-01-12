@@ -238,6 +238,12 @@ vdbVec2 vdbGetRenderOffset()
         return vdbVec2(0.0f, 0.0f);
 }
 
+vdbVec2 vdbGetRenderScale()
+{
+    return vdbVec2((float)vdbGetFramebufferWidth()/vdbGetWindowWidth(),
+                   (float)vdbGetFramebufferHeight()/vdbGetWindowHeight());
+}
+
 void vdbBeginRenderScale(int width, int height, int up)
 {
     assert(!render_scaler::has_begun && "You have to disable the built-in render scaler (set to 1/1 in settings).");

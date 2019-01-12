@@ -75,16 +75,6 @@ void vdbDetachGLContext()
     window::DetachGLContext();
 }
 
-vdbVec2 vdbGetRenderScale()
-{
-    if (vdb::frame_settings->render_scale_down > 0)
-    {
-        float w = 1.0f / (1 << vdb::frame_settings->render_scale_down);
-        return vdbVec2(w, w);
-    }
-    return vdbVec2(1.0f, 1.0f);
-}
-
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
