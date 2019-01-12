@@ -281,8 +281,8 @@ static void DrawImmediatePoints(imm_list_t list)
             // Convert point size units from screen pixels to NDC.
             // Note: Division by two as per above.
             glUniform2f(uniform_point_size,
-                        imm.point_size/vdbGetFramebufferWidth(),
-                        imm.point_size/vdbGetFramebufferHeight());
+                        imm.point_size/vdbGetWindowWidth(),
+                        imm.point_size/vdbGetWindowHeight());
         }
         glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
         glUniform2f(uniform_ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
@@ -418,7 +418,6 @@ static void DrawImmediateLinesThin(imm_list_t list)
 
 static void DrawImmediateLinesThick(imm_list_t list)
 {
-    #if 1
     assert(imm.vao);
     assert(imm.default_texture);
 
@@ -445,7 +444,7 @@ static void DrawImmediateLinesThick(imm_list_t list)
     {
         program = LoadShaderFromMemory(shader_thick_lines_vs, shader_thick_lines_fs);
 
-        attrib_in_position       = glGetAttribLocation(program, "in_position");
+        attrib_in_position        = glGetAttribLocation(program, "in_position");
         attrib_instance_position0 = glGetAttribLocation(program, "instance_position0");
         attrib_instance_texel0    = glGetAttribLocation(program, "instance_texel0");
         attrib_instance_color0    = glGetAttribLocation(program, "instance_color0");
@@ -495,8 +494,8 @@ static void DrawImmediateLinesThick(imm_list_t list)
             // Convert point size units from screen pixels to NDC.
             // Note: Division by two as per above.
             glUniform2f(uniform_line_width,
-                        imm.line_width/vdbGetFramebufferWidth(),
-                        imm.line_width/vdbGetFramebufferHeight());
+                        imm.line_width/vdbGetWindowWidth(),
+                        imm.line_width/vdbGetWindowHeight());
         }
         glUniform1f(uniform_aspect, (float)vdbGetFramebufferWidth()/vdbGetFramebufferHeight());
         glUniform1i(uniform_width_is_3D, imm.line_width_is_3D ? 1 : 0);
@@ -572,11 +571,6 @@ static void DrawImmediateLinesThick(imm_list_t list)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
     glUseProgram(0); // todo: optimize
-    #else
-    glLineWidth(imm.line_width); // todo: deprecated
-    DrawImmediateLinesThin(list);
-    glLineWidth(1.0f);
-    #endif
 }
 
 static void DrawImmediateLines(imm_list_t list)
@@ -584,7 +578,13 @@ static void DrawImmediateLines(imm_list_t list)
     assert(imm.initialized);
     assert(list.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
 
-    if (imm.line_width_is_3D || imm.line_width != 1.0f)
+    bool use_thick_shader =
+        imm.line_width_is_3D ||
+        imm.line_width != 1.0f ||
+        vdbGetRenderScale().x != 1.0f ||
+        vdbGetRenderScale().y != 1.0f;
+
+    if (use_thick_shader)
         DrawImmediateLinesThick(list);
     else
         DrawImmediateLinesThin(list);
@@ -750,9 +750,9 @@ void vdbVertex(float x, float y, float z, float w)
     }
 }
 
-void vdbLineWidth(float width)      { imm.line_width = width*vdbGetRenderScale().x; imm.line_width_is_3D = false; }
+void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
 void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
-void vdbPointSize(float size)       { imm.point_size = size*vdbGetRenderScale().x; imm.point_size_is_3D = false; }
+void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
 void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
 void vdbPointSegments(int segments) { assert(segments >= 3); imm.point_segments = segments; }
 void vdbTriangles()                 { BeginImmediate(IMM_PRIM_TRIANGLES); }
