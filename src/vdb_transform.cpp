@@ -162,10 +162,9 @@ void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float
 
 vdbVec2 vdbWindowToNDC(float xw, float yw)
 {
-    using namespace window;
     using namespace transform;
-    float xf = framebuffer_width*(xw/window_width);
-    float yf = framebuffer_height*(1.0f - yw/window_height);
+    float xf = vdbGetFramebufferWidth()*(xw/vdbGetWindowWidth());
+    float yf = vdbGetFramebufferHeight()*(1.0f - yw/vdbGetWindowHeight());
     float xn = -1.0f+2.0f*(xf-viewport_left)/viewport_width;
     float yn = -1.0f+2.0f*(yf-viewport_bottom)/viewport_height;
     vdbVec2 result(xn,yn);
@@ -174,12 +173,11 @@ vdbVec2 vdbWindowToNDC(float xw, float yw)
 
 vdbVec2 vdbNDCToWindow(float xn, float yn)
 {
-    using namespace window;
     using namespace transform;
     float xf = viewport_left + (0.5f+0.5f*xn)*viewport_width;
     float yf = viewport_bottom + (0.5f+0.5f*yn)*viewport_height;
-    float xw = window_width*(xf/framebuffer_width);
-    float yw = window_height*(1.0f - yf/framebuffer_height);
+    float xw = vdbGetWindowWidth()*(xf/vdbGetFramebufferWidth());
+    float yw = vdbGetWindowHeight()*(1.0f - yf/vdbGetFramebufferHeight());
     vdbVec2 result(xw,yw);
     return result;
 }
