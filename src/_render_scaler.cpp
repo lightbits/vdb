@@ -5,24 +5,24 @@
 // to a regular sampling of the high-resolution buffer. Here for example
 // is a 3x2 framebuffer supersampled to 6x4.
 //                          -----------------
-//                         | 1 2 | 1 2 | 1 2 |
-//                         | 3 4 | 3 4 | 3 4 |
+//                         | 2 3 | 2 3 | 2 3 |
+//                         | 0 1 | 0 1 | 0 1 |
 //                         |-----+-----+-----|
-//                         | 1 2 | 1 2 | 1 2 |
-//                         | 3 4 | 3 4 | 3 4 |
+//                         | 2 3 | 2 3 | 2 3 |
+//                         | 0 1 | 0 1 | 0 1 |
 //                          -----------------
 // Each number refers to the frame at which that pixel gets rendered.
-// For example, in frame 1, only the upper-left pixels are rendered
+// For example, in frame 0, only the upper-left pixels are rendered
 // to a low-resolution framebuffer (here 3x2), and then distributed
 // to the high-res framebuffer:
 //                                   _________________
-//                 ___________      | 1 # | 1 # | 1 # |
-//                | 1 | 1 | 1 |     | # # | # # | # # |
+//                 ___________      | # # | # # | # # |
+//                | 0 | 0 | 0 |     | 0 # | 0 # | 0 # |
 //                | --+---+---| --> |-----+-----+-----|
-//                | 1 | 1 | 1 |     | 1 # | 1 # | 1 # |
-//                 -----------      | # # | # # | # # |
+//                | 0 | 0 | 0 |     | # # | # # | # # |
+//                 -----------      | 0 # | 0 # | 0 # |
 //                                   -----------------
-// In this example, it would take 4 frames before the output is stable,
+// In this example, it would take 4 frames before the output settles,
 // assuming a static scene.
 namespace render_scaler
 {
@@ -31,41 +31,11 @@ namespace render_scaler
     static int subpixel;
     static bool has_begun;
     static int scale_up;
-    static vdbVec2 offset_ndc;
+    static int sample_pos_idx;
+    static int sample_pos_idy;
+    static float sample_pos_ndc_x;
+    static float sample_pos_ndc_y;
 
-    void GetSubpixelOffsetI(int w, int h, int n, int *idx, int *idy)
-    {
-        // todo: nicer sampling pattern for any upsampling factor
-        int i = subpixel;
-        if (n == 2)
-        {
-            static const int remap[] = {10,5,16,14,12,2,1,11,3,7,9,15,4,8,13,6};
-            i = remap[subpixel]-1;
-        }
-        else if (n == 3)
-        {
-            static const int remap[] = {42, 3, 8, 34, 18, 38, 25, 61, 16, 48, 56, 7, 55, 32, 59, 41, 4, 36, 30, 1, 24, 50, 0, 12, 39, 45, 31, 10, 58, 14, 23, 43, 46, 44, 9, 40, 28, 6, 17, 15, 60, 27, 37, 52, 20, 53, 19, 62, 47, 33, 63, 13, 5, 49, 54, 26, 35, 22, 21, 57, 29, 2, 51, 11};
-            i = remap[subpixel];
-        }
-        *idx = i % (1<<n);
-        *idy = i / (1<<n);
-    }
-    // dx,dy = pixel offset to apply to projection matrix element (0,2) and (1,2)
-    // . . dx 0
-    // . . dy 0
-    // . .  . .
-    // . .  . 1
-    // Note: the result is divided by z afterwards.
-    void GetSubpixelOffset(int w, int h, int n, float *dx, float *dy)
-    {
-        int idx,idy;
-        GetSubpixelOffsetI(w,h,n,&idx,&idy);
-        float pixel_width = 2.0f/(w<<n); // width in NDC [-1,+1] space
-        float pixel_height = 2.0f/(h<<n); // width in NDC [-1,+1] space
-        int num_samples_x = 1 << n;
-        *dx = (-0.5f*num_samples_x + 0.5f + idx)*pixel_width;
-        *dy = (-0.5f*num_samples_x + 0.5f + idy)*pixel_height;
-    }
     void Begin(int w, int h, int n_up)
     {
         using namespace render_texture;
@@ -91,7 +61,33 @@ namespace render_scaler
         EnableRenderTexture(&lowres);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        GetSubpixelOffset(w, h, n_up, &offset_ndc.x, &offset_ndc.y);
+        // calculate the sample position for this frame
+        {
+            // todo: nicer sampling pattern for any upsampling factor
+            int i = subpixel;
+            if (scale_up == 2)
+            {
+                static const int remap[] = {
+                    10, 5, 16, 14,
+                    12, 2,  1, 11,
+                     3, 7,  9, 15,
+                     4, 8, 13,  6
+                };
+                i = remap[subpixel]-1;
+            }
+            else if (scale_up == 3)
+            {
+                static const int remap[] = {42, 3, 8, 34, 18, 38, 25, 61, 16, 48, 56, 7, 55, 32, 59, 41, 4, 36, 30, 1, 24, 50, 0, 12, 39, 45, 31, 10, 58, 14, 23, 43, 46, 44, 9, 40, 28, 6, 17, 15, 60, 27, 37, 52, 20, 53, 19, 62, 47, 33, 63, 13, 5, 49, 54, 26, 35, 22, 21, 57, 29, 2, 51, 11};
+                i = remap[subpixel];
+            }
+            sample_pos_idx = i % (1<<scale_up);
+            sample_pos_idy = i / (1<<scale_up);
+            float pixel_width_ndc = 2.0f / (w<<scale_up);
+            float pixel_height_ndc = 2.0f / (h<<scale_up);
+            int num_samples_x = 1<<scale_up;
+            sample_pos_ndc_x = (-0.5f*num_samples_x + 0.5f + sample_pos_idx)*pixel_width_ndc;
+            sample_pos_ndc_y = (-0.5f*num_samples_x + 0.5f + sample_pos_idy)*pixel_height_ndc;
+        }
     }
     void End()
     {
@@ -102,7 +98,7 @@ namespace render_scaler
         static GLint uniform_sampler0 = 0;
         static GLint uniform_dx = 0;
         static GLint uniform_dy = 0;
-        static GLint uniform_tile_dim = 0;
+        static GLint uniform_nx = 0;
         if (!program)
         {
             #define SHADER(S) "#version 150\n" #S
@@ -121,13 +117,13 @@ namespace render_scaler
             uniform sampler2D sampler0;
             uniform float dx;
             uniform float dy;
-            uniform float tile_dim;
+            uniform float nx;
             out vec4 out_color;
             void main()
             {
                 out_color = texture(sampler0, texel);
-                float ix = trunc(mod(gl_FragCoord.x,tile_dim));
-                float iy = trunc(mod(gl_FragCoord.y,tile_dim));
+                float ix = trunc(mod(gl_FragCoord.x,nx));
+                float iy = trunc(mod(gl_FragCoord.y,nx));
                 if (ix == dx && iy == dy)
                     out_color = texture(sampler0,texel);
                 else
@@ -141,12 +137,12 @@ namespace render_scaler
             uniform_sampler0 = glGetUniformLocation(program, "sampler0");
             uniform_dx = glGetUniformLocation(program, "dx");
             uniform_dy = glGetUniformLocation(program, "dy");
-            uniform_tile_dim = glGetUniformLocation(program, "tile_dim");
+            uniform_nx = glGetUniformLocation(program, "nx");
             assert(attrib_position >= 0 && "Unused or nonexistent attribute");
             assert(uniform_sampler0 >= 0 && "Unused or nonexistent uniform");
             assert(uniform_dx >= 0 && "Unused or nonexistent uniform");
             assert(uniform_dy >= 0 && "Unused or nonexistent uniform");
-            assert(uniform_tile_dim >= 0 && "Unused or nonexistent uniform");
+            assert(uniform_nx >= 0 && "Unused or nonexistent uniform");
             assert(program && "Failed to compile TemporalBlend shader");
         }
 
@@ -167,9 +163,6 @@ namespace render_scaler
 
         // interleave just-rendered frame into full resolution framebuffer
         {
-            int idx,idy;
-            GetSubpixelOffsetI(lowres.width, lowres.height, scale_up, &idx, &idy);
-
             static GLuint vao = 0;
             static GLuint vbo = 0;
             if (!vao)
@@ -190,9 +183,9 @@ namespace render_scaler
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(uniform_sampler0, 0);
             glBindTexture(GL_TEXTURE_2D, lowres.color[0]);
-            glUniform1f(uniform_dx, (float)idx);
-            glUniform1f(uniform_dy, (float)idy);
-            glUniform1f(uniform_tile_dim, (float)(1<<scale_up));
+            glUniform1f(uniform_dx, (float)sample_pos_idx);
+            glUniform1f(uniform_dy, (float)sample_pos_idy);
+            glUniform1f(uniform_nx, (float)(1<<scale_up));
             glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
             glEnableVertexAttribArray(attrib_position);
             glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -226,6 +219,23 @@ namespace render_scaler
         int num_subpixels = (1<<scale_up)*(1<<scale_up);
         subpixel = (subpixel+1)%num_subpixels;
     }
+}
+
+// You can apply this value to a perspective projection matrix'
+// (0,2) and (1,2) elements:
+// . . dx 0
+// . . dy 0
+// . .  . .
+// . .  . 1
+// such that, after dividing by w (=-z), you get a z-independent
+// shift of all fragments.
+vdbVec2 vdbGetRenderOffset()
+{
+    using namespace render_scaler;
+    if (has_begun)
+        return vdbVec2(sample_pos_ndc_x, sample_pos_ndc_y);
+    else
+        return vdbVec2(0.0f, 0.0f);
 }
 
 void vdbBeginRenderScale(int width, int height, int up)

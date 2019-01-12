@@ -85,13 +85,6 @@ vdbVec2 vdbGetRenderScale()
     return vdbVec2(1.0f, 1.0f);
 }
 
-vdbVec2 vdbGetRenderOffset()
-{
-    if (render_scaler::has_begun)
-        return render_scaler::offset_ndc;
-    return vdbVec2(0.0f, 0.0f);
-}
-
 bool vdbBeginFrame(const char *label)
 {
     static const char *skip_label = NULL;
