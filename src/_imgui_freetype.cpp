@@ -45,9 +45,6 @@ PFNFTDONEGLYPH VDB_FT_Done_Glyph;
 #define VDB_FT_Done_Glyph FT_Done_Glyph
 #endif
 
-#include "imgui/imgui_freetype.h"
-#include "imgui/imgui_freetype.cpp"
-
 // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
 namespace imgui_freetype
 {

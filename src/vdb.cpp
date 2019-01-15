@@ -1,5 +1,6 @@
 #include "vdb_config.h"
 
+// SDL2 and GLAD
 #include "SDL.h"
 #ifdef VDB_DEBUG
 #include "glad/glad_3_1_debug.c"
@@ -11,14 +12,19 @@
 #undef WIN32_LEAN_AND_MEAN // defined by glad
 #endif
 #include "SDL_syswm.h"
+
+// Dear ImGui
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM <opengl_debug.h>
 #include "imgui/imgui.cpp"
-#if VDB_IMGUI_FREETYPE==1
-#include "_imgui_freetype.cpp"
-#endif
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"
-#include "imgui/imgui_impl_sdl_gl3.h"
-#include "imgui/imgui_impl_sdl_gl3.cpp"
+#include "imgui/imgui_widgets.cpp"
+#include "imgui/imgui_impl_sdl.cpp"
+#include "imgui/imgui_impl_opengl3.cpp"
+#if VDB_IMGUI_FREETYPE==1
+#include "imgui/imgui_freetype.cpp"
+#include "_imgui_freetype.cpp"
+#endif
 
 typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
 GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
@@ -99,7 +105,8 @@ bool vdbBeginFrame(const char *label)
         CheckGLError();
 
         ImGui::CreateContext();
-        ImGui_ImplSdlGL3_Init(window::sdl_window);
+        ImGui_ImplSDL2_InitForOpenGL(window::sdl_window, window::sdl_gl_context);
+        ImGui_ImplOpenGL3_Init("#version 150");
         ImGui::StyleColorsDark();
         ImGui::GetStyle().WindowBorderSize = 0.0f;
     }
@@ -107,7 +114,7 @@ bool vdbBeginFrame(const char *label)
     if (vdb::loaded_font_size != settings.font_size)
     {
         vdb::loaded_font_size = settings.font_size;
-        ImGui_ImplSdlGL3_InvalidateDeviceObjects();
+        ImGui_ImplOpenGL3_DestroyDeviceObjects();
         ImGui::GetIO().Fonts->Clear();
         const char *data = (const char*)open_sans_regular_compressed_data;
         const unsigned int size = open_sans_regular_compressed_size;
@@ -184,7 +191,9 @@ bool vdbBeginFrame(const char *label)
     immediate_util::NewFrame();
     immediate::NewFrame();
 
-    ImGui_ImplSdlGL3_NewFrame(window::sdl_window);
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(window::sdl_window);
+    ImGui::NewFrame();
 
     quick_var::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
@@ -365,7 +374,7 @@ void vdbEndFrame()
         if (opt.draw_imgui)
         {
             ImGui::Render();
-            ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
         GLenum format = opt.alpha_channel ? GL_RGBA : GL_RGB;
@@ -380,7 +389,7 @@ void vdbEndFrame()
         if (!opt.draw_imgui)
         {
             ImGui::Render();
-            ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
+            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         }
 
         framegrab::SaveFrame(data, width, height, channels, format);
@@ -407,7 +416,7 @@ void vdbEndFrame()
         uistuff::RulerEndFrame();
         uistuff::SketchEndFrame();
         ImGui::Render();
-        ImGui_ImplSdlGL3_RenderDrawData(ImGui::GetDrawData());
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     window::SwapBuffers(1.0f/60.0f);

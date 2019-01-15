@@ -1,3 +1,15 @@
+void PostGLCallback(const char *name, void *funcptr, int len_args, ...) {
+    (void) funcptr;
+    (void) len_args;
+
+    GLenum error_code = glad_glGetError();
+
+    if (error_code != GL_NO_ERROR) {
+        fprintf(stderr, "ERROR %d (0x%x) in %s\n", error_code, error_code, name);
+        assert(false && "Error after OpenGL function call. Run with a debugger to see where and why it crashed.");
+    }
+}
+
 namespace window
 {
     static bool vsynced;
@@ -100,6 +112,10 @@ namespace window
         assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
         assert(gladLoadGL());
 
+        #ifdef VDB_DEBUG
+        glad_set_post_callback(PostGLCallback);
+        #endif
+
         // 0 for immediate updates, 1 for updates synchronized with the
         // vertical retrace. If the system supports it, you may
         // specify -1 to allow late swaps to happen immediately
@@ -147,7 +163,7 @@ namespace window
         SDL_Event event;
         while (SDL_PollEvent(&event))
         {
-            ImGui_ImplSdlGL3_ProcessEvent(&event);
+            ImGui_ImplSDL2_ProcessEvent(&event);
             if (event.type == SDL_QUIT)
             {
                 should_quit = true;

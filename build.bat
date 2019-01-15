@@ -14,7 +14,7 @@ REM If you want to statically link auxilliary libraries
 REM set SDLLIB=..\lib\sdl\vc2010-x86\SDL2.lib ..\lib\sdl\vc2010-x86\SDL2main.lib
 REM set LF=%SDLLIB% opengl32.lib user32.lib gdi32.lib shell32.lib
 
-cl ..\src\vdb.cpp -c %CF%
-lib vdb.obj %LF% -nologo -out:vdb.lib
+cl %CF% -c -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM="<opengl.h>" ..\src\imgui\*.cpp ..\src\glad\glad_3_1_release.c ..\src\vdb.cpp
+lib *.obj %LF% -nologo -out:vdb.lib
 
 popd

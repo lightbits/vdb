@@ -30,6 +30,24 @@ namespace uistuff
     static void LogsWindow();
 }
 
+namespace ImGui
+{
+    // Helper to display a little (?) mark which shows a tooltip when hovered.
+    // (copied from imgui_demo.cpp)
+    static void ShowHelpMarker(const char* desc)
+    {
+        ImGui::TextDisabled("(?)");
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+            ImGui::TextUnformatted(desc);
+            ImGui::PopTextWrapPos();
+            ImGui::EndTooltip();
+        }
+    }
+}
+
 static void uistuff::LogsWindow()
 {
     if (VDB_HOTKEY_LOGS_WINDOW)
@@ -65,13 +83,13 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     {
         #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera_type == e)) fs->camera_type = e;
         ITEM("Disabled", VDB_CAMERA_DISABLED);
-        // ImGui::SameLine(); ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
+        // ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
         ITEM("Planar", VDB_CAMERA_PLANAR);
-        // ImGui::SameLine(); ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
+        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
         ITEM("Trackball", VDB_CAMERA_TRACKBALL);
-        // ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
+        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
         ITEM("Turntable", VDB_CAMERA_TURNTABLE);
-        // ImGui::SameLine(); ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
+        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
         #undef ITEM
         ImGui::EndMenu();
     }
@@ -79,11 +97,11 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     {
         ImGui::MenuItem("Show grid", NULL, &fs->grid_visible);
         ImGui::MenuItem("Show cube", NULL, &fs->cube_visible);
-        ImGui::SameLine(); ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
+        ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
         ImGui::PushItemWidth(60.0f);
         ImGui::DragFloat("Major div.", &fs->grid_scale);
         ImGui::PopItemWidth();
-        ImGui::SameLine(); ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
+        ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
         ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
         ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
@@ -247,15 +265,15 @@ static void uistuff::FramegrabDialog()
         static bool draw_cursor = false;
         RadioButton("Screenshot", &mode, mode_single);
         SameLine();
-        ShowHelpMarker("Take a single screenshot. Put a %d in the filename to use the counter for successive screenshots.");
+        ImGui::ShowHelpMarker("Take a single screenshot. Put a %d in the filename to use the counter for successive screenshots.");
         SameLine();
         RadioButton("Sequence", &mode, mode_sequence);
         SameLine();
-        ShowHelpMarker("Record a video of images in succession (e.g. output0000.png, output0001.png, ... etc.). Put a %d in the filename to get frame numbers. Use %0nd to left-pad with n zeroes.");
+        ImGui::ShowHelpMarker("Record a video of images in succession (e.g. output0000.png, output0001.png, ... etc.). Put a %d in the filename to get frame numbers. Use %0nd to left-pad with n zeroes.");
         SameLine();
         RadioButton("ffmpeg", &mode, mode_ffmpeg);
         SameLine();
-        ShowHelpMarker("Record a video with raw frames piped directly to ffmpeg, and save the output in the format specified by your filename extension (e.g. mp4). This option can be quicker as it avoids writing to the disk.\nMake sure the 'ffmpeg' executable is visible from the terminal you launched this program in.");
+        ImGui::ShowHelpMarker("Record a video with raw frames piped directly to ffmpeg, and save the output in the format specified by your filename extension (e.g. mp4). This option can be quicker as it avoids writing to the disk.\nMake sure the 'ffmpeg' executable is visible from the terminal you launched this program in.");
 
         Checkbox("Alpha (32bpp)", &alpha);
         SameLine();
@@ -269,7 +287,7 @@ static void uistuff::FramegrabDialog()
             static int start_from = 0;
             Checkbox("Continue counting", &do_continue);
             SameLine();
-            ShowHelpMarker("Enable this to continue the image filename number suffix from the last screenshot captured (in this program session).");
+            ImGui::ShowHelpMarker("Enable this to continue the image filename number suffix from the last screenshot captured (in this program session).");
             if (!do_continue)
             {
                 SameLine();
@@ -301,11 +319,11 @@ static void uistuff::FramegrabDialog()
             static int frame_cap = 0;
             InputInt("Number of frames", &frame_cap);
             SameLine();
-            ShowHelpMarker("0 for unlimited. To stop the recording at any time, press the same hotkey you used to open this dialog (CTRL+S by default).");
+            ImGui::ShowHelpMarker("0 for unlimited. To stop the recording at any time, press the same hotkey you used to open this dialog (CTRL+S by default).");
 
             Checkbox("Continue from last frame", &do_continue);
             SameLine();
-            ShowHelpMarker("Enable this to continue the image filename number suffix from the last image sequence that was recording (in this program session).");
+            ImGui::ShowHelpMarker("Enable this to continue the image filename number suffix from the last image sequence that was recording (in this program session).");
             if (!do_continue)
             {
                 SameLine();
@@ -325,7 +343,7 @@ static void uistuff::FramegrabDialog()
                 framegrab::RecordImageSequence(opt);
             }
             SameLine();
-            ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
+            ImGui::ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
             SameLine();
             if (Button("Cancel", ImVec2(120,0)))
             {
@@ -339,7 +357,7 @@ static void uistuff::FramegrabDialog()
             static int crf = 21;
             InputInt("Number of frames", &frame_cap);
             SameLine();
-            ShowHelpMarker("0 for unlimited. To stop the recording at any time, press the same hotkey you used to open this dialog (CTRL+S by default).");
+            ImGui::ShowHelpMarker("0 for unlimited. To stop the recording at any time, press the same hotkey you used to open this dialog (CTRL+S by default).");
             SliderInt("Quality (lower is better)", &crf, 1, 51);
             InputFloat("Framerate", &framerate);
 
@@ -356,7 +374,7 @@ static void uistuff::FramegrabDialog()
                 framegrab::RecordFFmpeg(opt);
             }
             SameLine();
-            ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
+            ImGui::ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
             SameLine();
             if (Button("Cancel", ImVec2(120,0)))
             {

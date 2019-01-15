@@ -40,7 +40,6 @@ void _post_call_callback_default(const char *name, void *funcptr, int len_args, 
 
     if (error_code != GL_NO_ERROR) {
         fprintf(stderr, "ERROR %d (0x%x) in %s\n", error_code, error_code, name);
-        assert(false && "Error after OpenGL function call. Run with a debugger to see where and why it crashed.");
     }
 }
 
