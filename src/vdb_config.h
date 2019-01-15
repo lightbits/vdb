@@ -32,9 +32,6 @@
 // For small font sizes I recommend using the Freetype renderer.
 #define VDB_DEFAULT_FONT_SIZE  18
 
-// When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
-#define VDB_FLIP_IMAGE_TEXEL_Y 0
-
 // Set to > 0 to get smooth edges on points, lines and triangles.
 #define VDB_MULTISAMPLES       4
 

@@ -157,21 +157,12 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
     glBindTexture(GL_TEXTURE_2D, GetTexture(slot));
     vdbSetTextureParameters(filter, wrap, false);
     vdbTriangles();
-    #if VDB_FLIP_IMAGE_TEXEL_Y==1
-    vdbColor(1,1,1,1); vdbTexel(0,1); vdbVertex(-1,-1);
-    vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,-1);
-    vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,+1);
-    vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,+1);
-    vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,+1);
-    vdbColor(1,1,1,1); vdbTexel(0,1); vdbVertex(-1,-1);
-    #else
     vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
     vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,-1);
     vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
     vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
     vdbColor(1,1,1,1); vdbTexel(0,1); vdbVertex(-1,+1);
     vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
-    #endif
     vdbEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -182,7 +173,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
     static GLint attrib_position = 0;
     static GLint uniform_vmin = 0;
     static GLint uniform_vmax = 0;
-    static GLint uniform_selector = 0;
+    static GLint uniform_gather = 0;
     static GLint uniform_is_mono = 0;
     static GLint uniform_is_cmap = 0;
     static GLint uniform_sampler0 = 0;
@@ -206,7 +197,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
             "in vec2 texel;\n"
             "uniform vec4 vmin;\n"
             "uniform vec4 vmax;\n"
-            "uniform vec4 selector;\n"
+            "uniform vec4 gather;\n"
             "uniform int is_mono;\n"
             "uniform int is_cmap;\n"
             "uniform sampler2D sampler0;\n"
@@ -219,7 +210,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
             "    color0 = clamp(color0, vec4(0.0), vec4(1.0));\n"
             "    if (is_mono == 1)\n"
             "    {\n"
-            "        float i = clamp(dot(selector, color0), 0.0, 1.0);\n"
+            "        float i = clamp(dot(gather, color0), 0.0, 1.0);\n"
             "        if (is_cmap == 1)\n"
             "            color0 = texture(sampler1, vec2(i, 0.0));\n"
             "        else\n"
@@ -234,7 +225,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
         uniform_sampler1 = glGetUniformLocation(program, "sampler1");
         uniform_vmin = glGetUniformLocation(program, "vmin");
         uniform_vmax = glGetUniformLocation(program, "vmax");
-        uniform_selector = glGetUniformLocation(program, "selector");
+        uniform_gather = glGetUniformLocation(program, "gather");
         uniform_is_mono = glGetUniformLocation(program, "is_mono");
         uniform_is_cmap = glGetUniformLocation(program, "is_cmap");
     }
@@ -275,17 +266,17 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
         options.vmax.w = 1.0f;
     }
 
-    if (options.selector.x == 0.0f &&
-        options.selector.y == 0.0f &&
-        options.selector.z == 0.0f &&
-        options.selector.w == 0.0f)
+    if (options.gather.x == 0.0f &&
+        options.gather.y == 0.0f &&
+        options.gather.z == 0.0f &&
+        options.gather.w == 0.0f)
     {
-        assert(options.cmap == VDB_COLORMAP_NONE && "Colormaps only make sense if you combine the channels into a single scalar (using selector.xyzw as linear weights)");
+        assert(options.cmap == VDB_COLORMAP_NONE && "Colormaps only make sense if you combine the channels into a single scalar (using gather.xyzw as linear weights)");
         glUniform1i(uniform_is_mono, 0);
     }
     else
     {
-        UniformVec4(uniform_selector, options.selector);
+        UniformVec4(uniform_gather, options.gather);
         glUniform1i(uniform_is_mono, 1);
     }
 
