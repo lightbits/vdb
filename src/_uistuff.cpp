@@ -6,6 +6,7 @@ namespace uistuff
     static bool window_size_dialog_should_open;
     static bool take_screenshot_should_open;
     static bool record_video_should_open;
+    static bool show_logs;
 
     // note: this is in window coordinates (ImGui coordinates)
     // note: this may change from frame to frame!
@@ -26,6 +27,22 @@ namespace uistuff
     static void RulerEndFrame();
     static void SketchNewFrame();
     static void SketchEndFrame();
+    static void LogsWindow();
+}
+
+static void uistuff::LogsWindow()
+{
+    if (VDB_HOTKEY_LOGS_WINDOW)
+        show_logs = !show_logs;
+    if (show_logs)
+    {
+        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        {
+            escape_eaten = true;
+            show_logs = false;
+        }
+        logs::DrawImGui();
+    }
 }
 
 static void uistuff::MainMenuBar(frame_settings_t *fs)
@@ -74,6 +91,7 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Settings"))
     {
+        ImGui::MenuItem("Show logs", "Alt+L", &show_logs);
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);

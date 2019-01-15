@@ -47,6 +47,7 @@ GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 #include "vdb_immediate.cpp"
 #include "vdb_immediate_util.cpp"
 #include "vdb_shader.cpp"
+#include "vdb_log.cpp"
 #include "_render_scaler.cpp"
 #include "_uistuff.cpp"
 #include "vdb_var.cpp"
@@ -399,6 +400,7 @@ void vdbEndFrame()
     else
     {
         uistuff::MainMenuBar(vdb::frame_settings);
+        uistuff::LogsWindow();
         uistuff::WindowSizeDialog();
         uistuff::FramegrabDialog();
         uistuff::ExitDialog();

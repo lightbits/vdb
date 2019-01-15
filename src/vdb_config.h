@@ -69,3 +69,4 @@
 #define VDB_HOTKEY_SKETCH_MODE (keys::pressed[SDL_SCANCODE_D] && keys::down[SDL_SCANCODE_LALT])
 #define VDB_HOTKEY_RULER_MODE  (keys::pressed[SDL_SCANCODE_R] && keys::down[SDL_SCANCODE_LALT])
 #define VDB_HOTKEY_TOGGLE_MENU (keys::pressed[SDL_SCANCODE_M] && keys::down[SDL_SCANCODE_LALT])
+#define VDB_HOTKEY_LOGS_WINDOW (keys::pressed[SDL_SCANCODE_L] && keys::down[SDL_SCANCODE_LALT])
