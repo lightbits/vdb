@@ -35,10 +35,6 @@
 // When set to 1, images drawn with vdbDrawImage have reversed y texture coordinate
 #define VDB_FLIP_IMAGE_TEXEL_Y 0
 
-// OpenGL version
-#define VDB_GL_MAJOR           3
-#define VDB_GL_MINOR           1
-
 // Set to > 0 to get smooth edges on points, lines and triangles.
 #define VDB_MULTISAMPLES       4
 
