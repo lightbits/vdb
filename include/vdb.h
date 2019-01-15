@@ -185,6 +185,18 @@ void vdbBeginRenderScale(int down, int up);
 void vdbBeginRenderScale(int width, int height, int up);
 void vdbEndRenderScale();
 
+// Logging and plotting
+void vdbClearLog(const char *label=NULL);
+void vdbLogScalar(const char *label, float x, bool overwrite=false); // create new scalar
+void vdbLogArray(const char *label, float x); // append one element to existing array (or create new)
+void vdbLogArray(const char *label, float *x, int columns, bool append=false); // create new array or append to existing (append=true)
+void vdbLogMatrix(const char *label, float *x, int rows, int columns); // create new matrix
+void vdbLogMatrix(const char *label, float **x, int rows, int columns); // create new matrix
+void vdbLogMatrixRow(const char *label, float *x, int columns); // append row to existing matrix (or create new)
+void vdbLogMatrixCol(const char *label, float *x, int rows); // append column to existing matrix (or create new)
+void vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
+void vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
+
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
 
