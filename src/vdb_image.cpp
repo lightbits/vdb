@@ -1,4 +1,5 @@
 #include "cmap/inferno.cpp"
+#include "shaders/image.cpp"
 
 GLenum TextureFormatToGL(vdbTextureFormat format)
 {
@@ -181,44 +182,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
     static GLint uniform_pvm = 0;
     if (!program)
     {
-        const char *vs =
-            "#version 150\n"
-            "in vec2 position;\n"
-            "uniform mat4 pvm;\n"
-            "out vec2 texel;\n"
-            "void main()\n"
-            "{\n"
-            "    texel = vec2(0.5) + 0.5*position;\n"
-            "    gl_Position = pvm*vec4(position, 0.0, 1.0);\n"
-            "}\n";
-
-        const char *fs =
-            "#version 150\n"
-            "in vec2 texel;\n"
-            "uniform vec4 vmin;\n"
-            "uniform vec4 vmax;\n"
-            "uniform vec4 gather;\n"
-            "uniform int is_mono;\n"
-            "uniform int is_cmap;\n"
-            "uniform sampler2D sampler0;\n"
-            "uniform sampler2D sampler1;\n"
-            "out vec4 color0;\n"
-            "void main()\n"
-            "{\n"
-            "    color0 = texture(sampler0, texel);\n"
-            "    color0 = (color0 - vmin) / (vmax - vmin);\n"
-            "    color0 = clamp(color0, vec4(0.0), vec4(1.0));\n"
-            "    if (is_mono == 1)\n"
-            "    {\n"
-            "        float i = clamp(dot(gather, color0), 0.0, 1.0);\n"
-            "        if (is_cmap == 1)\n"
-            "            color0 = texture(sampler1, vec2(i, 0.0));\n"
-            "        else\n"
-            "            color0 = vec4(i,i,i,1.0);\n"
-            "    }\n"
-            "}\n";
-
-        program = LoadShaderFromMemory(vs, fs);
+        program = LoadShaderFromMemory(shader_image_vs, shader_image_fs);
         attrib_position = glGetAttribLocation(program, "position");
         uniform_pvm = glGetUniformLocation(program, "pvm");
         uniform_sampler0 = glGetUniformLocation(program, "sampler0");
