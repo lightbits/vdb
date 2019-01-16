@@ -1,8 +1,8 @@
 #pragma once
-#include "shaders/points.cpp"
-#include "shaders/lines.cpp"
-#include "shaders/thick_lines.cpp"
-#include "shaders/triangles.cpp"
+#include "shaders/points.h"
+#include "shaders/lines.h"
+#include "shaders/thick_lines.h"
+#include "shaders/triangles.h"
 
 void vdbInverseColor(bool enable)
 {

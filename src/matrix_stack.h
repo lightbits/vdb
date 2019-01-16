@@ -1,4 +1,3 @@
-#pragma once
 struct matrix_stack_t
 {
     enum { stack_capacity = 1024 };

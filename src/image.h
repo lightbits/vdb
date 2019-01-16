@@ -1,5 +1,5 @@
-#include "cmap/inferno.cpp"
-#include "shaders/image.cpp"
+#include "cmap/inferno.h"
+#include "shaders/image.h"
 
 GLenum TextureFormatToGL(vdbTextureFormat format)
 {

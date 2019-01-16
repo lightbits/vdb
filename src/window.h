@@ -1,4 +1,4 @@
-#include "data/window_icon.cpp"
+#include "data/window_icon.h"
 
 void PostGLCallback(const char *name, void *funcptr, int len_args, ...) {
     (void) funcptr;
