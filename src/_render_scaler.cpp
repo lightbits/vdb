@@ -38,7 +38,7 @@ namespace render_scaler
 
     void Begin(int w, int h, int n_up)
     {
-        window::SetMinimumNumSettleFrames((1<<n_up)*(1<<n_up));
+        window::SetMinimumNumSettleFrames(3 + (1<<n_up)*(1<<n_up));
         using namespace render_texture;
 
         scale_up = n_up;
