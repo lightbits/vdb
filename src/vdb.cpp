@@ -34,27 +34,25 @@
 
 #include "vdb.h"
 #include "settings.h"
-#include "framegrab.h"
-#include "data/open_sans_regular.h"
-// #include "data/source_sans_pro.h"
-#include "shader.h"
-#include "sketch.h"
-#include "matrix.h"
-#include "matrix_stack.h"
 #include "keys.h"
 #include "mouse.h"
 #include "window.h"
-#include "image.h"
-#include "render_texture.h"
-#include "transform.h"
+#include "matrix.h"
+#include "matrix_stack.h"
 #include "camera.h"
+#include "shader.h"
+#include "image.h"
+#include "rendertex.h"
+#include "framegrab.h"
+#include "transform.h"
 #include "immediate.h"
 #include "immediate_util.h"
-#include "shader.h"
-#include "log.h"
 #include "render_scaler.h"
+#include "log.h"
 #include "ui.h"
 #include "widgets.h"
+#include "data/open_sans_regular.h"
+// #include "data/source_sans_pro.h"
 
 const char *GLErrorCodeString(GLenum error)
 {
@@ -210,7 +208,6 @@ bool vdbBeginFrame(const char *label)
     }
 
     transform::NewFrame();
-    mouse_over::NewFrame();
     mouse::NewFrame();
     immediate_util::NewFrame();
     immediate::NewFrame();
@@ -222,11 +219,11 @@ bool vdbBeginFrame(const char *label)
     widgets::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
 
-    // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
+    // Note: ui is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
-    uistuff::escape_eaten = false;
-    uistuff::SketchNewFrame();
-    uistuff::RulerNewFrame();
+    ui::escape_eaten = false;
+    ui::SketchNewFrame();
+    ui::RulerNewFrame();
 
     glDepthMask(GL_TRUE);
     glClearDepth(1.0f);
@@ -423,7 +420,7 @@ void vdbEndFrame()
         if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
             framegrab::StopRecording();
-            uistuff::escape_eaten = true;
+            ui::escape_eaten = true;
         }
         else if (VDB_HOTKEY_FRAMEGRAB)
         {
@@ -434,13 +431,13 @@ void vdbEndFrame()
     }
     else
     {
-        uistuff::MainMenuBar(vdb::frame_settings);
-        uistuff::LogsWindow();
-        uistuff::WindowSizeDialog();
-        uistuff::FramegrabDialog();
-        uistuff::ExitDialog();
-        uistuff::RulerEndFrame();
-        uistuff::SketchEndFrame();
+        ui::MainMenuBar(vdb::frame_settings);
+        ui::LogsWindow();
+        ui::WindowSizeDialog();
+        ui::FramegrabDialog();
+        ui::ExitDialog();
+        ui::RulerEndFrame();
+        ui::SketchEndFrame();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

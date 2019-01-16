@@ -1,4 +1,6 @@
-namespace uistuff
+#include "sketch.h"
+
+namespace ui
 {
     static bool escape_eaten;
     static bool sketch_mode_active;
@@ -48,7 +50,7 @@ namespace ImGui
     }
 }
 
-static void uistuff::LogsWindow()
+static void ui::LogsWindow()
 {
     if (VDB_HOTKEY_LOGS_WINDOW)
         show_logs = !show_logs;
@@ -63,9 +65,9 @@ static void uistuff::LogsWindow()
     }
 }
 
-static void uistuff::MainMenuBar(frame_settings_t *fs)
+static void ui::MainMenuBar(frame_settings_t *fs)
 {
-    using namespace uistuff;
+    using namespace ui;
 
     // hide/show menu
     if (VDB_HOTKEY_TOGGLE_MENU)
@@ -159,15 +161,15 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
     ImGui::PopStyleVar();
 }
 
-static void uistuff::ExitDialog()
+static void ui::ExitDialog()
 {
     bool escape = keys::pressed[SDL_SCANCODE_ESCAPE];
-    if (escape && !uistuff::escape_eaten && settings.never_ask_on_exit)
+    if (escape && !ui::escape_eaten && settings.never_ask_on_exit)
     {
         window::should_quit = true;
         return;
     }
-    if (escape && !uistuff::escape_eaten && !settings.never_ask_on_exit)
+    if (escape && !ui::escape_eaten && !settings.never_ask_on_exit)
     {
         ImGui::OpenPopup("Do you want to exit?##popup_exit");
     }
@@ -187,14 +189,14 @@ static void uistuff::ExitDialog()
         ImGui::Checkbox("Never ask me again", &settings.never_ask_on_exit);
         if (escape && !ImGui::IsWindowAppearing())
         {
-            uistuff::escape_eaten = true;
+            ui::escape_eaten = true;
             ImGui::CloseCurrentPopup();
         }
         ImGui::EndPopup();
     }
 }
 
-static void uistuff::WindowSizeDialog()
+static void ui::WindowSizeDialog()
 {
     if (window_size_dialog_should_open || (VDB_HOTKEY_WINDOW_SIZE))
     {
@@ -230,13 +232,13 @@ static void uistuff::WindowSizeDialog()
         if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
             ImGui::CloseCurrentPopup();
-            uistuff::escape_eaten = true;
+            ui::escape_eaten = true;
         }
         ImGui::EndPopup();
     }
 }
 
-static void uistuff::FramegrabDialog()
+static void ui::FramegrabDialog()
 {
     using namespace ImGui;
     bool enter_button = keys::pressed[SDL_SCANCODE_RETURN];
@@ -386,13 +388,13 @@ static void uistuff::FramegrabDialog()
         if (escape_button)
         {
             CloseCurrentPopup();
-            uistuff::escape_eaten = true;
+            ui::escape_eaten = true;
         }
         EndPopup();
     }
 }
 
-static void uistuff::RulerNewFrame()
+static void ui::RulerNewFrame()
 {
     if (VDB_HOTKEY_RULER_MODE)
         ruler_mode_active = !ruler_mode_active;
@@ -431,7 +433,7 @@ static void uistuff::RulerNewFrame()
     }
 }
 
-static void uistuff::RulerEndFrame()
+static void ui::RulerEndFrame()
 {
     if (!ruler_mode_active)
         return;
@@ -472,7 +474,7 @@ static void uistuff::RulerEndFrame()
     ImGui::EndMainMenuBar();
 }
 
-static void uistuff::SketchNewFrame()
+static void ui::SketchNewFrame()
 {
     if (VDB_HOTKEY_SKETCH_MODE)
         sketch_mode_active = !sketch_mode_active;
@@ -481,8 +483,8 @@ static void uistuff::SketchNewFrame()
     {
         if (keys::pressed[SDL_SCANCODE_ESCAPE])
         {
-            uistuff::sketch_mode_active = false;
-            uistuff::escape_eaten = true;
+            ui::sketch_mode_active = false;
+            ui::escape_eaten = true;
         }
         bool undo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Z);
         bool redo = vdbIsKeyDown(VDB_KEY_LCTRL) && vdbWasKeyPressed(VDB_KEY_Y);
@@ -498,9 +500,9 @@ static void uistuff::SketchNewFrame()
     }
 }
 
-static void uistuff::SketchEndFrame()
+static void ui::SketchEndFrame()
 {
-    if (!uistuff::sketch_mode_active)
+    if (!ui::sketch_mode_active)
         return;
 
     static float width = 2.0f;

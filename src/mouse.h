@@ -1,3 +1,14 @@
+namespace mouse_over
+{
+    static int index;
+    static int closest_index;
+    static int prev_closest_index;
+    static float closest_distance;
+    static float closest_x;
+    static float closest_y;
+    static float closest_z;
+}
+
 namespace mouse
 {
     static int x,y; // The position of the mouse in the client area in screen coordinates where (0,0):top-left
@@ -11,24 +22,11 @@ namespace mouse
     static void NewFrame()
     {
         // Note: this must be called after viewport is set up
-        ndc = vdbWindowToNDC((float)mouse::x, (float)mouse::y);
-    }
-}
+        ndc = vdbWindowToNDC((float)x, (float)y);
 
-namespace mouse_over
-{
-    static int index;
-    static int closest_index;
-    static int prev_closest_index;
-    static float closest_distance;
-    static float closest_x;
-    static float closest_y;
-    static float closest_z;
-    static void NewFrame()
-    {
-        closest_distance = FLT_MAX;
-        prev_closest_index = closest_index;
-        index = 0;
+        mouse_over::closest_distance = FLT_MAX;
+        mouse_over::prev_closest_index = mouse_over::closest_index;
+        mouse_over::index = 0;
     }
 }
 

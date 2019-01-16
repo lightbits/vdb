@@ -42,7 +42,7 @@ namespace widgets
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
         ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::SetNextWindowPos(ImVec2(0.0f, 5.0f + uistuff::main_menu_bar_height));
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 5.0f + ui::main_menu_bar_height));
         ImGui::SetNextWindowSize(ImVec2(200.0f, -1));
         ImGuiWindowFlags flags =
             ImGuiWindowFlags_NoTitleBar |
