@@ -4,6 +4,9 @@
 #include "shaders/thick_lines.h"
 #include "shaders/triangles.h"
 
+typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
+GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
+
 void vdbInverseColor(bool enable)
 {
     if (enable)

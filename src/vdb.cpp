@@ -7,6 +7,7 @@
 #else
 #include "glad/glad_3_1_release.c"
 #endif
+
 #ifdef _WIN32
 #include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
 #undef WIN32_LEAN_AND_MEAN // defined by glad
@@ -26,13 +27,11 @@
 #include "freetype.h"
 #endif
 
-typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
-GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
-
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
 #include "stb_image_write.h"
+
 #include "vdb.h"
 #include "settings.h"
 #include "framegrab.h"
