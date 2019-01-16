@@ -15,7 +15,11 @@
 #include "SDL_syswm.h"
 
 // Dear ImGui
+#ifdef VDB_DEBUG
 #define IMGUI_IMPL_OPENGL_LOADER_CUSTOM <opengl_debug.h>
+#else
+#define IMGUI_IMPL_OPENGL_LOADER_CUSTOM <opengl.h>
+#endif
 #include "imgui/imgui.cpp"
 #include "imgui/imgui_draw.cpp"
 #include "imgui/imgui_demo.cpp"
