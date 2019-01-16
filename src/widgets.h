@@ -1,9 +1,9 @@
-enum quick_var_type_t { VAR_TYPE_BUTTON, VAR_TYPE_FLOAT, VAR_TYPE_INT, VAR_TYPE_TOGGLE, VAR_TYPE_RADIO };
+enum widget_type_t { VAR_TYPE_BUTTON, VAR_TYPE_FLOAT, VAR_TYPE_INT, VAR_TYPE_TOGGLE, VAR_TYPE_RADIO };
 
-struct quick_var_t
+struct widget_t
 {
     const char *name;
-    quick_var_type_t type;
+    widget_type_t type;
     struct float_var_t { float value; float vmin; float vmax; };
     struct int_var_t { int value; int vmin; int vmax; };
     struct toggle_var_t { bool enabled; };
@@ -19,13 +19,13 @@ struct quick_var_t
     };
 };
 
-namespace quick_var
+namespace widgets
 {
     enum { MAX_VARS = 1024 };
     static int var_index = 0;
     static int radiobutton_index = 0;
     static int active_radiobutton_index = 0;
-    static quick_var_t vars[MAX_VARS];
+    static widget_t vars[MAX_VARS];
 
     static void NewFrame()
     {
@@ -57,7 +57,7 @@ namespace quick_var
         // ImGui::Begin("Debug##Default");
         for (int i = 0; i < var_index; i++)
         {
-            quick_var_t *var = vars + i;
+            widget_t *var = vars + i;
             if (var->type == VAR_TYPE_FLOAT)
                 ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax);
             else if (var->type == VAR_TYPE_INT)
@@ -79,8 +79,8 @@ namespace quick_var
 
 float vdbSlider1f(const char *name, float vmin, float vmax, float vinit)
 {
-    using namespace quick_var;
-    quick_var_t *var = vars + (var_index++);
+    using namespace widgets;
+    widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() && vdbIsDifferentLabel()) // todo: better way to preserve variables for same-label windows
     {
         var->f.value = vinit;
@@ -93,8 +93,8 @@ float vdbSlider1f(const char *name, float vmin, float vmax, float vinit)
 }
 int vdbSlider1i(const char *name, int vmin, int vmax, int vinit)
 {
-    using namespace quick_var;
-    quick_var_t *var = vars + (var_index++);
+    using namespace widgets;
+    widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->i.value = vinit;
@@ -107,8 +107,8 @@ int vdbSlider1i(const char *name, int vmin, int vmax, int vinit)
 }
 bool vdbToggle(const char *name, bool init)
 {
-    using namespace quick_var;
-    quick_var_t *var = vars + (var_index++);
+    using namespace widgets;
+    widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->t.enabled = init;
@@ -119,8 +119,8 @@ bool vdbToggle(const char *name, bool init)
 }
 bool vdbRadio(const char *name)
 {
-    using namespace quick_var;
-    quick_var_t *var = vars + (var_index++);
+    using namespace widgets;
+    widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->r.index = radiobutton_index++;
@@ -131,8 +131,8 @@ bool vdbRadio(const char *name)
 }
 bool vdbButton(const char *name)
 {
-    using namespace quick_var;
-    quick_var_t *var = vars + (var_index++);
+    using namespace widgets;
+    widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
         var->name = name;

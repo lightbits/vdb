@@ -203,7 +203,7 @@ bool vdbBeginFrame(const char *label)
     ImGui_ImplSDL2_NewFrame(window::sdl_window);
     ImGui::NewFrame();
 
-    quick_var::NewFrame();
+    widgets::NewFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
 
     // Note: uistuff is checked at BeginFrame instead of EndFrame because we want it to have
@@ -373,7 +373,7 @@ void vdbEndFrame()
         vdbDepthTest(false);
     }
 
-    quick_var::EndFrame();
+    widgets::EndFrame();
 
     if (framegrab::active)
     {
