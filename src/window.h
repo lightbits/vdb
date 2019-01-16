@@ -123,15 +123,6 @@ namespace window
             SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 
         assert(sdl_window);
-        SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
-        sdl_gl_context = SDL_GL_CreateContext(sdl_window);
-        assert(sdl_gl_context != 0);
-        assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
-        assert(gladLoadGL());
-
-        #ifdef VDB_DEBUG
-        glad_set_post_callback(PostGLCallback);
-        #endif
 
         // Set window icon
         {
@@ -149,6 +140,16 @@ namespace window
         }
 
         SDL_ShowWindow(sdl_window);
+
+        SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
+        sdl_gl_context = SDL_GL_CreateContext(sdl_window);
+        assert(sdl_gl_context != 0);
+        assert(gladLoadGLLoader(SDL_GL_GetProcAddress));
+        assert(gladLoadGL());
+
+        #ifdef VDB_DEBUG
+        glad_set_post_callback(PostGLCallback);
+        #endif
 
         // 0 for immediate updates, 1 for updates synchronized with the
         // vertical retrace. If the system supports it, you may
