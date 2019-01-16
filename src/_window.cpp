@@ -29,6 +29,8 @@ namespace window
 
     static bool should_quit;
 
+    static bool dont_wait_next_frame_events;
+
     static void DetachGLContext()
     {
         assert(sdl_window);
@@ -158,7 +160,7 @@ namespace window
         }
     }
 
-    static void PollEvents()
+    static void BeforeEvents()
     {
         mouse::wheel = 0.0f;
         for (int i = 0; i < SDL_NUM_SCANCODES; i++)
@@ -172,53 +174,10 @@ namespace window
         mouse::left.released = false;
         mouse::right.released = false;
         mouse::middle.released = false;
+    }
 
-        SDL_Event event;
-        while (SDL_PollEvent(&event))
-        {
-            ImGui_ImplSDL2_ProcessEvent(&event);
-            if (event.type == SDL_QUIT)
-            {
-                should_quit = true;
-            }
-            else
-            if (event.type == SDL_KEYDOWN)
-            {
-                SDL_Scancode c = event.key.keysym.scancode;
-                if (!keys::down[c])
-                    keys::pressed[c] = true;
-                keys::down[c] = true;
-            }
-            else
-            if (event.type == SDL_KEYUP)
-            {
-                SDL_Scancode c = event.key.keysym.scancode;
-                if (keys::down[c])
-                    keys::released[c] = true;
-                keys::down[c] = false;
-            }
-            else
-            if (event.type == SDL_MOUSEBUTTONDOWN)
-            {
-                if (event.button.button == SDL_BUTTON_LEFT) { if (!mouse::left.down) mouse::left.pressed = true; mouse::left.down = true; }
-                if (event.button.button == SDL_BUTTON_RIGHT) { if (!mouse::right.down) mouse::right.pressed = true; mouse::right.down = true; }
-                if (event.button.button == SDL_BUTTON_MIDDLE) { if (!mouse::middle.down) mouse::middle.pressed = true; mouse::middle.down = true; }
-            }
-            else
-            if (event.type == SDL_MOUSEBUTTONUP)
-            {
-                if (event.button.button == SDL_BUTTON_LEFT) { if (mouse::left.down) mouse::left.released = true; mouse::left.down = false; }
-                if (event.button.button == SDL_BUTTON_RIGHT) { if (mouse::right.down) mouse::right.released = true; mouse::right.down = false; }
-                if (event.button.button == SDL_BUTTON_MIDDLE) { if (mouse::middle.down) mouse::middle.released = true; mouse::middle.down = false; }
-            }
-            else
-            if (event.type == SDL_MOUSEWHEEL)
-            {
-                if (event.wheel.y > 0) mouse::wheel = +1.0f;
-                else if (event.wheel.y < 0) mouse::wheel = -1.0f;
-            }
-        }
-
+    static void AfterEvents()
+    {
         SDL_GL_GetDrawableSize(sdl_window, &framebuffer_width, &framebuffer_height);
         SDL_GetWindowPosition(sdl_window, &window_x, &window_y);
         SDL_GetMouseState(&mouse::x, &mouse::y);
@@ -228,5 +187,107 @@ namespace window
         settings.window.height = window_height;
         settings.window.x = window_x;
         settings.window.y = window_y;
+    }
+
+    static void ProcessEvent(const SDL_Event *event)
+    {
+        ImGui_ImplSDL2_ProcessEvent(event);
+        if (event->type == SDL_QUIT)
+        {
+            should_quit = true;
+        }
+        else
+        if (event->type == SDL_KEYDOWN)
+        {
+            SDL_Scancode c = event->key.keysym.scancode;
+            if (!keys::down[c])
+                keys::pressed[c] = true;
+            keys::down[c] = true;
+        }
+        else
+        if (event->type == SDL_KEYUP)
+        {
+            SDL_Scancode c = event->key.keysym.scancode;
+            if (keys::down[c])
+                keys::released[c] = true;
+            keys::down[c] = false;
+        }
+        else
+        if (event->type == SDL_MOUSEBUTTONDOWN)
+        {
+            if (event->button.button == SDL_BUTTON_LEFT) { if (!mouse::left.down) mouse::left.pressed = true; mouse::left.down = true; }
+            if (event->button.button == SDL_BUTTON_RIGHT) { if (!mouse::right.down) mouse::right.pressed = true; mouse::right.down = true; }
+            if (event->button.button == SDL_BUTTON_MIDDLE) { if (!mouse::middle.down) mouse::middle.pressed = true; mouse::middle.down = true; }
+        }
+        else
+        if (event->type == SDL_MOUSEBUTTONUP)
+        {
+            if (event->button.button == SDL_BUTTON_LEFT) { if (mouse::left.down) mouse::left.released = true; mouse::left.down = false; }
+            if (event->button.button == SDL_BUTTON_RIGHT) { if (mouse::right.down) mouse::right.released = true; mouse::right.down = false; }
+            if (event->button.button == SDL_BUTTON_MIDDLE) { if (mouse::middle.down) mouse::middle.released = true; mouse::middle.down = false; }
+        }
+        else
+        if (event->type == SDL_MOUSEWHEEL)
+        {
+            if (event->wheel.y > 0) mouse::wheel = +1.0f;
+            else if (event->wheel.y < 0) mouse::wheel = -1.0f;
+        }
+    }
+
+    static void DontWaitNextFrameEvents()
+    {
+        dont_wait_next_frame_events = true;
+    }
+
+    static void PollEvents()
+    {
+        BeforeEvents();
+        SDL_Event event;
+        while (SDL_PollEvent(&event))
+            ProcessEvent(&event);
+        AfterEvents();
+    }
+
+    static int settle_frames = 0;
+    static void SetNumSettleFrames(int frames)
+    {
+        settle_frames = frames;
+    }
+
+    static void SetMinimumNumSettleFrames(int frames)
+    {
+        if (frames > settle_frames)
+            settle_frames = frames;
+    }
+
+    static void WaitEvents()
+    {
+        static int idle_frames = 0;
+        if (dont_wait_next_frame_events || idle_frames < settle_frames)
+        {
+            idle_frames++;
+            dont_wait_next_frame_events = false;
+
+            BeforeEvents();
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
+            {
+                ProcessEvent(&event);
+                idle_frames = 0;
+            }
+            AfterEvents();
+        }
+        else
+        {
+            BeforeEvents();
+            SDL_Event event;
+            SDL_WaitEvent(&event);
+            do
+            {
+                ProcessEvent(&event);
+            } while (SDL_PollEvent(&event));
+            AfterEvents();
+            idle_frames = 0;
+        }
     }
 }

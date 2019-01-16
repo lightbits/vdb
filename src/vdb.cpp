@@ -155,7 +155,15 @@ bool vdbBeginFrame(const char *label)
     }
 
     window::EnsureGLContextIsCurrent();
-    window::PollEvents();
+
+    if (settings.wait_events)
+        window::WaitEvents();
+    else
+        window::PollEvents();
+
+    window::SetNumSettleFrames(3); // ImGui requires 2-3 frames for e.g. button clicks to settle
+    // Subsequent functions in VDB may also require a minimum number of frames to settle,
+    // e.g. render scaling with 4x upsampling requires 16 frames.
 
     static int save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
     save_settings_counter--;
@@ -405,6 +413,8 @@ void vdbEndFrame()
         {
             framegrab::StopRecording();
         }
+
+        window::DontWaitNextFrameEvents();
     }
     else
     {

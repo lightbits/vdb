@@ -113,6 +113,7 @@ static void uistuff::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
+        ImGui::MenuItem("Can idle", NULL, &settings.wait_events);
         if (ImGui::BeginMenu("Font"))
         {
             if (ImGui::MenuItem("Larger")) settings.font_size += 1;
