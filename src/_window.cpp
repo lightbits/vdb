@@ -1,3 +1,5 @@
+#include "data/window_icon.cpp"
+
 void PostGLCallback(const char *name, void *funcptr, int len_args, ...) {
     (void) funcptr;
     (void) len_args;
@@ -118,7 +120,7 @@ namespace window
             (y < 0) ? SDL_WINDOWPOS_CENTERED : y,
             width,
             height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
 
         assert(sdl_window);
         SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
@@ -130,6 +132,23 @@ namespace window
         #ifdef VDB_DEBUG
         glad_set_post_callback(PostGLCallback);
         #endif
+
+        // Set window icon
+        {
+            // todo: do we need to change these masks depending on endian-ness?
+            Uint32 rm=0x000000ff,
+                   gm=0x0000ff00,
+                   bm=0x00ff0000,
+                   am=0xff000000;
+            int x,y,n;
+            stbi_uc *pixels = stbi_load_from_memory((const stbi_uc*)window_icon_data, window_icon_size, &x, &y, &n, 4);
+            assert(pixels);
+            SDL_Surface *icon = SDL_CreateRGBSurfaceFrom(pixels, x, y, 32, x*4, rm, gm, bm, am);
+            if (icon)
+                SDL_SetWindowIcon(sdl_window, icon);
+        }
+
+        SDL_ShowWindow(sdl_window);
 
         // 0 for immediate updates, 1 for updates synchronized with the
         // vertical retrace. If the system supports it, you may
