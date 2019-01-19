@@ -186,7 +186,7 @@ void vdbBeginRenderScale(int width, int height, int up);
 void vdbEndRenderScale();
 
 // Logging and plotting
-void vdbClearLog(const char *label=NULL);
+void vdbClearLog(const char *label=0);
 void vdbLogScalar(const char *label, float x, bool overwrite=false); // create new scalar
 void vdbLogArray(const char *label, float x); // append one element to existing array (or create new)
 void vdbLogArray(const char *label, float *x, int columns, bool append=false); // create new array or append to existing (append=true)
