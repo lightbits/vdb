@@ -655,7 +655,10 @@ void vdbEnd()
     assert(imm.initialized);
     assert(imm.has_begun && "Missing vdbBegin before vdbEnd");
     if (imm.count <= 0)
+    {
+        imm.has_begun = false;
         return;
+    }
 
     if (imm.list)
     {
