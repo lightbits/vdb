@@ -77,7 +77,7 @@ namespace widgets
     }
 }
 
-float vdbSlider1f(const char *name, float vmin, float vmax, float vinit)
+float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit)
 {
     using namespace widgets;
     widget_t *var = vars + (var_index++);
@@ -91,7 +91,7 @@ float vdbSlider1f(const char *name, float vmin, float vmax, float vinit)
     }
     return var->f.value;
 }
-int vdbSlider1i(const char *name, int vmin, int vmax, int vinit)
+int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
 {
     using namespace widgets;
     widget_t *var = vars + (var_index++);
