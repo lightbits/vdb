@@ -27,6 +27,7 @@ namespace mouse
         mouse_over::closest_distance = FLT_MAX;
         mouse_over::prev_closest_index = mouse_over::closest_index;
         mouse_over::index = 0;
+        mouse_over::closest_index = -1;
     }
 }
 
