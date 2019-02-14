@@ -15,7 +15,7 @@ namespace ui
     static float main_menu_bar_height = 0.0f;
 
     static bool auto_step;
-    static int auto_step_delay_ms;
+    static int auto_step_delay_ms = 500;
 
     namespace ruler
     {
@@ -81,6 +81,9 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         return;
     }
 
+    if (VDB_HOTKEY_AUTO_STEP)
+        auto_step = !auto_step;
+
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
     ImGui::BeginMainMenuBar();
     main_menu_bar_height = ImGui::GetWindowHeight();
@@ -119,14 +122,15 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
         ImGui::MenuItem("Can idle", NULL, &settings.wait_events);
-        if (ImGui::BeginMenu("Auto step"))
+        ImGui::MenuItem("Auto step", "F6", &auto_step);
+        if (ImGui::BeginMenu("Auto step delay"))
         {
-            if (ImGui::MenuItem("Disabled", NULL, auto_step==false)) auto_step = false;
-            if (ImGui::MenuItem("100 ms", NULL, auto_step_delay_ms==100))  { auto_step = true; auto_step_delay_ms = 100; }
-            if (ImGui::MenuItem("200 ms", NULL, auto_step_delay_ms==200))  { auto_step = true; auto_step_delay_ms = 200; }
-            if (ImGui::MenuItem("300 ms", NULL, auto_step_delay_ms==300))  { auto_step = true; auto_step_delay_ms = 300; }
-            if (ImGui::MenuItem("500 ms", NULL, auto_step_delay_ms==500))  { auto_step = true; auto_step_delay_ms = 500; }
-            if (ImGui::MenuItem("1 sec" , NULL, auto_step_delay_ms==1000)) { auto_step = true; auto_step_delay_ms = 1000; }
+            if (ImGui::MenuItem("0 ms",   NULL, auto_step_delay_ms==0))    auto_step_delay_ms = 0;
+            if (ImGui::MenuItem("100 ms", NULL, auto_step_delay_ms==100))  auto_step_delay_ms = 100;
+            if (ImGui::MenuItem("200 ms", NULL, auto_step_delay_ms==200))  auto_step_delay_ms = 200;
+            if (ImGui::MenuItem("300 ms", NULL, auto_step_delay_ms==300))  auto_step_delay_ms = 300;
+            if (ImGui::MenuItem("500 ms", NULL, auto_step_delay_ms==500))  auto_step_delay_ms = 500;
+            if (ImGui::MenuItem("1 sec" , NULL, auto_step_delay_ms==1000)) auto_step_delay_ms = 1000;
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Font"))
