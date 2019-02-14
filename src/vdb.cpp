@@ -186,7 +186,7 @@ bool vdbBeginFrame(const char *label)
 
     window::EnsureGLContextIsCurrent();
 
-    if (settings.wait_events)
+    if (settings.wait_events && !ui::auto_step)
         window::WaitEvents();
     else
         window::PollEvents();
@@ -203,7 +203,21 @@ bool vdbBeginFrame(const char *label)
         settings.Save(VDB_SETTINGS_FILENAME);
     }
 
-    if (keys::pressed[SDL_SCANCODE_F10] || vdb::want_step_once)
+    bool should_step_once = false;
+    should_step_once |= keys::pressed[SDL_SCANCODE_F10];
+    should_step_once |= vdb::want_step_once;
+    if (ui::auto_step)
+    {
+        static int t = 0;
+        t++;
+        if (t > ui::auto_step_delay_ms*60/1000)
+        {
+            should_step_once |= true;
+            t = 0;
+        }
+    }
+
+    if (should_step_once)
     {
         vdb::want_step_once = false;
         settings.Save(VDB_SETTINGS_FILENAME);

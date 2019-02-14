@@ -14,6 +14,9 @@ namespace ui
     // note: this may change from frame to frame!
     static float main_menu_bar_height = 0.0f;
 
+    static bool auto_step;
+    static int auto_step_delay_ms;
+
     namespace ruler
     {
         // window coordinates (ImGui coordinates)
@@ -116,6 +119,16 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
         ImGui::MenuItem("Can idle", NULL, &settings.wait_events);
+        if (ImGui::BeginMenu("Auto step"))
+        {
+            if (ImGui::MenuItem("Disabled", NULL, auto_step==false)) auto_step = false;
+            if (ImGui::MenuItem("100 ms", NULL, auto_step_delay_ms==100))  { auto_step = true; auto_step_delay_ms = 100; }
+            if (ImGui::MenuItem("200 ms", NULL, auto_step_delay_ms==200))  { auto_step = true; auto_step_delay_ms = 200; }
+            if (ImGui::MenuItem("300 ms", NULL, auto_step_delay_ms==300))  { auto_step = true; auto_step_delay_ms = 300; }
+            if (ImGui::MenuItem("500 ms", NULL, auto_step_delay_ms==500))  { auto_step = true; auto_step_delay_ms = 500; }
+            if (ImGui::MenuItem("1 sec" , NULL, auto_step_delay_ms==1000)) { auto_step = true; auto_step_delay_ms = 1000; }
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Font"))
         {
             if (ImGui::MenuItem("Larger")) settings.font_size += 1;
