@@ -186,7 +186,7 @@ bool vdbBeginFrame(const char *label)
 
     window::EnsureGLContextIsCurrent();
 
-    if (settings.wait_events && !ui::auto_step)
+    if (settings.can_idle && !ui::auto_step)
         window::WaitEvents();
     else
         window::PollEvents();

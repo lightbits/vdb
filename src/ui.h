@@ -120,7 +120,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
-        ImGui::MenuItem("Can idle", NULL, &settings.wait_events);
+        ImGui::MenuItem("Can idle", NULL, &settings.can_idle);
         if (ImGui::BeginMenu("Auto step delay"))
         {
             if (ImGui::MenuItem("0 ms",   NULL, settings.auto_step_delay_ms==0))    settings.auto_step_delay_ms = 0;

@@ -93,7 +93,7 @@ struct settings_t
     bool never_ask_on_exit;
     bool show_main_menu;
     int font_size;
-    bool wait_events;
+    bool can_idle;
     int auto_step_delay_ms;
 
     void LoadOrDefault(const char *filename);
@@ -140,7 +140,7 @@ void settings_t::LoadOrDefault(const char *filename)
     window.height = 600;
     never_ask_on_exit = false;
     show_main_menu = true;
-    wait_events = false;
+    can_idle = false;
     num_frames = 0;
     auto_step_delay_ms = 250;
     font_size = (int)(VDB_DEFAULT_FONT_SIZE);
@@ -172,8 +172,8 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)       { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)          { camera.Kp_rotate = f; }
         else if (sscanf(line, "font_size=%f", &f) == 1)          { font_size = ClampSetting((int)f, 6, 96); }
-        else if (sscanf(line, "wait_events=%d", &i) == 1)        { wait_events = (i != 0); }
-        else if (sscanf(line, "auto_step_delay_ms=%d", &i) == 1)  { auto_step_delay_ms = i; }
+        else if (sscanf(line, "can_idle=%d", &i) == 1)           { can_idle = (i != 0); }
+        else if (sscanf(line, "auto_step_delay_ms=%d", &i) == 1) { auto_step_delay_ms = i; }
         else if (strstr(line, "[frame]=") == line)
         {
             if (num_frames == MAX_FRAME_SETTINGS)
@@ -229,7 +229,7 @@ void settings_t::Save(const char *filename)
     fprintf(f, "Kp_translate=%g\n", camera.Kp_translate);
     fprintf(f, "Kp_rotate=%g\n", camera.Kp_rotate);
     fprintf(f, "font_size=%d\n", font_size);
-    fprintf(f, "wait_events=%d\n", wait_events);
+    fprintf(f, "can_idle=%d\n", can_idle);
     fprintf(f, "auto_step_delay_ms=%d\n", auto_step_delay_ms);
     for (int i = 0; i < num_frames; i++)
     {
