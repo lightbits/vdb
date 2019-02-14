@@ -15,7 +15,6 @@ namespace ui
     static float main_menu_bar_height = 0.0f;
 
     static bool auto_step;
-    static int auto_step_delay_ms = 500;
 
     namespace ruler
     {
@@ -122,15 +121,14 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
         ImGui::MenuItem("Can idle", NULL, &settings.wait_events);
-        ImGui::MenuItem("Auto step", "F6", &auto_step);
         if (ImGui::BeginMenu("Auto step delay"))
         {
-            if (ImGui::MenuItem("0 ms",   NULL, auto_step_delay_ms==0))    auto_step_delay_ms = 0;
-            if (ImGui::MenuItem("100 ms", NULL, auto_step_delay_ms==100))  auto_step_delay_ms = 100;
-            if (ImGui::MenuItem("200 ms", NULL, auto_step_delay_ms==200))  auto_step_delay_ms = 200;
-            if (ImGui::MenuItem("300 ms", NULL, auto_step_delay_ms==300))  auto_step_delay_ms = 300;
-            if (ImGui::MenuItem("500 ms", NULL, auto_step_delay_ms==500))  auto_step_delay_ms = 500;
-            if (ImGui::MenuItem("1 sec" , NULL, auto_step_delay_ms==1000)) auto_step_delay_ms = 1000;
+            if (ImGui::MenuItem("0 ms",   NULL, settings.auto_step_delay_ms==0))    settings.auto_step_delay_ms = 0;
+            if (ImGui::MenuItem("100 ms", NULL, settings.auto_step_delay_ms==100))  settings.auto_step_delay_ms = 100;
+            if (ImGui::MenuItem("200 ms", NULL, settings.auto_step_delay_ms==200))  settings.auto_step_delay_ms = 200;
+            if (ImGui::MenuItem("300 ms", NULL, settings.auto_step_delay_ms==300))  settings.auto_step_delay_ms = 300;
+            if (ImGui::MenuItem("500 ms", NULL, settings.auto_step_delay_ms==500))  settings.auto_step_delay_ms = 500;
+            if (ImGui::MenuItem("1 sec" , NULL, settings.auto_step_delay_ms==1000)) settings.auto_step_delay_ms = 1000;
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Font"))
@@ -173,6 +171,17 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
         ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
         ImGui::EndMenu();
+    }
+    ImGui::Separator();
+    if (auto_step)
+    {
+        if (ImGui::MenuItem("Running...")) auto_step = false;
+    }
+    else
+    {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, 0.5f));
+        if (ImGui::MenuItem("Paused")) auto_step = true;
+        ImGui::PopStyleColor();
     }
     ImGui::EndMainMenuBar();
     ImGui::PopStyleVar();

@@ -210,7 +210,7 @@ bool vdbBeginFrame(const char *label)
     {
         static int t = 0;
         t++;
-        if (t > ui::auto_step_delay_ms*60/1000)
+        if (t > settings.auto_step_delay_ms*60/1000)
         {
             should_step_once |= true;
             t = 0;
