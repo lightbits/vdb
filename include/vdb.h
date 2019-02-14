@@ -26,6 +26,8 @@ struct vdbTextureOptions
 
 // vdb.cpp
 void vdbDetachGLContext();
+void vdbStepOnce();
+void vdbStepOver();
 bool vdbBeginFrame(const char *label);
 void vdbEndFrame();
 bool vdbIsFirstFrame();

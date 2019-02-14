@@ -81,6 +81,8 @@ namespace vdb
     static bool initialized;
     static bool is_first_frame;
     static bool is_different_label;
+    static bool want_step_once;
+    static bool want_step_over;
     static int loaded_font_size;
     static frame_settings_t *frame_settings;
 }
@@ -98,6 +100,16 @@ bool vdbIsDifferentLabel()
 void vdbDetachGLContext()
 {
     window::DetachGLContext();
+}
+
+void vdbStepOnce()
+{
+    vdb::want_step_once = true;
+}
+
+void vdbStepOver()
+{
+    vdb::want_step_over = true;
 }
 
 bool vdbBeginFrame(const char *label)
@@ -191,14 +203,16 @@ bool vdbBeginFrame(const char *label)
         settings.Save(VDB_SETTINGS_FILENAME);
     }
 
-    if (keys::pressed[SDL_SCANCODE_F10])
+    if (keys::pressed[SDL_SCANCODE_F10] || vdb::want_step_once)
     {
+        vdb::want_step_once = false;
         settings.Save(VDB_SETTINGS_FILENAME);
         is_first_frame = true;
         return false;
     }
-    if (keys::pressed[SDL_SCANCODE_F5])
+    if (keys::pressed[SDL_SCANCODE_F5] || vdb::want_step_over)
     {
+        vdb::want_step_over = false;
         settings.Save(VDB_SETTINGS_FILENAME);
         is_first_frame = true;
         skip_label = label;
