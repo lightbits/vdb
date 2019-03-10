@@ -121,6 +121,30 @@ void vdbLineCube(float wx, float wy, float wz)
     vdbEnd();
 }
 
+void vdbLineCube_(vdbVec3 p_min, vdbVec3 p_max)
+{
+    vdbVertex(p_min.x, p_min.y, p_min.z); vdbVertex(p_max.x, p_min.y, p_min.z);
+    vdbVertex(p_max.x, p_min.y, p_min.z); vdbVertex(p_max.x, p_max.y, p_min.z);
+    vdbVertex(p_max.x, p_max.y, p_min.z); vdbVertex(p_min.x, p_max.y, p_min.z);
+    vdbVertex(p_min.x, p_max.y, p_min.z); vdbVertex(p_min.x, p_min.y, p_min.z);
+
+    vdbVertex(p_min.x, p_min.y, p_max.z); vdbVertex(p_max.x, p_min.y, p_max.z);
+    vdbVertex(p_max.x, p_min.y, p_max.z); vdbVertex(p_max.x, p_max.y, p_max.z);
+    vdbVertex(p_max.x, p_max.y, p_max.z); vdbVertex(p_min.x, p_max.y, p_max.z);
+    vdbVertex(p_min.x, p_max.y, p_max.z); vdbVertex(p_min.x, p_min.y, p_max.z);
+
+    vdbVertex(p_min.x, p_min.y, p_min.z); vdbVertex(p_min.x, p_min.y, p_max.z);
+    vdbVertex(p_max.x, p_min.y, p_min.z); vdbVertex(p_max.x, p_min.y, p_max.z);
+    vdbVertex(p_max.x, p_max.y, p_min.z); vdbVertex(p_max.x, p_max.y, p_max.z);
+    vdbVertex(p_min.x, p_max.y, p_min.z); vdbVertex(p_min.x, p_max.y, p_max.z);
+}
+void vdbLineCube(vdbVec3 p_min, vdbVec3 p_max)
+{
+    vdbBeginLines();
+    vdbLineCube_(p_min, p_max);
+    vdbEnd();
+}
+
 void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
 {
     float r1 = vdbVecLength(p1);
