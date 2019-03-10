@@ -27,7 +27,6 @@
 #include "imgui/imgui_impl_sdl.cpp"
 #include "imgui/imgui_impl_opengl3.cpp"
 #if VDB_IMGUI_FREETYPE==1
-#include "imgui/imgui_freetype.cpp"
 #include "freetype.h"
 #endif
 
@@ -150,8 +149,15 @@ bool vdbBeginFrame(const char *label)
         const unsigned int size = open_sans_regular_compressed_size;
         float height = (float)settings.font_size;
         ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, size, height);
+
+        // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
         #if VDB_IMGUI_FREETYPE==1
-        imgui_freetype::BuildFontAtlas();
+        #if VDB_IMGUI_FREETYPE_DYNAMIC==1
+        if (TryLoadFreetype())
+            ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        #else
+        ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        #endif
         #endif
     }
 
