@@ -7,7 +7,7 @@ if not exist "lib" mkdir lib
 pushd lib
 
 set INC=-I..\include\ -I..\include\vdb\ -I..\include\sdl\ -I..\lib\freetype\include
-set CF=%INC% -Zi -nologo -O2 -WX -W3 -wd4100 -wd4189 -wd4996 -wd4055
+set CF=%INC% -Zi -Oi -fp:fast -nologo -O2 -WX -W3 -wd4100 -wd4189 -wd4996 -wd4055
 set LF=
 
 REM If you want to statically link auxilliary libraries
