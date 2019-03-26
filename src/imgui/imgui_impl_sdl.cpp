@@ -49,7 +49,9 @@
 #include "TargetConditionals.h"
 #endif
 
-#define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    SDL_VERSION_ATLEAST(2,0,4)
+// #define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    SDL_VERSION_ATLEAST(2,0,4)
+#define SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE    0 // hardcoding this due to window border issue on ubuntu 16.04, SDL2.04
+
 #define SDL_HAS_VULKAN                      SDL_VERSION_ATLEAST(2,0,6)
 #if !SDL_HAS_VULKAN
 static const Uint32 SDL_WINDOW_VULKAN = 0x10000000;
