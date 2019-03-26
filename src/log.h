@@ -165,7 +165,7 @@ void vdbLogScalar(const char *label, float x, bool overwrite)
         assert(l->count == 1);
         l->scalar = x;
     }
-    else if (l = NewLog(label, VDB_LOG_SCALAR, l))
+    else if ((l = NewLog(label, VDB_LOG_SCALAR, l)))
     {
         l->scalar = x;
         l->count = 1;
@@ -176,7 +176,8 @@ void vdbLogScalar(const char *label, float x, bool overwrite)
 void vdbLogArray(const char *label, float x)
 {
     using namespace logs;
-    if (log_t *l = FindLog(label, VDB_LOG_ARRAY))
+    log_t *l = NULL;
+    if ((l = FindLog(label, VDB_LOG_ARRAY)))
     {
         //
         // append one element
@@ -199,7 +200,7 @@ void vdbLogArray(const char *label, float x)
         assert(l->count + 1 <= l->capacity);
         l->data[l->count++] = x;
     }
-    else if (log_t *l = NewLog(label, VDB_LOG_ARRAY))
+    else if ((l = NewLog(label, VDB_LOG_ARRAY)))
     {
         //
         // create new log
@@ -241,7 +242,7 @@ void vdbLogArray(const char *label, float *x, int columns, bool append)
         for (int i = 0; i < columns; i++)
             l->data[l->count++] = x[i];
     }
-    else if (l = NewLog(label, VDB_LOG_ARRAY, l))
+    else if ((l = NewLog(label, VDB_LOG_ARRAY, l)))
     {
         //
         // create new log (insert after any found log)
@@ -348,13 +349,11 @@ static void logs::DrawImGui()
         {
             if (plot_type == VDB_PLOT_LINES)
             {
-                int n = log->count;
                 ImVec2 graph_size = ImVec2(0.0f, 64.0f);
                 ImGui::PlotLines(log->label, log->data, log->count, 0, NULL, FLT_MAX, FLT_MAX, graph_size);
             }
             else if (plot_type == VDB_PLOT_HISTOGRAM)
             {
-                int n = log->count;
                 ImVec2 graph_size = ImVec2(0.0f, 64.0f);
                 ImGui::PlotHistogram(log->label, log->data, log->count, 0, NULL, FLT_MAX, FLT_MAX, graph_size);
             }
