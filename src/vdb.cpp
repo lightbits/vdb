@@ -7,12 +7,9 @@
 #else
 #include "glad/glad_3_1_release.c"
 #endif
-
 #ifdef _WIN32
-#include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
 #undef WIN32_LEAN_AND_MEAN // defined by glad
 #endif
-#include "SDL_syswm.h"
 
 // Dear ImGui
 #ifdef VDB_DEBUG

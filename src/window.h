@@ -1,5 +1,10 @@
 #include "data/window_icon.h"
 
+#ifdef _WIN32
+#include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
+#include "SDL_syswm.h"
+#endif
+
 void PostGLCallback(const char *name, void *funcptr, int len_args, ...) {
     (void) funcptr;
     (void) len_args;
