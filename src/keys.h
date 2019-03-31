@@ -1,8 +1,8 @@
 namespace keys
 {
-    static bool pressed[SDL_NUM_SCANCODES];
-    static bool down[SDL_NUM_SCANCODES];
-    static bool released[SDL_NUM_SCANCODES];
+    static bool pressed[VDB_NUM_KEYS];
+    static bool down[VDB_NUM_KEYS];
+    static bool released[VDB_NUM_KEYS];
 }
 
 bool vdbWasKeyPressed(vdbKey key)  { return keys::pressed[key]  && !ImGui::GetIO().WantCaptureKeyboard; }

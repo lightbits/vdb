@@ -282,6 +282,8 @@ enum vdbKey_
     VDB_KEY_RSHIFT = 229,
     VDB_KEY_RALT = 230, /**< alt gr, option */
     VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
+
+    VDB_NUM_KEYS = 512
 };
 
 /*
