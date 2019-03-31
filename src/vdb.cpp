@@ -210,7 +210,7 @@ bool vdbBeginFrame(const char *label)
     }
 
     bool should_step_once = false;
-    should_step_once |= keys::pressed[SDL_SCANCODE_F10];
+    should_step_once |= keys::pressed[VDB_KEY_F10];
     should_step_once |= vdb::want_step_once;
     if (ui::auto_step)
     {
@@ -230,7 +230,7 @@ bool vdbBeginFrame(const char *label)
         is_first_frame = true;
         return false;
     }
-    if (keys::pressed[SDL_SCANCODE_F5] || vdb::want_step_over)
+    if (keys::pressed[VDB_KEY_F5] || vdb::want_step_over)
     {
         vdb::want_step_over = false;
         settings.Save(VDB_SETTINGS_FILENAME);
@@ -455,7 +455,7 @@ void vdbEndFrame()
 
         free(data);
 
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[VDB_KEY_ESCAPE])
         {
             framegrab::StopRecording();
             ui::escape_eaten = true;
