@@ -4,6 +4,12 @@
 #include "shaders/thick_lines.h"
 #include "shaders/triangles.h"
 
+namespace immediate
+{
+    static bool clear_color_was_set;
+    static vdbVec4 clear_color;
+}
+
 typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
 GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 
@@ -23,6 +29,11 @@ void vdbInverseColor(bool enable)
 
 void vdbClearColor(float r, float g, float b, float a)
 {
+    if (!render_texture::current_render_texture)
+    {
+        immediate::clear_color_was_set = true;
+        immediate::clear_color = vdbVec4(r,g,b,a);
+    }
     glClearColor(r,g,b,a);
     glClear(GL_COLOR_BUFFER_BIT);
 }
@@ -847,5 +858,6 @@ namespace immediate
     static void NewFrame()
     {
         ResetImmediateGLState();
+        immediate::clear_color_was_set = false;
     }
 }
