@@ -24,7 +24,6 @@ struct vdbTextureOptions
     vdbTextureOptions() : vmin(), vmax(), gather(), cmap(0), filter(VDB_LINEAR), wrap(VDB_CLAMP) { }
 };
 
-// vdb.cpp
 void vdbDetachGLContext();
 void vdbStepOnce();
 void vdbStepOver();
@@ -35,7 +34,7 @@ bool vdbIsDifferentLabel();
 vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
 vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
-// vdb_immediate.cpp
+// immediate mode 2D/3D drawing API
 void vdbInverseColor(bool enable);
 void vdbClearColor(float r, float g, float b, float a=1.0f);
 void vdbClearDepth(float d);
@@ -73,7 +72,7 @@ void vdbColor(vdbVec3 rgb, float a=1.0f);
 void vdbColor(vdbVec4 rgba);
 void vdbTexel(float u, float v);
 
-// vdb_immediate_util.cpp
+// immediate mode utilities
 void vdbNoteV(float x, float y, const char *fmt, va_list args);
 void vdbNote(float x, float y, const char *fmt, ...);
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
@@ -84,27 +83,33 @@ void vdbLineRect(float x, float y, float size_x, float size_y);
 void vdbFillRect(float x, float y, float size_x, float size_y);
 void vdbLineCircle(float x, float y, float radius, int segments=16);
 
-// vdb_transform.cpp
+// matrix stack
 // VDB can be compiled to accept matrices in either row- or column-major memory order. See vdb_config.h
 // Matrix = transformation from model coordinates to view coordinates (before projection)
 void vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
 void vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
-void vdbProjection(float *m);                 // NULL -> Load 4x4 identity matrix
-void vdbLoadMatrix(float *m);                 // NULL -> Load 4x4 identity matrix
-void vdbMultMatrix(float *m);                 // Matrix <- Matrix mul m (right-multiply top of matrix stack)
-void vdbGetMatrix(float *m);                  // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
-void vdbGetProjection(float *m);              // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
-void vdbGetPVM(float *m);                     // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
+void vdbProjection(float m[16]);              // NULL -> Load 4x4 identity matrix
+void vdbLoadMatrix(float m[16]);              // NULL -> Load 4x4 identity matrix
+void vdbMultMatrix(float m[16]);              // Matrix <- Matrix mul m (right-multiply top of matrix stack)
+void vdbGetMatrix(float m[16]);               // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
+void vdbGetProjection(float m[16]);           // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
+void vdbGetPVM(float m[16]);                  // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
 void vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Translate(x,y,z)
 void vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
 void vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
-void vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
-void vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
+
+// matrix stack utilities
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top);
 void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far);
 void vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
+// These *overwrite* the view model matrix, they don't multiply
+void vdbCamera2D(float init_radius=1.0f);
+void vdbCameraTrackball(float init_radius=1.0f);
+void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
 
-// vdb_transform.cpp
+// viewport and viewport conversions
+void vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
+void vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
 vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
@@ -115,18 +120,12 @@ int vdbGetFramebufferHeight();
 int vdbGetWindowWidth(); // Note: the window size may not be the same as the framebuffer resolution on retina displays.
 int vdbGetWindowHeight();
 
-// vdb_camera.cpp
-// These overwrite the view model matrix (i.e. they call vdbLoadMatrix internally; not vdbMultMatrix).
-void vdbCamera2D(float init_radius=1.0f);
-void vdbCameraTrackball(float init_radius=1.0f);
-void vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3());
-
-// vdb_keyboard.cpp
+// keyboard
 bool vdbWasKeyPressed(vdbKey key);
 bool vdbWasKeyReleased(vdbKey key);
 bool vdbIsKeyDown(vdbKey key);
 
-// vdb_mouse.cpp
+// mouse
 bool vdbWasMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();    // upper-left: (0,0). bottom-right: (WindowWidth, WindowHeight)
@@ -143,7 +142,7 @@ bool vdbIsMouseLeftDown();
 bool vdbIsMouseRightDown();
 bool vdbIsMouseMiddleDown();
 
-// vdb_image.cpp
+// image
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *height=0, int *channels=0);
@@ -152,7 +151,7 @@ void vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap w
 void vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void vdbDrawImage(int slot, vdbTextureOptions options);
 
-// vdb_shader.cpp
+// shader
 void vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void vdbBeginShader(int slot);
 void vdbEndShader();
@@ -167,7 +166,7 @@ void vdbUniform4i(const char *name, int x, int y, int z, int w);
 void vdbUniformMatrix4fv(const char *name, float *x, bool transpose=false);
 void vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
 
-// vdb_render_texture.cpp
+// render texture
 void vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void vdbEndRenderTexture(int slot);
 void vdbUnbindRenderTexture();
@@ -182,7 +181,6 @@ bool vdbRadio(const char *name);
 bool vdbButton(const char *name);
 void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt="%5.2f", bool transpose=false);
 
-// Deprecated: manually control the scaling and multisampling for a block of code
 // Can't be used in conjunction with built-in scaler.
 void vdbBeginRenderScale(int down, int up);
 void vdbBeginRenderScale(int width, int height, int up);
