@@ -63,7 +63,7 @@ int main(int, char **)
 
     VDBB("Hello OpenGL");
     {
-        vdbTriangles();
+        vdbBeginTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
@@ -220,7 +220,7 @@ int main(int, char **)
         t += 1.0f/60.0f;
         vdbRotateXYZ(0,0,0.1f*t);
         vdbOrtho(-2.0f*vdbGetAspectRatio(),+2.0f*vdbGetAspectRatio(),-2.0f,+2.0f);
-        vdbTriangles();
+        vdbBeginTriangles();
         vdbVertex(-1, -1, 0);
         vdbVertex(+1, -1, 0);
         vdbVertex( 0, +1, 0);
@@ -261,7 +261,7 @@ int main(int, char **)
         vdbViewporti(tile_x*tile_w, tile_y*tile_h, tile_w, tile_h);
         if (tile == 0)
             vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
-        vdbTriangles();
+        vdbBeginTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
@@ -328,7 +328,7 @@ int main(int, char **)
         vdbUniformMatrix4fv("projection", projection);
         vdbEndShader();
 
-        vdbTriangles();
+        vdbBeginTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-1.0f, 0.5f, -1.0f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+1.0f, 0.5f, -1.0f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+1.0f, 0.5f, +1.0f);
