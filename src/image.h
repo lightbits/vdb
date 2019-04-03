@@ -157,7 +157,7 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     glBindTexture(GL_TEXTURE_2D, GetTexture(slot));
     vdbSetTextureParameters(filter, wrap, false);
-    vdbTriangles();
+    vdbBeginTriangles();
     vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
     vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,-1);
     vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);

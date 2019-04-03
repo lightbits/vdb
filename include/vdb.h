@@ -51,7 +51,7 @@ void vdbPointSize(float size);       // point diameter in framebuffer pixels (si
 void vdbPointSize3D(float size);     // point diameter in model-coordinates (is affected by projection)
 void vdbBeginLines();
 void vdbBeginPoints();
-void vdbTriangles();
+void vdbBeginTriangles();
 void vdbLines(float width); // short-hand for vdbLineWidth(width); vdbBeginLines();
 void vdbPoints(float size); // short-hand for vdbPointSize(size); vdbBeginPoints();
 void vdbEnd();

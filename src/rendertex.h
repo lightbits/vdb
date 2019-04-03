@@ -168,7 +168,7 @@ void vdbDrawRenderTexture(int slot, vdbTextureFilter filter, vdbTextureWrap wrap
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, render_textures[slot].color[0]);
     vdbSetTextureParameters(filter, wrap, false);
-    vdbTriangles();
+    vdbBeginTriangles();
     vdbColor(1,1,1,1);
     vdbTexel(0,0); vdbVertex(-1,-1);
     vdbTexel(1,0); vdbVertex(+1,-1);

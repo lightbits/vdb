@@ -201,7 +201,7 @@ namespace render_scaler
         {
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, output.color[0]);
-            vdbTriangles();
+            vdbBeginTriangles();
             vdbColor(1,1,1,1);
             vdbTexel(0,0); vdbVertex(-1,-1);
             vdbTexel(1,0); vdbVertex(+1,-1);

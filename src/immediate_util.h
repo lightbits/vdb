@@ -40,7 +40,7 @@ void vdbFillRect_(float x, float y, float w, float h)
 }
 void vdbFillRect(float x, float y, float w, float h)
 {
-    vdbTriangles();
+    vdbBeginTriangles();
     vdbFillRect_(x, y, w, h);
     vdbEnd();
 }
@@ -162,7 +162,7 @@ void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
 }
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
 {
-    vdbTriangles();
+    vdbBeginTriangles();
     vdbFillArc_(base, p1, p2, n);
     vdbEnd();
 }
