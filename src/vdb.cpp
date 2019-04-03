@@ -321,10 +321,8 @@ void vdbEndFrame()
 {
     ResetImmediateGLState();
 
-    if (vdb::frame_settings->render_scale_down > 0)
+    if (render_scaler::has_begun)
         render_scaler::End();
-
-    assert(!render_scaler::has_begun && "Missing call to vdbEndCustomRenderScaler");
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
         vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)
