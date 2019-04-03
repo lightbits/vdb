@@ -88,12 +88,12 @@ void vdbLineCircle(float x, float y, float radius, int segments=16);
 // Matrix = transformation from model coordinates to view coordinates (before projection)
 void vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
 void vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
-void vdbProjection(float m[16]);              // NULL -> Load 4x4 identity matrix
-void vdbLoadMatrix(float m[16]);              // NULL -> Load 4x4 identity matrix
-void vdbMultMatrix(float m[16]);              // Matrix <- Matrix mul m (right-multiply top of matrix stack)
-void vdbGetMatrix(float m[16]);               // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
-void vdbGetProjection(float m[16]);           // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
-void vdbGetPVM(float m[16]);                  // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
+void vdbProjection(float *m);                 // NULL -> Load 4x4 identity matrix
+void vdbLoadMatrix(float *m);                 // NULL -> Load 4x4 identity matrix
+void vdbMultMatrix(float *m);                 // Matrix <- Matrix mul m (right-multiply top of matrix stack)
+void vdbGetMatrix(float *m);                  // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
+void vdbGetProjection(float *m);              // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
+void vdbGetPVM(float *m);                     // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
 void vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Translate(x,y,z)
 void vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
 void vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
