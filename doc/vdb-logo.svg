@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg2" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns="http://www.w3.org/2000/svg" height="128" width="128" version="1.1" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+ <metadata id="metadata7">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0,-924.36218)">
+  <g id="text2985" style="letter-spacing:0px;word-spacing:0px;" font-weight="bold" transform="matrix(0.77678571,0,0,0.77678571,20,219.2572)" font-size="191.18429565px" font-stretch="normal" line-height="125%" font-variant="normal" font-family="Times New Roman" font-style="oblique" fill="#3367d6">
+   <path id="path3776" fill="#3367d6" d="m52.274,1018.4-3.3607,0c0.18668-5.1032,0.28003-8.9617,0.28006-11.576-0.000023-7.0947-0.54457-17.348-1.6337-30.759s-2.3183-22.358-3.6874-26.839c-1.058-3.2984-2.4583-5.6944-4.2008-7.1881-1.1825-0.99567-2.7072-1.4936-4.5742-1.4936-1.058,0.00008-2.3338,0.12455-3.8274,0.37341v-3.3607l31.086-8.3083c6.2234,16.99,9.2418,38.741,9.0551,65.253,9.1484-8.7128,15.45-15.776,18.904-21.191,3.4539-5.4144,5.181-9.9263,5.181-13.536-0.000069-2.8627-1.0736-5.7722-3.2206-8.7284-2.1472-2.9561-3.4852-5.0565-4.0141-6.3012-0.52906-1.2446-0.79355-2.6138-0.79349-4.1075-0.000062-3.2361,1.0579-5.9433,3.174-8.1216,2.1159-2.1781,4.792-3.2672,8.0282-3.2673,3.4228,0.00008,6.0678,1.0892,7.9349,3.2673,2.6138,3.0496,3.9207,6.6592,3.9208,10.829-0.00008,4.2942-0.76245,8.5106-2.2871,12.649-1.5248,4.1386-4.1387,9.024-7.8416,14.656-3.703,5.6323-7.826,10.751-12.369,15.356-8.3395,8.4639-20.257,19.262-35.754,32.393z"/>
+  </g>
+  <path id="path3761" d="m50,113a11.786,11.786,0,1,1,-23.571,0,11.786,11.786,0,1,1,23.571,0z" fill-rule="nonzero" transform="matrix(0.67878789,0,0,0.67878789,27.782203,951.65915)" fill="#3367d6"/>
+  <rect id="rect3771" fill-rule="nonzero" rx="0" ry="12" height="12" width="22" y="1022.4" x="16" fill="#88a6e8"/>
+  <rect id="rect3773" fill-rule="nonzero" rx="0" ry="12" height="12" width="42" y="1022.4" x="70" fill="#88a6e8"/>
+ </g>
+</svg>
