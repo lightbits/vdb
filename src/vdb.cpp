@@ -42,7 +42,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "image.h"
-#include "rendertex.h"
+#include "render_texture.h"
 #include "framegrab.h"
 #include "transform.h"
 #include "immediate.h"
