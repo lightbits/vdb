@@ -1,24 +1,33 @@
-// HOW TO COMPILE
-// You will need SDL2 (https://wiki.libsdl.org/Installation):
-// Linux: apt-get install libsdl2-dev
-// OSX: brew install sdl2
-// MSYS2: pacman -S mingw-w64-i686-SDL
-// Windows: Download pre-compiled binaries and place SDL2.dll in executable directory.
-//
-// Then, run the build script for your platform to generate a library version of vdb.
-// (build.bat for Windows, build.sh for Linux and Mac OSX).
-//
-// Windows
-//   cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" /LIBPATH:"path\to\sdl2" vdb.lib SDL2.lib SDL2main.lib
-//   Ensure that SDL2.dll is in the executable directory
-//   You may need to also link against opengl32.lib user32.lib gdi32.lib shell32.lib
-//
-// On Linux and similar Unixes
-//   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -lGL -ldl
-//
-// On Mac OSX
-//   g++ `sdl2-config --cflags` -Iinclude test.cpp -o test -Llib -lvdb `sdl2-config --libs` -framework OpenGL -framework CoreFoundation
-//
+/*
+*************************************
+How to compile
+*************************************
+
+1. Get the SDL2 binaries (https://wiki.libsdl.org/Installation):
+
+      Linux: apt-get install libsdl2-dev
+    Mac OSX: brew install sdl2
+      MSYS2: pacman -S mingw-w64-i686-SDL
+    Windows: Download pre-compiled binaries and place SDL2.dll in this directory.
+
+2. Run build_static_lib (.sh or .bat) for your platform to compile vdb as a library.
+
+3. Run make or build.bat or compile from commandline
+
+*************************************
+Compiling from commandline
+*************************************
+
+Linux and similar Unixes
+  g++ `sdl2-config --cflags` -I../include test.cpp -o test -L../lib -lvdb `sdl2-config --libs` -lGL -ldl
+Mac OSX
+  g++ `sdl2-config --cflags` -I../include test.cpp -o test -L../lib -lvdb `sdl2-config --libs` -framework OpenGL -framework CoreFoundation
+Windows
+  cl test.cpp -I"path\to\vdb\include" /MD /link /LIBPATH:"path\to\vdb\lib" /LIBPATH:"path\to\sdl2" vdb.lib SDL2.lib SDL2main.lib
+  Ensure that SDL2.dll is in the executable directory
+  You may need to also link against opengl32.lib user32.lib gdi32.lib shell32.lib
+*
+*/
 #include <stdlib.h>
 #include <math.h>
 #include <vdb.h>
