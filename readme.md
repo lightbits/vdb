@@ -25,7 +25,7 @@ int main(int, char**)
 ```
 
 ## How do I use it?
-For a quick start, try to compile and run [test.cpp](test.cpp). This is a self-contained program that uses the library to show off basic usage patterns. Compile the program by following the instructions for your platform, written in the comment section at the top of the file.
+For a quick start, try to compile and run [test/test.cpp](test/test.cpp). This is a self-contained program that uses the library to show off basic usage patterns. Compile the program by following the instructions for your platform, written in the comment section at the top of the file.
 
 Once you are able to compile and run this program you should be good to go integrate the library into your own project! Here are some tips to get you further:
 
