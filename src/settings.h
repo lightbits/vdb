@@ -2,9 +2,25 @@
 #include <stdlib.h>
 
 typedef int camera_type_t;
-typedef int camera_floor_t;
-enum camera_type_ { VDB_CAMERA_DISABLED=0, VDB_CAMERA_PLANAR, VDB_CAMERA_TRACKBALL, VDB_CAMERA_TURNTABLE };
-enum camera_floor_ { VDB_FLOOR_XY=0, VDB_FLOOR_XZ, VDB_FLOOR_YZ };
+enum camera_type_
+{
+    VDB_CAMERA_DISABLED=0,
+    VDB_CAMERA_PLANAR,
+    VDB_CAMERA_TRACKBALL,
+    VDB_CAMERA_TURNTABLE
+};
+
+typedef int camera_up_t;
+enum camera_up_
+{
+    VDB_Z_UP=0,
+    VDB_Y_UP,
+    VDB_X_UP,
+    VDB_Z_DOWN,
+    VDB_Y_DOWN,
+    VDB_X_DOWN,
+};
+
 enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
 enum { VDB_MAX_RENDER_SCALE_UP = 3 };
@@ -27,20 +43,26 @@ static const char *CameraTypeToStr(camera_type_t type)
     return "disabled";
 }
 
-static camera_floor_t CameraFloorFromStr(const char *str)
+static camera_up_t CameraUpFromStr(const char *str)
 {
-    if (strcmp(str, "xy") == 0) return VDB_FLOOR_XY;
-    else if (strcmp(str, "xz") == 0) return VDB_FLOOR_XZ;
-    else if (strcmp(str, "yz") == 0) return VDB_FLOOR_YZ;
-    return VDB_FLOOR_XY;
+    if      (strcmp(str, "z_up") == 0) return VDB_Z_UP;
+    else if (strcmp(str, "y_up") == 0) return VDB_Y_UP;
+    else if (strcmp(str, "x_up") == 0) return VDB_X_UP;
+    else if (strcmp(str, "z_down") == 0) return VDB_Z_DOWN;
+    else if (strcmp(str, "y_down") == 0) return VDB_Y_DOWN;
+    else if (strcmp(str, "x_down") == 0) return VDB_X_DOWN;
+    return VDB_Z_UP;
 }
 
-static const char *CameraFloorToStr(camera_floor_t mode)
+static const char *CameraUpToStr(camera_up_t mode)
 {
-    if (mode == VDB_FLOOR_XY) return "xy";
-    else if (mode == VDB_FLOOR_XZ) return "xz";
-    else if (mode == VDB_FLOOR_YZ) return "yz";
-    return "xy";
+    if      (mode == VDB_Z_UP) return "z_up";
+    else if (mode == VDB_Y_UP) return "y_up";
+    else if (mode == VDB_X_UP) return "x_up";
+    else if (mode == VDB_Z_DOWN) return "z_down";
+    else if (mode == VDB_Y_DOWN) return "y_down";
+    else if (mode == VDB_X_DOWN) return "x_down";
+    return "z_up";
 }
 
 struct frame_settings_t
@@ -57,7 +79,7 @@ struct frame_settings_t
     float min_depth;
     float max_depth;
 
-    camera_floor_t camera_floor;
+    camera_up_t camera_up;
     bool grid_visible;
     float grid_scale;
     bool cube_visible;
@@ -119,7 +141,7 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->max_depth = 50.0f;
     fs->grid_visible = false;
     fs->grid_scale = 2.0f;
-    fs->camera_floor = VDB_FLOOR_XY;
+    fs->camera_up = VDB_Z_UP;
     fs->cube_visible = false;
     fs->render_scale_down = 0;
     fs->render_scale_up = 0;
@@ -198,7 +220,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (frame && sscanf(line, "max_depth=%f", &f) == 1)         { frame->max_depth = f; }
         else if (frame && sscanf(line, "grid_visible=%d", &i) == 1)      { frame->grid_visible = (i == 1) ? true : false; }
         else if (frame && sscanf(line, "grid_scale=%f", &f) == 1)        { frame->grid_scale = f; }
-        else if (frame && sscanf(line, "camera_floor=%s", str) == 1)     { frame->camera_floor = CameraFloorFromStr(str); }
+        else if (frame && sscanf(line, "camera_up=%s", str) == 1)        { frame->camera_up = CameraUpFromStr(str); }
         else if (frame && sscanf(line, "cube_visible=%d", &i) == 1)      { frame->cube_visible = (i == 1) ? true : false; }
         else if (frame && sscanf(line, "render_scale_down=%d", &i) == 1) { frame->render_scale_down = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_DOWN); }
         else if (frame && sscanf(line, "render_scale_up=%d", &i) == 1)   { frame->render_scale_up = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_UP); }
@@ -247,7 +269,7 @@ void settings_t::Save(const char *filename)
             }
             fprintf(f, "grid_visible=%d\n", frame->grid_visible ? 1 : 0);
             fprintf(f, "grid_scale=%g\n", frame->grid_scale);
-            fprintf(f, "camera_floor=%s\n", CameraFloorToStr(frame->camera_floor));
+            fprintf(f, "camera_up=%s\n", CameraUpToStr(frame->camera_up));
             fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
         }
         fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);

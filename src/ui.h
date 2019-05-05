@@ -109,9 +109,13 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::DragFloat("Major div.", &fs->grid_scale);
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
-        ImGui::RadioButton("XY", &fs->camera_floor, VDB_FLOOR_XY); ImGui::SameLine();
-        ImGui::RadioButton("XZ", &fs->camera_floor, VDB_FLOOR_XZ); ImGui::SameLine();
-        ImGui::RadioButton("YZ", &fs->camera_floor, VDB_FLOOR_YZ);
+        ImGui::Text("Up: ");
+        ImGui::RadioButton("+Z", &fs->camera_up, VDB_Z_UP); ImGui::SameLine();
+        ImGui::RadioButton("+Y", &fs->camera_up, VDB_Y_UP); ImGui::SameLine();
+        ImGui::RadioButton("+X", &fs->camera_up, VDB_X_UP); ImGui::SameLine();
+        ImGui::RadioButton("-Z", &fs->camera_up, VDB_Z_DOWN); ImGui::SameLine();
+        ImGui::RadioButton("-Y", &fs->camera_up, VDB_Y_DOWN); ImGui::SameLine();
+        ImGui::RadioButton("-X", &fs->camera_up, VDB_X_DOWN);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Settings"))
