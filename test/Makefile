@@ -7,6 +7,7 @@
 #CXX = clang++
 
 UNAME_S := $(shell uname -s)
+EXE := test
 
 ifeq ($(UNAME_S), Linux) #LINUX
 	LIBS = -lvdb -lGL -ldl `sdl2-config --libs`
