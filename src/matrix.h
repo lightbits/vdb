@@ -1,7 +1,7 @@
 struct vdbMat4
 {
     float data[4*4];
-    #if defined(VDB_MATRIX_COLUMN_MAJOR)
+    #if defined(VDB_MATRIX_ROW_MAJOR)
     float &operator()(int row, int col) { return data[col + row*4]; }
     #else
     float &operator()(int row, int col) { return data[row + col*4]; }
@@ -11,9 +11,9 @@ struct vdbMat4
 inline void UniformMat4fv(GLint u, int n, float *v)
 {
     #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(u, n, GL_FALSE, v);
-    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
     glUniformMatrix4fv(u, n, GL_TRUE, v);
+    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
+    glUniformMatrix4fv(u, n, GL_FALSE, v);
     #else
     #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
     #endif
@@ -72,7 +72,7 @@ static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
                            float a20, float a21, float a22, float a23,
                            float a30, float a31, float a32, float a33)
 {
-    #ifdef VDB_MATRIX_COLUMN_MAJOR
+    #ifdef VDB_MATRIX_ROW_MAJOR
     vdbMat4 a = {
         a00, a01, a02, a03,
         a10, a11, a12, a13,

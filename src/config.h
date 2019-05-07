@@ -5,16 +5,16 @@
 // vdbProjection and vdbPushMatrix both take a matrix in float* format,
 // which can either be interpreted as column-major or row-major order.
 //
-// VDB_MATRIX_COLUMN_MAJOR:
+// VDB_MATRIX_ROW_MAJOR:
 //   float m[] = {A,B,C,D}; -> |A B|
 //                             |C D|
 //
-// VDB_MATRIX_ROW_MAJOR:
+// VDB_MATRIX_COLUMN_MAJOR:
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
 //
-// #define VDB_MATRIX_COLUMN_MAJOR
-#define VDB_MATRIX_ROW_MAJOR
+#define VDB_MATRIX_COLUMN_MAJOR
+// #define VDB_MATRIX_ROW_MAJOR
 
 // When enabled, ImGui will use FreeType for font rendering (less blurry for small
 // font sizes). Unless VDB_IMGUI_FREETYPE_DYNAMIC is enabled, you need to manually
