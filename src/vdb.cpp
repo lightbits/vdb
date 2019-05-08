@@ -1,15 +1,16 @@
 #include "config.h"
 
-// SDL2 and GLAD
-#include "SDL.h"
 #ifdef VDB_DEBUG
 #include "glad/glad_3_1_debug.c"
 #else
 #include "glad/glad_3_1_release.c"
 #endif
+
 #ifdef _WIN32
 #undef WIN32_LEAN_AND_MEAN // defined by glad
 #endif
+
+#include <SDL.h>
 
 // Dear ImGui
 #ifdef VDB_DEBUG
