@@ -235,34 +235,18 @@ static void DrawImmediatePoints(imm_list_t list)
         glVertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
     assert(glVertexAttribDivisor && "Your system's OpenGL driver doesn't support glVertexAttribDivisor.");
 
-    static GLuint program = 0;
-    static GLint attrib_in_position = 0;
-    static GLint attrib_instance_position = 0;
-    static GLint attrib_instance_texel = 0;
-    static GLint attrib_instance_color = 0;
-    static GLint uniform_projection = 0;
-    static GLint uniform_model_to_view = 0;
-    static GLint uniform_sampler0 = 0;
-    static GLint uniform_ndc_offset = 0;
-    static GLint uniform_point_size = 0;
-    static GLint uniform_size_is_3D = 0;
-    if (!program)
-    {
-        program = LoadShaderFromMemory(shader_points_vs, shader_points_fs);
-
-        attrib_in_position       = glGetAttribLocation(program, "in_position");
-        attrib_instance_position = glGetAttribLocation(program, "instance_position");
-        attrib_instance_texel    = glGetAttribLocation(program, "instance_texel");
-        attrib_instance_color    = glGetAttribLocation(program, "instance_color");
-
-        uniform_projection    = glGetUniformLocation(program, "projection");
-        uniform_model_to_view = glGetUniformLocation(program, "model_to_view");
-        uniform_point_size    = glGetUniformLocation(program, "point_size");
-        uniform_sampler0      = glGetUniformLocation(program, "sampler0");
-        uniform_ndc_offset    = glGetUniformLocation(program, "ndc_offset");
-        uniform_size_is_3D    = glGetUniformLocation(program, "size_is_3D");
-    }
+    static GLuint program = LoadShaderFromMemory(shader_points_vs, shader_points_fs);
     assert(program);
+    static GLint attrib_in_position       = glGetAttribLocation(program, "in_position");
+    static GLint attrib_instance_position = glGetAttribLocation(program, "instance_position");
+    static GLint attrib_instance_texel    = glGetAttribLocation(program, "instance_texel");
+    static GLint attrib_instance_color    = glGetAttribLocation(program, "instance_color");
+    static GLint uniform_projection       = glGetUniformLocation(program, "projection");
+    static GLint uniform_model_to_view    = glGetUniformLocation(program, "model_to_view");
+    static GLint uniform_point_size       = glGetUniformLocation(program, "point_size");
+    static GLint uniform_sampler0         = glGetUniformLocation(program, "sampler0");
+    static GLint uniform_ndc_offset       = glGetUniformLocation(program, "ndc_offset");
+    static GLint uniform_size_is_3D       = glGetUniformLocation(program, "size_is_3D");
 
     glUseProgram(program);
 
@@ -391,22 +375,13 @@ static void DrawImmediatePoints(imm_list_t list)
 
 static void DrawImmediateLinesThin(imm_list_t list)
 {
-    static GLuint program = 0;
-    static GLint attrib_position = 0;
-    static GLint attrib_texel = 0;
-    static GLint attrib_color = 0;
-    static GLint uniform_sampler0 = 0;
-    static GLint uniform_pvm = 0;
-    if (!program)
-    {
-        program = LoadShaderFromMemory(shader_lines_vs, shader_lines_fs);
-        attrib_position = glGetAttribLocation(program, "position");
-        attrib_texel = glGetAttribLocation(program, "texel");
-        attrib_color = glGetAttribLocation(program, "color");
-        uniform_pvm = glGetUniformLocation(program, "pvm");
-        uniform_sampler0 = glGetUniformLocation(program, "sampler0");
-    }
+    static GLuint program = LoadShaderFromMemory(shader_lines_vs, shader_lines_fs);
     assert(program);
+    static GLint attrib_position  = glGetAttribLocation(program, "position");
+    static GLint attrib_texel     = glGetAttribLocation(program, "texel");
+    static GLint attrib_color     = glGetAttribLocation(program, "color");
+    static GLint uniform_pvm      = glGetUniformLocation(program, "pvm");
+    static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
 
     glUseProgram(program); // todo: optimize
     UniformMat4(uniform_pvm, 1, transform::pvm);
@@ -439,42 +414,24 @@ static void DrawImmediateLinesThick(imm_list_t list)
         glVertexAttribDivisor = (GLVERTEXATTRIBDIVISORPROC)SDL_GL_GetProcAddress("glVertexAttribDivisor");
     assert(glVertexAttribDivisor && "Your system's OpenGL driver doesn't support glVertexAttribDivisor.");
 
-    static GLuint program = 0;
-    static GLint attrib_in_position = 0;
-    static GLint attrib_instance_position0 = 0;
-    static GLint attrib_instance_texel0 = 0;
-    static GLint attrib_instance_color0 = 0;
-    static GLint attrib_instance_position1 = 0;
-    static GLint attrib_instance_texel1 = 0;
-    static GLint attrib_instance_color1 = 0;
-    static GLint uniform_projection = 0;
-    static GLint uniform_model_to_view = 0;
-    static GLint uniform_sampler0 = 0;
-    static GLint uniform_ndc_offset = 0;
-    static GLint uniform_line_width = 0;
-    static GLint uniform_aspect = 0;
-    static GLint uniform_width_is_3D = 0;
-    if (!program)
-    {
-        program = LoadShaderFromMemory(shader_thick_lines_vs, shader_thick_lines_fs);
-
-        attrib_in_position        = glGetAttribLocation(program, "in_position");
-        attrib_instance_position0 = glGetAttribLocation(program, "instance_position0");
-        attrib_instance_texel0    = glGetAttribLocation(program, "instance_texel0");
-        attrib_instance_color0    = glGetAttribLocation(program, "instance_color0");
-        attrib_instance_position1 = glGetAttribLocation(program, "instance_position1");
-        attrib_instance_texel1    = glGetAttribLocation(program, "instance_texel1");
-        attrib_instance_color1    = glGetAttribLocation(program, "instance_color1");
-
-        uniform_projection    = glGetUniformLocation(program, "projection");
-        uniform_model_to_view = glGetUniformLocation(program, "model_to_view");
-        uniform_line_width    = glGetUniformLocation(program, "line_width");
-        uniform_aspect        = glGetUniformLocation(program, "aspect");
-        uniform_sampler0      = glGetUniformLocation(program, "sampler0");
-        uniform_ndc_offset    = glGetUniformLocation(program, "ndc_offset");
-        uniform_width_is_3D   = glGetUniformLocation(program, "width_is_3D");
-    }
+    static GLuint program = LoadShaderFromMemory(shader_thick_lines_vs, shader_thick_lines_fs);
     assert(program);
+
+    static GLint attrib_in_position        = glGetAttribLocation(program, "in_position");
+    static GLint attrib_instance_position0 = glGetAttribLocation(program, "instance_position0");
+    static GLint attrib_instance_texel0    = glGetAttribLocation(program, "instance_texel0");
+    static GLint attrib_instance_color0    = glGetAttribLocation(program, "instance_color0");
+    static GLint attrib_instance_position1 = glGetAttribLocation(program, "instance_position1");
+    static GLint attrib_instance_texel1    = glGetAttribLocation(program, "instance_texel1");
+    static GLint attrib_instance_color1    = glGetAttribLocation(program, "instance_color1");
+
+    static GLint uniform_projection        = glGetUniformLocation(program, "projection");
+    static GLint uniform_model_to_view     = glGetUniformLocation(program, "model_to_view");
+    static GLint uniform_line_width        = glGetUniformLocation(program, "line_width");
+    static GLint uniform_aspect            = glGetUniformLocation(program, "aspect");
+    static GLint uniform_sampler0          = glGetUniformLocation(program, "sampler0");
+    static GLint uniform_ndc_offset        = glGetUniformLocation(program, "ndc_offset");
+    static GLint uniform_width_is_3D       = glGetUniformLocation(program, "width_is_3D");
 
     glUseProgram(program);
 
@@ -609,24 +566,14 @@ static void DrawImmediateTriangles(imm_list_t list)
     assert(imm.initialized);
     assert(list.count % 3 == 0 && "TRIANGLES type expects vertex count to be a multiple of 3");
 
-    static GLuint program = 0;
-    static GLint attrib_position = 0;
-    static GLint attrib_texel = 0;
-    static GLint attrib_color = 0;
-    static GLint uniform_sampler0 = 0;
-    static GLint uniform_pvm = 0;
-    static GLint ndc_offset = 0;
-    if (!program)
-    {
-        program = LoadShaderFromMemory(shader_triangles_vs, shader_triangles_fs);
-        attrib_position = glGetAttribLocation(program, "position");
-        attrib_texel = glGetAttribLocation(program, "texel");
-        attrib_color = glGetAttribLocation(program, "color");
-        uniform_pvm = glGetUniformLocation(program, "pvm");
-        uniform_sampler0 = glGetUniformLocation(program, "sampler0");
-        ndc_offset = glGetUniformLocation(program, "ndc_offset");
-    }
+    static GLuint program = LoadShaderFromMemory(shader_triangles_vs, shader_triangles_fs);
     assert(program);
+    static GLint attrib_position  = glGetAttribLocation(program, "position");
+    static GLint attrib_texel     = glGetAttribLocation(program, "texel");
+    static GLint attrib_color     = glGetAttribLocation(program, "color");
+    static GLint uniform_pvm      = glGetUniformLocation(program, "pvm");
+    static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
+    static GLint ndc_offset       = glGetUniformLocation(program, "ndc_offset");
 
     glUseProgram(program); // todo: optimize
     UniformMat4(uniform_pvm, 1, transform::pvm);
