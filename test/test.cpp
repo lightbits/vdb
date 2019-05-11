@@ -158,7 +158,8 @@ int main(int, char **)
         vdbEnd();
 
         vdbDepthTest(false);
-        vdbPoints(16.0f);
+        vdbPointSize(16.0f);
+        vdbBeginPoints();
         vdbColor(1.0f, 0.9f, 0.2f, 0.5f);
         float x, y, z;
         vdbGetMouseOverIndex(&x, &y, &z);
@@ -244,7 +245,8 @@ int main(int, char **)
     VDBB("Mouse");
     {
         vdbClearColor(0.3f,0.5f,0.7f);
-        vdbLines(2.0f);
+        vdbLineWidth(2.0f);
+        vdbBeginLines();
         vdbColor(1.0f,1.0f,0.5f);
         vdbVertex(0.0f, 0.0f);
         vdbVertex(1.0f, 1.0f);
