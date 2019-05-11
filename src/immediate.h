@@ -111,8 +111,9 @@ enum { IMM_MAX_LISTS = 1024 };
 
 struct imm_list_t
 {
-    GLuint vbo;
     size_t count;
+    size_t vbo_capacity;
+    GLuint vbo;
     imm_prim_type_t prim_type;
     bool texel_specified;
 };
@@ -127,20 +128,20 @@ struct imm_t
 
     bool initialized;
     GLuint default_texture;
-    bool has_begun;
+    bool inside_begin_end;
 
-    // todo: move these members out, use e.g. default_list.
-    GLuint vao;
-    GLuint vbo;
-    imm_prim_type_t prim_type;
-    bool texel_specified;
-    size_t count;
-    size_t allocated_count;
+    size_t buffer_capacity;
     imm_vertex_t *buffer;
+    size_t count;
     imm_vertex_t vertex;
+    bool texel_specified;
+    imm_prim_type_t prim_type;
 
-    imm_list_t *list;
-    imm_list_t lists[IMM_MAX_LISTS];
+    GLuint vao;
+    bool is_reusable_list;
+    imm_list_t *current_list;
+    imm_list_t default_list;
+    imm_list_t user_lists[IMM_MAX_LISTS];
 
     vdbVec2 ndc_offset;
 };
@@ -165,16 +166,11 @@ static void BeginImmediate(imm_prim_type_t prim_type)
         if (imm.point_segments == 0)
             imm.point_segments = 4;
 
-        imm.allocated_count = 1024*100;
-        imm.buffer = new imm_vertex_t[imm.allocated_count];
+        imm.buffer_capacity = 1024*100;
+        imm.buffer = new imm_vertex_t[imm.buffer_capacity];
         assert(imm.buffer);
 
         glGenVertexArrays(1, &imm.vao);
-
-        glGenBuffers(1, &imm.vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         static unsigned char default_texture_data[] = { 255, 255, 255, 255 };
         glGenTextures(1, &imm.default_texture);
@@ -203,19 +199,11 @@ static void BeginImmediate(imm_prim_type_t prim_type)
     assert(imm.buffer);
     assert(imm.vao);
 
-    assert(!imm.has_begun && "Missing vdbEnd before vdbBegin");
-    imm.has_begun = true;
-
+    assert(!imm.inside_begin_end && "Missing vdbEnd before vdbBegin");
+    imm.inside_begin_end = true;
     imm.prim_type = prim_type;
     imm.count = 0;
     imm.texel_specified = false;
-
-    // We allow immColor to be called outside a Begin/End block
-    // and therefore do not reset it here.
-    // imm.vertex.color[0] = 0.0f;
-    // imm.vertex.color[1] = 0.0f;
-    // imm.vertex.color[2] = 0.0f;
-    // imm.vertex.color[3] = 1.0f;
 
     imm.vertex.texel[0] = 0.0f;
     imm.vertex.texel[1] = 0.0f;
@@ -611,60 +599,66 @@ static void DrawImmediate(imm_list_t list)
 void vdbEnd()
 {
     assert(imm.initialized);
-    assert(imm.has_begun && "Missing vdbBegin before vdbEnd");
+    assert(imm.inside_begin_end && "Missing vdbBegin before vdbEnd");
+
     if (imm.count <= 0)
     {
-        imm.has_begun = false;
+        imm.inside_begin_end = false;
+        imm.current_list = NULL;
         return;
     }
 
-    if (imm.list)
+    imm_list_t *list = &imm.default_list;
+    GLenum vbo_mode = GL_STATIC_DRAW;
+    if (imm.current_list)
     {
-        if (!imm.list->vbo)
-            glGenBuffers(1, &imm.list->vbo);
-        assert(imm.list->vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, imm.list->vbo);
-        glBufferData(GL_ARRAY_BUFFER, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer, GL_STATIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        imm.list->texel_specified = imm.texel_specified;
-        imm.list->count = imm.count;
-        imm.list->prim_type = imm.prim_type;
-        imm.list = NULL;
+        list = imm.current_list;
+        vbo_mode = GL_DYNAMIC_DRAW;
+    }
+
+    if (!list->vbo)
+        glGenBuffers(1, &list->vbo);
+    assert(list->vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, list->vbo);
+    if (list->vbo_capacity >= imm.count)
+    {
+        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
     }
     else
     {
-        assert(imm.vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer);
-        glBindBuffer(GL_ARRAY_BUFFER, 0); // todo: minimize buffer binding changes
-
-        imm_list_t list = {0};
-        list.vbo = imm.vbo;
-        list.texel_specified = imm.texel_specified;
-        list.count = imm.count;
-        list.prim_type = imm.prim_type;
-        DrawImmediate(list);
+        // We don't need to call glDeleteBuffers as per spec: "BufferData deletes any existing data store"
+        glBufferData(GL_ARRAY_BUFFER, imm.count*sizeof(imm_vertex_t), (const GLvoid*)imm.buffer, vbo_mode);
+        list->vbo_capacity = imm.count;
     }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    list->texel_specified = imm.texel_specified;
+    list->count = imm.count;
+    list->prim_type = imm.prim_type;
 
-    imm.has_begun = false;
+    if (!imm.current_list)
+        DrawImmediate(*list);
+
+    imm.inside_begin_end = false;
+    imm.current_list = NULL;
 }
 
 void vdbBeginList(int slot)
 {
     assert(slot >= 0 && slot < IMM_MAX_LISTS);
-    assert(imm.list == NULL);
-    imm.list = imm.lists + slot;
+    assert(imm.current_list == NULL);
+    imm.current_list = imm.user_lists + slot;
 }
 
 void vdbDrawList(int slot)
 {
     assert(slot >= 0 && slot < IMM_MAX_LISTS);
-    DrawImmediate(imm.lists[slot]);
+    DrawImmediate(imm.user_lists[slot]);
 }
 
 void vdbTexel(float u, float v)
 {
-    assert(imm.has_begun && "vdbTexel cannot be called outside vdbBegin/vdbEnd block");
+    assert(imm.inside_begin_end && "vdbTexel cannot be called outside vdbBegin/vdbEnd block");
     imm.texel_specified = true;
     imm.vertex.texel[0] = u;
     imm.vertex.texel[1] = v;
@@ -688,29 +682,24 @@ void vdbColor(float r, float g, float b, float a)
 
 void vdbVertex(float x, float y, float z, float w)
 {
-    assert(imm.has_begun && "vdbVertex cannot be called outside vdbBegin/vdbEnd block");
-    assert(imm.count < imm.allocated_count);
+    assert(imm.inside_begin_end && "vdbVertex cannot be called outside vdbBegin/vdbEnd block");
+    assert(imm.count < imm.buffer_capacity);
     imm.vertex.position[0] = x;
     imm.vertex.position[1] = y;
     imm.vertex.position[2] = z;
     imm.vertex.position[3] = w;
     imm.buffer[imm.count++] = imm.vertex;
 
-    if (imm.count == imm.allocated_count)
+    if (imm.count == imm.buffer_capacity)
     {
-        size_t new_allocated_count = (3*imm.allocated_count)/2;
-        imm_vertex_t *new_buffer = new imm_vertex_t[new_allocated_count];
+        size_t new_buffer_capacity = (3*imm.buffer_capacity)/2;
+        imm_vertex_t *new_buffer = new imm_vertex_t[new_buffer_capacity];
         assert(new_buffer && "Ran out of memory expanding buffer");
-        for (size_t i = 0; i < imm.allocated_count; i++)
+        for (size_t i = 0; i < imm.buffer_capacity; i++)
             new_buffer[i] = imm.buffer[i];
         free(imm.buffer);
         imm.buffer = new_buffer;
-        imm.allocated_count = new_allocated_count;
-
-        // We don't need to call glDeleteBuffers as per spec: "BufferData deletes any existing data store"
-        glBindBuffer(GL_ARRAY_BUFFER, imm.vbo);
-        glBufferData(GL_ARRAY_BUFFER, imm.allocated_count*sizeof(imm_vertex_t), NULL, GL_DYNAMIC_DRAW);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        imm.buffer_capacity = new_buffer_capacity;
     }
 }
 
