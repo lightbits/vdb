@@ -106,7 +106,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::MenuItem("Show cube", NULL, &fs->cube_visible);
         ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
         ImGui::PushItemWidth(60.0f);
-        ImGui::DragFloat("Major div.", &fs->grid_scale);
+        ImGui::DragFloat("Major div.", &fs->grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f);
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::Text("Up: ");

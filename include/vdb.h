@@ -51,8 +51,6 @@ void vdbPointSize3D(float size);     // point diameter in model-coordinates (is 
 void vdbBeginLines();
 void vdbBeginPoints();
 void vdbBeginTriangles();
-void vdbLines(float width); // short-hand for vdbLineWidth(width); vdbBeginLines();
-void vdbPoints(float size); // short-hand for vdbPointSize(size); vdbBeginPoints();
 void vdbEnd();
 void vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
 void vdbDrawList(int list);

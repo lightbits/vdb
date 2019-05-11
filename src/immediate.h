@@ -775,8 +775,6 @@ void vdbPointSegments(int segments) { assert(segments >= 3); imm.point_segments 
 void vdbBeginTriangles()            { BeginImmediate(IMM_PRIM_TRIANGLES); }
 void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
 void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
-void vdbLines(float line_width)     { vdbLineWidth(line_width); BeginImmediate(IMM_PRIM_LINES); }
-void vdbPoints(float point_size)    { vdbPointSize(point_size); BeginImmediate(IMM_PRIM_POINTS); }
 
 struct imm_gl_state_t
 {
