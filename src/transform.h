@@ -129,20 +129,15 @@ void vdbViewport(float left, float bottom, float width, float height)
                  (int)(width*fb_width), (int)(height*fb_height));
 }
 
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top)
+void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far)
 {
     vdbMat4 p = vdbMatIdentity();
     p(0,0) = 2.0f/(x_right-x_left);
     p(0,3) = (x_left+x_right)/(x_left-x_right);
     p(1,1) = 2.0f/(y_top-y_bottom);
     p(1,3) = (y_bottom+y_top)/(y_bottom-y_top);
-    vdbProjection(p.data);
-}
-
-void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near, float z_far)
-{
-    assert(false && "not implemented yet");
-    vdbMat4 p = vdbMatIdentity();
+    p(2,2) = 2.0f/(z_near-z_far);
+    p(2,3) = (z_near+z_far)/(z_near-z_far);
     vdbProjection(p.data);
 }
 

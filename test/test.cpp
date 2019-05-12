@@ -294,27 +294,30 @@ int main(int, char **)
             const char *fs = glsl(
             uniform vec2 resolution;
             uniform vec2 ndc_offset;
-            uniform mat4 model_to_view;
-            uniform mat4 projection;
+            uniform mat4 pvm;
             out vec4 color;
             void main() {
                 color = vec4(0.0,0.0,0.0,0.0);
                 gl_FragDepth = 1.0;
                 vec2 ndc = vec2(-1.0) + 2.0*gl_FragCoord.xy/resolution.xy;
                 ndc += ndc_offset;
-                mat4 view_to_model = inverse(model_to_view);
-                vec3 rd = normalize((inverse(projection)*vec4(ndc, -1.0, 1.0)).xyz);
-                rd = normalize((view_to_model*vec4(rd, 0.0)).xyz);
-                vec3 ro = (view_to_model*vec4(0.0,0.0,0.0,1.0)).xyz;
+
+                mat4 inv_pvm = inverse(pvm);
+                vec4 ro = inv_pvm*vec4(ndc, -1.0, 1.0);
+                ro.xyz /= ro.w;
+                vec4 rd = inv_pvm*vec4(ndc, +1.0, 1.0);
+                rd.xyz /= rd.w;
+                rd = normalize(rd - ro);
+
                 float t = 0.0;
                 for (int i = 0; i < 64; i++) {
-                    vec3 p = ro + rd*t;
+                    vec3 p = ro.xyz + rd.xyz*t;
                     float d = length(p) - 0.5;
                     if (d < 0.001) {
                         vec3 n = normalize(p);
                         color.rgb = 0.5*(vec3(0.5) + 0.5*n);
                         color.a = 1.0;
-                        vec4 clip = projection*model_to_view*vec4(p, 1.0);
+                        vec4 clip = pvm*vec4(p, 1.0);
                         float z_ndc = clip.z/clip.w;
                         gl_FragDepth = 0.5 + 0.5*z_ndc;
                         break;
@@ -325,18 +328,14 @@ int main(int, char **)
             vdbLoadShader(0, fs);
         }
 
-        float model_to_view[4*4];
-        vdbGetMatrix(model_to_view);
-
-        float projection[4*4];
-        vdbGetProjection(projection);
+        float pvm[4*4];
+        vdbGetPVM(pvm);
 
         vdbBeginShader(0);
         vdbUniform2f("resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
         vdbVec2 offset = vdbGetRenderOffset();
         vdbUniform2f("ndc_offset", offset.x, offset.y);
-        vdbUniformMatrix4fv("model_to_view", model_to_view);
-        vdbUniformMatrix4fv("projection", projection);
+        vdbUniformMatrix4fv("pvm", pvm);
         vdbEndShader();
 
         vdbBeginTriangles();
