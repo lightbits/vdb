@@ -374,6 +374,7 @@ static void ui::FramegrabDialog()
                 opt.video_frame_cap = frame_cap;
                 opt.reset_counter = !do_continue;
                 framegrab::RecordImageSequence(opt);
+                CloseCurrentPopup();
             }
             SameLine();
             ImGui::ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");
@@ -405,6 +406,7 @@ static void ui::FramegrabDialog()
                 opt.ffmpeg_fps = framerate;
                 opt.video_frame_cap = frame_cap;
                 framegrab::RecordFFmpeg(opt);
+                CloseCurrentPopup();
             }
             SameLine();
             ImGui::ShowHelpMarker("Press ESCAPE or CTRL+S to stop.");

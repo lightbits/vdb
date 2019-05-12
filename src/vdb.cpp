@@ -468,6 +468,19 @@ void vdbEndFrame()
 
     if (framegrab::active)
     {
+        if (keys::pressed[VDB_KEY_ESCAPE])
+        {
+            framegrab::StopRecording();
+            ui::escape_eaten = true;
+        }
+        else if (VDB_HOTKEY_FRAMEGRAB)
+        {
+            framegrab::StopRecording();
+        }
+    }
+
+    if (framegrab::active)
+    {
         framegrab_options_t opt = framegrab::options;
 
         if (opt.draw_imgui)
@@ -494,16 +507,6 @@ void vdbEndFrame()
         framegrab::SaveFrame(data, width, height, channels, format);
 
         free(data);
-
-        if (keys::pressed[VDB_KEY_ESCAPE])
-        {
-            framegrab::StopRecording();
-            ui::escape_eaten = true;
-        }
-        else if (VDB_HOTKEY_FRAMEGRAB)
-        {
-            framegrab::StopRecording();
-        }
 
         window::DontWaitNextFrameEvents();
     }
