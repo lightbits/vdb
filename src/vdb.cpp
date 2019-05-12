@@ -281,7 +281,7 @@ bool vdbBeginFrame(const char *label)
         glDepthMask(GL_FALSE);
     }
 
-    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+    immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
 
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
@@ -330,7 +330,7 @@ bool vdbBeginFrame(const char *label)
 
 void vdbEndFrame()
 {
-    ResetImmediateGLState();
+    immediate::DefaultState();
 
     if (render_scaler::has_begun)
         render_scaler::End();

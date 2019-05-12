@@ -4,93 +4,8 @@
 #include "shaders/thick_lines.h"
 #include "shaders/triangles.h"
 
-namespace immediate
-{
-    static bool clear_color_was_set;
-    static vdbVec4 clear_color;
-}
-
 typedef void (APIENTRYP GLVERTEXATTRIBDIVISORPROC)(GLuint, GLuint);
 GLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
-
-void vdbInverseColor(bool enable)
-{
-    if (enable)
-    {
-        glLogicOp(GL_XOR);
-        glEnable(GL_COLOR_LOGIC_OP);
-        vdbColor4ub(0x80, 0x80, 0x80, 0x00);
-    }
-    else
-    {
-        glDisable(GL_COLOR_LOGIC_OP);
-    }
-}
-
-void vdbClearColor(float r, float g, float b, float a)
-{
-    if (!render_texture::current_render_texture)
-    {
-        immediate::clear_color_was_set = true;
-        immediate::clear_color = vdbVec4(r,g,b,a);
-    }
-    glClearColor(r,g,b,a);
-    glClear(GL_COLOR_BUFFER_BIT);
-}
-
-void vdbClearDepth(float d)
-{
-    glClearDepth(d);
-    glClear(GL_DEPTH_BUFFER_BIT);
-}
-
-void vdbCullFace(bool enabled)
-{
-    if (enabled) glEnable(GL_CULL_FACE);
-    else glDisable(GL_CULL_FACE);
-}
-
-void vdbBlendNone()
-{
-    glDisable(GL_BLEND);
-}
-
-void vdbBlendAdd()
-{
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ONE);
-}
-
-void vdbBlendAlpha()
-{
-    glEnable(GL_BLEND);
-    glBlendEquation(GL_FUNC_ADD);
-    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
-}
-
-void vdbDepthTest(bool enabled)
-{
-    if (enabled) glEnable(GL_DEPTH_TEST);
-    else glDisable(GL_DEPTH_TEST);
-}
-
-void vdbDepthWrite(bool enabled)
-{
-    if (enabled) { glDepthMask(GL_TRUE); glDepthRange(0.0f, 1.0f); }
-    else { glDepthMask(GL_FALSE); }
-}
-
-void vdbVertex(vdbVec3 v, float w)                   { vdbVertex(v.x, v.y, v.z, w); }
-void vdbVertex(vdbVec4 v)                            { vdbVertex(v.x, v.y, v.z, v.w); }
-void vdbColor(vdbVec3 v, float a)                    { vdbColor(v.x, v.y, v.z, a); }
-void vdbColor(vdbVec4 v)                             { vdbColor(v.x, v.y, v.z, v.w); }
-void vdbVertex2fv(float *v, float z, float w)        { vdbVertex(v[0], v[1], z, w); }
-void vdbVertex3fv(float *v, float w)                 { vdbVertex(v[0], v[1], v[2], w); }
-void vdbVertex4fv(float *v)                          { vdbVertex(v[0], v[1], v[2], v[3]); }
-void vdbColor4ubv(unsigned char *v)                  { vdbColor4ub(v[0], v[1], v[2], v[3]); }
-void vdbColor3ubv(unsigned char *v, unsigned char a) { vdbColor4ub(v[0], v[1], v[2], a); }
-void vdbColor4fv(float *v)                           { vdbColor(v[0], v[1], v[2], v[3]); }
-void vdbColor3fv(float *v, float a)                  { vdbColor(v[0], v[1], v[2], a); }
 
 enum imm_prim_type_t
 {
@@ -118,13 +33,30 @@ struct imm_list_t
     bool texel_specified;
 };
 
-struct imm_t
+struct imm_state_t
 {
+    GLenum blend_src_rgb;
+    GLenum blend_dst_rgb;
+    GLenum blend_src_alpha;
+    GLenum blend_dst_alpha;
+    GLenum blend_equation_rgb;
+    GLenum blend_equation_alpha;
+    GLboolean depth_writemask;
+    GLboolean enable_blend;
+    GLboolean enable_cull_face;
+    GLboolean enable_depth_test;
+    GLboolean enable_scissor_test;
+    GLboolean enable_color_logic_op;
     float line_width;
     float point_size;
     int point_segments;
-    bool point_size_is_3D;
     bool line_width_is_3D;
+    bool point_size_is_3D;
+};
+
+struct imm_t
+{
+    imm_state_t state;
 
     bool initialized;
     GLuint default_texture;
@@ -148,9 +80,75 @@ struct imm_t
 
 static imm_t imm;
 
-static void SetImmediateRenderOffsetNDC(vdbVec2 ndc_offset)
+namespace immediate
 {
-    imm.ndc_offset = ndc_offset;
+    static bool clear_color_was_set;
+    static vdbVec4 clear_color;
+
+    static void DefaultState()
+    {
+        vdbLineWidth(1.0f);
+        vdbPointSize(1.0f);
+        vdbPointSegments(4);
+        vdbBlendAlpha();
+        vdbDepthWrite(false);
+        vdbDepthTest(false);
+        vdbCullFace(false);
+        vdbInverseColor(false);
+        glDisable(GL_SCISSOR_TEST);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    static imm_state_t GetState()
+    {
+        imm_state_t s = {0};
+        glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&s.blend_src_rgb);
+        glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&s.blend_dst_rgb);
+        glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&s.blend_src_alpha);
+        glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&s.blend_dst_alpha);
+        glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&s.blend_equation_rgb);
+        glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&s.blend_equation_alpha);
+        glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean*)&s.depth_writemask);
+        s.enable_blend = glIsEnabled(GL_BLEND);
+        s.enable_cull_face = glIsEnabled(GL_CULL_FACE);
+        s.enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
+        s.enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
+        s.enable_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
+        s.line_width = imm.state.line_width;
+        s.point_size = imm.state.point_size;
+        s.point_segments = imm.state.point_segments;
+        s.line_width_is_3D = imm.state.line_width_is_3D;
+        s.point_size_is_3D = imm.state.point_size_is_3D;
+        return s;
+    }
+
+    static void SetState(imm_state_t s)
+    {
+        glBlendEquationSeparate(s.blend_equation_rgb, s.blend_equation_alpha);
+        glBlendFuncSeparate(s.blend_src_rgb, s.blend_dst_rgb, s.blend_src_alpha, s.blend_dst_alpha);
+        glDepthMask(s.depth_writemask);
+        if (s.enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
+        if (s.enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
+        if (s.enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+        if (s.enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
+        if (s.enable_color_logic_op) vdbInverseColor(true); else vdbInverseColor(false);
+        imm.state.line_width = s.line_width;
+        imm.state.point_size = s.point_size;
+        imm.state.point_segments = s.point_segments;
+        imm.state.line_width_is_3D = s.line_width_is_3D;
+        imm.state.point_size_is_3D = s.point_size_is_3D;
+    }
+
+    static void SetRenderOffsetNDC(vdbVec2 ndc_offset)
+    {
+        imm.ndc_offset = ndc_offset;
+    }
+
+    static void NewFrame()
+    {
+        immediate::DefaultState();
+        immediate::clear_color_was_set = false;
+    }
 }
 
 static void BeginImmediate(imm_prim_type_t prim_type)
@@ -159,12 +157,12 @@ static void BeginImmediate(imm_prim_type_t prim_type)
     {
         imm.initialized = true;
 
-        if (imm.line_width == 0.0f)
-            imm.line_width = 1.0f;
-        if (imm.point_size == 0.0f)
-            imm.point_size = 1.0f;
-        if (imm.point_segments == 0)
-            imm.point_segments = 4;
+        if (imm.state.line_width == 0.0f)
+            imm.state.line_width = 1.0f;
+        if (imm.state.point_size == 0.0f)
+            imm.state.point_size = 1.0f;
+        if (imm.state.point_segments == 0)
+            imm.state.point_segments = 4;
 
         imm.buffer_capacity = 1024*100;
         imm.buffer = new imm_vertex_t[imm.buffer_capacity];
@@ -245,9 +243,9 @@ static void DrawImmediatePoints(imm_list_t list)
         glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
         if (!list.texel_specified)
             glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-        if (imm.point_size_is_3D)
+        if (imm.state.point_size_is_3D)
         {
-            // Note: point_size is treated as a radius inside the shader, but imm.point_size
+            // Note: point_size is treated as a radius inside the shader, but imm.state.point_size
             // is considered to be diameter (to be consistent with glPointSize). For efficiency
             // we divide by two before passing it in, so we don't have to do it in the shader.
 
@@ -260,17 +258,17 @@ static void DrawImmediatePoints(imm_list_t list)
             // If the scaling factors are not the same, we choose the smallest one:
             float s = sx < sy ? sx : sy;
 
-            glUniform2f(uniform_point_size, 0.5f*s*imm.point_size, 0.5f*s*imm.point_size);
+            glUniform2f(uniform_point_size, 0.5f*s*imm.state.point_size, 0.5f*s*imm.state.point_size);
         }
         else
         {
             // Convert point size units from screen pixels to NDC.
             // Note: Division by two as per above.
             glUniform2f(uniform_point_size,
-                        imm.point_size/vdbGetWindowWidth(),
-                        imm.point_size/vdbGetWindowHeight());
+                        imm.state.point_size/vdbGetWindowWidth(),
+                        imm.state.point_size/vdbGetWindowHeight());
         }
-        glUniform1i(uniform_size_is_3D, imm.point_size_is_3D ? 1 : 0);
+        glUniform1i(uniform_size_is_3D, imm.state.point_size_is_3D ? 1 : 0);
         glUniform2f(uniform_ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
     }
 
@@ -291,13 +289,13 @@ static void DrawImmediatePoints(imm_list_t list)
             glBindBuffer(GL_ARRAY_BUFFER, 0);
         }
 
-        if (imm.point_segments > max_segments)
-            imm.point_segments = max_segments;
+        if (imm.state.point_segments > max_segments)
+            imm.state.point_segments = max_segments;
 
         int last_point_segments = 0;
-        if (imm.point_segments != last_point_segments)
+        if (imm.state.point_segments != last_point_segments)
         {
-            if (imm.point_segments == 4)
+            if (imm.state.point_segments == 4)
             {
                 glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
                 glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(quad), quad);
@@ -308,18 +306,18 @@ static void DrawImmediatePoints(imm_list_t list)
             else
             {
                 circle[0] = vdbVec2(0.0f, 0.0f);
-                for (int i = 0; i <= imm.point_segments; i++)
+                for (int i = 0; i <= imm.state.point_segments; i++)
                 {
-                    float t = 2.0f*3.1415926f*i/(float)(imm.point_segments);
+                    float t = 2.0f*3.1415926f*i/(float)(imm.state.point_segments);
                     circle[i+1] = vdbVec2(cosf(t), sinf(t));
                 }
                 glBindBuffer(GL_ARRAY_BUFFER, point_geometry_vbo);
-                glBufferSubData(GL_ARRAY_BUFFER, 0, (imm.point_segments+2)*sizeof(vdbVec2), circle);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, (imm.state.point_segments+2)*sizeof(vdbVec2), circle);
                 glBindBuffer(GL_ARRAY_BUFFER, 0);
                 rasterization_mode = GL_TRIANGLE_FAN;
-                rasterization_count = imm.point_segments+2;
+                rasterization_count = imm.state.point_segments+2;
             }
-            last_point_segments = imm.point_segments;
+            last_point_segments = imm.state.point_segments;
         }
     }
     assert(rasterization_count);
@@ -430,10 +428,10 @@ static void DrawImmediateLinesThick(imm_list_t list)
         glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
         if (!list.texel_specified)
             glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-        if (imm.line_width_is_3D)
+        if (imm.state.line_width_is_3D)
         {
             assert(false && "Not implemented yet");
-            // Note: point_size is treated as a radius inside the shader, but imm.point_size
+            // Note: point_size is treated as a radius inside the shader, but imm.state.point_size
             // is considered to be diameter (to be consistent with glPointSize). For efficiency
             // we divide by two before passing it in, so we don't have to do it in the shader.
 
@@ -446,18 +444,18 @@ static void DrawImmediateLinesThick(imm_list_t list)
             // If the scaling factors are not the same, we choose the smallest one:
             float s = sx < sy ? sx : sy;
 
-            glUniform2f(uniform_line_width, 0.5f*s*imm.line_width, 0.5f*s*imm.line_width);
+            glUniform2f(uniform_line_width, 0.5f*s*imm.state.line_width, 0.5f*s*imm.state.line_width);
         }
         else
         {
             // Convert point size units from screen pixels to NDC.
             // Note: Division by two as per above.
             glUniform2f(uniform_line_width,
-                        imm.line_width/vdbGetWindowWidth(),
-                        imm.line_width/vdbGetWindowHeight());
+                        imm.state.line_width/vdbGetWindowWidth(),
+                        imm.state.line_width/vdbGetWindowHeight());
         }
         glUniform1f(uniform_aspect, (float)vdbGetFramebufferWidth()/vdbGetFramebufferHeight());
-        glUniform1i(uniform_width_is_3D, imm.line_width_is_3D ? 1 : 0);
+        glUniform1i(uniform_width_is_3D, imm.state.line_width_is_3D ? 1 : 0);
         glUniform2f(uniform_ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
     }
 
@@ -538,8 +536,8 @@ static void DrawImmediateLines(imm_list_t list)
     assert(list.count % 2 == 0 && "LINES type expects vertex count to be a multiple of 2");
 
     bool use_thick_shader =
-        imm.line_width_is_3D ||
-        imm.line_width != 1.0f ||
+        imm.state.line_width_is_3D ||
+        imm.state.line_width != 1.0f ||
         vdbGetRenderScale().x != 1.0f ||
         vdbGetRenderScale().y != 1.0f;
 
@@ -703,95 +701,91 @@ void vdbVertex(float x, float y, float z, float w)
     }
 }
 
-void vdbLineWidth(float width)      { imm.line_width = width; imm.line_width_is_3D = false; }
-void vdbLineWidth3D(float width)    { imm.line_width = width; imm.line_width_is_3D = true; }
-void vdbPointSize(float size)       { imm.point_size = size; imm.point_size_is_3D = false; }
-void vdbPointSize3D(float size)     { imm.point_size = size; imm.point_size_is_3D = true; }
-void vdbPointSegments(int segments) { assert(segments >= 3); imm.point_segments = segments; }
-void vdbBeginTriangles()            { BeginImmediate(IMM_PRIM_TRIANGLES); }
-void vdbBeginLines()                { BeginImmediate(IMM_PRIM_LINES); }
-void vdbBeginPoints()               { BeginImmediate(IMM_PRIM_POINTS); }
+void vdbLineWidth(float width)                       { imm.state.line_width = width; imm.state.line_width_is_3D = false; }
+void vdbLineWidth3D(float width)                     { imm.state.line_width = width; imm.state.line_width_is_3D = true; }
+void vdbPointSize(float size)                        { imm.state.point_size = size; imm.state.point_size_is_3D = false; }
+void vdbPointSize3D(float size)                      { imm.state.point_size = size; imm.state.point_size_is_3D = true; }
+void vdbPointSegments(int segments)                  { assert(segments >= 3); imm.state.point_segments = segments; }
+void vdbBeginTriangles()                             { BeginImmediate(IMM_PRIM_TRIANGLES); }
+void vdbBeginLines()                                 { BeginImmediate(IMM_PRIM_LINES); }
+void vdbBeginPoints()                                { BeginImmediate(IMM_PRIM_POINTS); }
 
-struct imm_gl_state_t
-{
-    GLenum last_blend_src_rgb;
-    GLenum last_blend_dst_rgb;
-    GLenum last_blend_src_alpha;
-    GLenum last_blend_dst_alpha;
-    GLenum last_blend_equation_rgb;
-    GLenum last_blend_equation_alpha;
-    GLboolean last_depth_writemask;
-    GLboolean last_enable_blend;
-    GLboolean last_enable_cull_face;
-    GLboolean last_enable_depth_test;
-    GLboolean last_enable_scissor_test;
-    GLboolean last_enable_color_logic_op;
-    float line_width;
-    float point_size;
-    int point_segments;
-    bool line_width_is_3D;
-    bool point_size_is_3D;
-};
+// convenience functions
+void vdbVertex(vdbVec3 v, float w)                   { vdbVertex(v.x, v.y, v.z, w); }
+void vdbVertex(vdbVec4 v)                            { vdbVertex(v.x, v.y, v.z, v.w); }
+void vdbColor(vdbVec3 v, float a)                    { vdbColor(v.x, v.y, v.z, a); }
+void vdbColor(vdbVec4 v)                             { vdbColor(v.x, v.y, v.z, v.w); }
+void vdbVertex2fv(float *v, float z, float w)        { vdbVertex(v[0], v[1], z, w); }
+void vdbVertex3fv(float *v, float w)                 { vdbVertex(v[0], v[1], v[2], w); }
+void vdbVertex4fv(float *v)                          { vdbVertex(v[0], v[1], v[2], v[3]); }
+void vdbColor4ubv(unsigned char *v)                  { vdbColor4ub(v[0], v[1], v[2], v[3]); }
+void vdbColor3ubv(unsigned char *v, unsigned char a) { vdbColor4ub(v[0], v[1], v[2], a); }
+void vdbColor4fv(float *v)                           { vdbColor(v[0], v[1], v[2], v[3]); }
+void vdbColor3fv(float *v, float a)                  { vdbColor(v[0], v[1], v[2], a); }
 
-void ResetImmediateGLState()
+void vdbInverseColor(bool enable)
 {
-    vdbLineWidth(1.0f);
-    vdbPointSize(1.0f);
-    vdbPointSegments(4);
-    vdbBlendAlpha();
-    vdbDepthWrite(false);
-    vdbDepthTest(false);
-    vdbCullFace(false);
-    vdbInverseColor(false);
-    glDisable(GL_SCISSOR_TEST);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-}
-
-imm_gl_state_t GetImmediateGLState()
-{
-    imm_gl_state_t s = {0};
-    glGetIntegerv(GL_BLEND_SRC_RGB, (GLint*)&s.last_blend_src_rgb);
-    glGetIntegerv(GL_BLEND_DST_RGB, (GLint*)&s.last_blend_dst_rgb);
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, (GLint*)&s.last_blend_src_alpha);
-    glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&s.last_blend_dst_alpha);
-    glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&s.last_blend_equation_rgb);
-    glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&s.last_blend_equation_alpha);
-    glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean*)&s.last_depth_writemask);
-    s.last_enable_blend = glIsEnabled(GL_BLEND);
-    s.last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
-    s.last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
-    s.last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-    s.last_enable_color_logic_op = glIsEnabled(GL_COLOR_LOGIC_OP);
-    s.line_width = imm.line_width;
-    s.point_size = imm.point_size;
-    s.point_segments = imm.point_segments;
-    s.line_width_is_3D = imm.line_width_is_3D;
-    s.point_size_is_3D = imm.point_size_is_3D;
-    return s;
-}
-
-void SetImmediateGLState(imm_gl_state_t s)
-{
-    glBlendEquationSeparate(s.last_blend_equation_rgb, s.last_blend_equation_alpha);
-    glBlendFuncSeparate(s.last_blend_src_rgb, s.last_blend_dst_rgb, s.last_blend_src_alpha, s.last_blend_dst_alpha);
-    glDepthMask(s.last_depth_writemask);
-    if (s.last_enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
-    if (s.last_enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
-    if (s.last_enable_depth_test) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
-    if (s.last_enable_scissor_test) glEnable(GL_SCISSOR_TEST); else glDisable(GL_SCISSOR_TEST);
-    if (s.last_enable_color_logic_op) vdbInverseColor(true); else vdbInverseColor(false);
-    imm.line_width = s.line_width;
-    imm.point_size = s.point_size;
-    imm.point_segments = s.point_segments;
-    imm.line_width_is_3D = s.line_width_is_3D;
-    imm.point_size_is_3D = s.point_size_is_3D;
-}
-
-namespace immediate
-{
-    static void NewFrame()
+    if (enable)
     {
-        ResetImmediateGLState();
-        immediate::clear_color_was_set = false;
+        glLogicOp(GL_XOR);
+        glEnable(GL_COLOR_LOGIC_OP);
+        vdbColor4ub(0x80, 0x80, 0x80, 0x00);
     }
+    else
+    {
+        glDisable(GL_COLOR_LOGIC_OP);
+    }
+}
+
+void vdbClearColor(float r, float g, float b, float a)
+{
+    if (!render_texture::current_render_texture)
+    {
+        immediate::clear_color_was_set = true;
+        immediate::clear_color = vdbVec4(r,g,b,a);
+    }
+    glClearColor(r,g,b,a);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void vdbClearDepth(float d)
+{
+    glClearDepth(d);
+    glClear(GL_DEPTH_BUFFER_BIT);
+}
+
+void vdbCullFace(bool enabled)
+{
+    if (enabled) glEnable(GL_CULL_FACE);
+    else glDisable(GL_CULL_FACE);
+}
+
+void vdbBlendNone()
+{
+    glDisable(GL_BLEND);
+}
+
+void vdbBlendAdd()
+{
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ONE);
+}
+
+void vdbBlendAlpha()
+{
+    glEnable(GL_BLEND);
+    glBlendEquation(GL_FUNC_ADD);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+}
+
+void vdbDepthTest(bool enabled)
+{
+    if (enabled) glEnable(GL_DEPTH_TEST);
+    else glDisable(GL_DEPTH_TEST);
+}
+
+void vdbDepthWrite(bool enabled)
+{
+    if (enabled) { glDepthMask(GL_TRUE); glDepthRange(0.0f, 1.0f); }
+    else { glDepthMask(GL_FALSE); }
 }

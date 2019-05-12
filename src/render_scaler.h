@@ -150,7 +150,7 @@ namespace render_scaler
         has_begun = false;
         DisableRenderTexture(&lowres);
 
-        imm_gl_state_t last_state = GetImmediateGLState();
+        imm_state_t last_state = immediate::GetState();
         float last_projection[4*4];
         vdbGetProjection(last_projection);
         vdbProjection(NULL);
@@ -160,7 +160,7 @@ namespace render_scaler
         vdbCullFace(false);
         vdbDepthTest(false);
         vdbDepthWrite(false);
-        SetImmediateRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
+        immediate::SetRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
 
         // interleave just-rendered frame into full resolution framebuffer
         {
@@ -212,7 +212,7 @@ namespace render_scaler
             vdbEnd();
         }
 
-        SetImmediateGLState(last_state);
+        immediate::SetState(last_state);
         vdbPopMatrix();
         vdbProjection(last_projection);
 
@@ -250,7 +250,7 @@ void vdbBeginRenderScale(int width, int height, int up)
     assert(!render_scaler::has_begun && "You have to disable the built-in render scaler (set to 1/1 in settings).");
     assert(up >= 0);
     render_scaler::Begin(width, height, up);
-    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+    immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
 }
 
 void vdbBeginRenderScale(int down, int up)
@@ -267,5 +267,5 @@ void vdbEndRenderScale()
 {
     assert(render_scaler::has_begun);
     render_scaler::End();
-    SetImmediateRenderOffsetNDC(vdbGetRenderOffset());
+    immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
 }
