@@ -177,14 +177,7 @@ static void BeginImmediate(imm_prim_type_t prim_type)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0,
-                     GL_RGBA, // internal format
-                     1, // width
-                     1, // height
-                     0,
-                     GL_RGBA, // data format
-                     GL_UNSIGNED_BYTE, // data type
-                     default_texture_data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1,  1,  0, GL_RGBA, GL_UNSIGNED_BYTE, default_texture_data);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         imm.vertex.color[0] = 0;
