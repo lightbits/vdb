@@ -296,12 +296,14 @@ int main(int, char **)
             uniform vec2 ndc_offset;
             uniform mat4 pvm;
             out vec4 color;
+            float scene(vec3 p) {
+                return length(p) - 0.5;
+            }
             void main() {
-                color = vec4(0.0,0.0,0.0,0.0);
-                gl_FragDepth = 1.0;
                 vec2 ndc = vec2(-1.0) + 2.0*gl_FragCoord.xy/resolution.xy;
                 ndc += ndc_offset;
 
+                // compute the ray origin and direction for this pixel
                 mat4 inv_pvm = inverse(pvm);
                 vec4 ro = inv_pvm*vec4(ndc, -1.0, 1.0);
                 ro.xyz /= ro.w;
@@ -309,13 +311,17 @@ int main(int, char **)
                 rd.xyz /= rd.w;
                 rd = normalize(rd - ro);
 
+                // color and depth if we don't hit anything
+                color = vec4(0.0,0.0,0.0,0.0);
+                gl_FragDepth = 1.0;
+
+                // simple ray-marched scene
                 float t = 0.0;
                 for (int i = 0; i < 64; i++) {
                     vec3 p = ro.xyz + rd.xyz*t;
-                    float d = length(p) - 0.5;
+                    float d = scene(p);
                     if (d < 0.001) {
-                        vec3 n = normalize(p);
-                        color.rgb = 0.5*(vec3(0.5) + 0.5*n);
+                        color.rgb = 0.5*(vec3(0.5) + 0.5*normalize(p));
                         color.a = 1.0;
                         vec4 clip = pvm*vec4(p, 1.0);
                         float z_ndc = clip.z/clip.w;
@@ -330,14 +336,13 @@ int main(int, char **)
 
         float pvm[4*4];
         vdbGetPVM(pvm);
-
         vdbBeginShader(0);
         vdbUniform2f("resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
-        vdbVec2 offset = vdbGetRenderOffset();
-        vdbUniform2f("ndc_offset", offset.x, offset.y);
+        vdbUniform2f("ndc_offset", vdbGetRenderOffset().x, vdbGetRenderOffset().y);
         vdbUniformMatrix4fv("pvm", pvm);
         vdbEndShader();
 
+        // demonstrate that we can mix immediate mode rendering with ray tracing
         vdbBeginTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-1.0f, 0.5f, -1.0f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+1.0f, 0.5f, -1.0f);
