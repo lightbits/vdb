@@ -1,3 +1,7 @@
+// we could optimize lots of things here:
+// * attrib format is the same each time
+// * batch together begin/end pairs of the same primitive type to prevent program changes
+
 #pragma once
 #include "shaders/points.h"
 #include "shaders/lines.h"
@@ -317,9 +321,7 @@ static void DrawImmediatePoints(imm_list_t list)
     assert(rasterization_mode);
     assert(point_geometry_vbo);
 
-    glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
-
-    // todo: move these calls out, and optimize wrt buffer binding changes
+    glBindVertexArray(imm.vao);
 
     // instance geometry
     glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
@@ -348,8 +350,8 @@ static void DrawImmediatePoints(imm_list_t list)
     glVertexAttribDivisor(attrib_instance_texel, 0);
     glVertexAttribDivisor(attrib_instance_color, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
-    glUseProgram(0); // todo: optimize
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 static void DrawImmediateLinesThin(imm_list_t list)
@@ -362,12 +364,12 @@ static void DrawImmediateLinesThin(imm_list_t list)
     static GLint uniform_pvm      = glGetUniformLocation(program, "pvm");
     static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
 
-    glUseProgram(program); // todo: optimize
+    glUseProgram(program);
     UniformMat4(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-    glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
+    glBindVertexArray(imm.vao);
     glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
     glEnableVertexAttribArray(attrib_position);
     glEnableVertexAttribArray(attrib_texel);
@@ -380,8 +382,8 @@ static void DrawImmediateLinesThin(imm_list_t list)
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
-    glUseProgram(0); // todo: optimize
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 static void DrawImmediateLinesThick(imm_list_t list)
@@ -471,9 +473,7 @@ static void DrawImmediateLinesThick(imm_list_t list)
     assert(rasterization_mode);
     assert(point_geometry_vbo);
 
-    glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
-
-    // todo: move these calls out, and optimize wrt buffer binding changes
+    glBindVertexArray(imm.vao);
 
     // instance geometry
     glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
@@ -519,8 +519,8 @@ static void DrawImmediateLinesThick(imm_list_t list)
     glVertexAttribDivisor(attrib_instance_color1, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
-    glUseProgram(0); // todo: optimize
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 static void DrawImmediateLines(imm_list_t list)
@@ -554,13 +554,13 @@ static void DrawImmediateTriangles(imm_list_t list)
     static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
     static GLint ndc_offset       = glGetUniformLocation(program, "ndc_offset");
 
-    glUseProgram(program); // todo: optimize
+    glUseProgram(program);
     UniformMat4(uniform_pvm, 1, transform::pvm);
     glUniform1i(uniform_sampler0, 0); // We assume any user-bound texture is bound to GL_TEXTURE0
     glUniform2f(ndc_offset, imm.ndc_offset.x, imm.ndc_offset.y);
     if (!list.texel_specified)
         glBindTexture(GL_TEXTURE_2D, imm.default_texture);
-    glBindVertexArray(imm.vao); // todo: optimize. attrib format is the same each time...
+    glBindVertexArray(imm.vao);
     glBindBuffer(GL_ARRAY_BUFFER, list.vbo);
     glEnableVertexAttribArray(attrib_position);
     glEnableVertexAttribArray(attrib_texel);
@@ -573,8 +573,8 @@ static void DrawImmediateTriangles(imm_list_t list)
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0); // note: 0 is not an object in the core profile. todo: global vao? todo: ensure everyone has a vao
-    glUseProgram(0); // todo: optimize
+    glBindVertexArray(0);
+    glUseProgram(0);
 }
 
 static void DrawImmediate(imm_list_t list)
