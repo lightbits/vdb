@@ -1,4 +1,4 @@
-<img width="128" height="128" src="doc/vdb-logo.svg">
+<img style="display:block;margin-left:auto;margin-right:auto;" width="128" height="128" src="doc/vdb-logo.svg">
 <p align="center"><b>vdb - visual debugger</b></p>
 
 vdb is a C++ library that lets you easily create interactive 2D/3D visualizations. It can be useful for things like:
