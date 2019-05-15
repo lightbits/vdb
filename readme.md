@@ -1,15 +1,13 @@
 <p align="center"><img width="128" height="128" src="doc/vdb-logo.svg"></p>
 <p align="center"><b>vdb - visual debugger</b></p>
 
-vdb is a C++ library that lets you easily create interactive 2D/3D visualizations. It can be useful for things like:
+vdb is a C++ library that lets you easily create interactive 2D/3D visualization breakpoints. It can be used for things like:
 
 * Analyzing intermediate results in a multi-step algorithm
-* Visualizing 2D or 3D input data
+* Visualizing and pre-processing 2D or 3D input data
 * Prototyping a GUI for annotating data
 
-**Where you can use it**
-
-vdb runs on Windows, Linux and Mac OS, requiring only a OpenGL 3.1 compatible GPU (which even really old laptops have).
+vdb is easy to compile, runs on Windows, Linux and Mac OS, and requires only an OpenGL 3.1 compatible GPU (which even really old laptops have).
 
 **Basic example**
 
