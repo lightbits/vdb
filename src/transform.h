@@ -209,7 +209,7 @@ vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth)
     view.y = (y_clip-by)/ay;
     view.z = depth;
     view.w = 1.0f;
-    vdbVec4 model = vdbMulSE3Inverse(view_model, view);
+    vdbVec4 model = vdbMulSim3Inverse(view_model, view);
     vdbVec3 result(model.x,model.y,model.z);
     return result;
 }

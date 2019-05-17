@@ -170,6 +170,20 @@ static vdbVec4 vdbMulSE3Inverse(vdbMat4 a, vdbVec4 b)
     return d;
 }
 
+static vdbVec4 vdbMulSim3Inverse(vdbMat4 a, vdbVec4 b)
+{
+    vdbVec4 c(b.x-a(0,3)*b.w, b.y-a(1,3)*b.w, b.z-a(2,3)*b.w, b.w);
+    vdbVec4 d(0.0f,0.0f,0.0f,0.0f);
+    float len2_a_0 = a(0,0)*a(0,0) + a(1,0)*a(1,0) + a(2,0)*a(2,0);
+    float len2_a_1 = a(0,1)*a(0,1) + a(1,1)*a(1,1) + a(2,1)*a(2,1);
+    float len2_a_2 = a(0,2)*a(0,2) + a(1,2)*a(1,2) + a(2,2)*a(2,2);
+    d.x = (c.x*a(0,0) + c.y*a(1,0) + c.z*a(2,0))/len2_a_0;
+    d.y = (c.x*a(0,1) + c.y*a(1,1) + c.z*a(2,1))/len2_a_1;
+    d.z = (c.x*a(0,2) + c.y*a(1,2) + c.z*a(2,2))/len2_a_2;
+    d.w = c.w;
+    return d;
+}
+
 static vdbMat4 vdbMatIdentity()
 {
     vdbMat4 result = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
