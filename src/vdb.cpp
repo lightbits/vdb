@@ -296,31 +296,31 @@ bool vdbBeginFrame(const char *label)
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
             vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
-
-            // We do PushMatrix to save current state for drawing grid in vdbEndFrame
-
-            // pre-permutation transform
-            // the built-in cameras assume that y axis is up
-            vdbPushMatrix();
-            if (fs->camera_up == VDB_Z_UP)
-                vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
-            else
-            if (fs->camera_up == VDB_X_UP)
-                vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
-            else
-            if (fs->camera_up == VDB_Z_DOWN)
-                vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
-            else
-            if (fs->camera_up == VDB_Y_DOWN)
-                vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1).data);
-            else
-            if (fs->camera_up == VDB_X_DOWN)
-                vdbMultMatrix(vdbInitMat4(0,0,1,0, -1,0,0,0, 0,-1,0,0, 0,0,0,1).data);
-
-            // pre-scaling transform
-            vdbPushMatrix();
-            vdbMultMatrix(vdbMatScale(1.0f/fs->grid_scale, 1.0f/fs->grid_scale, 1.0f/fs->grid_scale).data);
         }
+
+        // We do PushMatrix to save current state for drawing grid in vdbEndFrame
+
+        // pre-permutation transform
+        // the built-in cameras assume that y axis is up
+        vdbPushMatrix();
+        if (fs->camera_up == VDB_Z_UP)
+            vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
+        else
+        if (fs->camera_up == VDB_X_UP)
+            vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
+        else
+        if (fs->camera_up == VDB_Z_DOWN)
+            vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
+        else
+        if (fs->camera_up == VDB_Y_DOWN)
+            vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1).data);
+        else
+        if (fs->camera_up == VDB_X_DOWN)
+            vdbMultMatrix(vdbInitMat4(0,0,1,0, -1,0,0,0, 0,-1,0,0, 0,0,0,1).data);
+
+        // pre-scaling transform
+        vdbPushMatrix();
+        vdbMultMatrix(vdbMatScale(1.0f/fs->grid_scale, 1.0f/fs->grid_scale, 1.0f/fs->grid_scale).data);
     }
 
     CheckGLError();
@@ -335,8 +335,8 @@ void vdbEndFrame()
     if (render_scaler::has_begun)
         render_scaler::End();
 
-    if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED &&
-        vdb::frame_settings->camera_type != VDB_CAMERA_PLANAR)
+    if (vdb::frame_settings->camera_type == VDB_CAMERA_TRACKBALL ||
+        vdb::frame_settings->camera_type == VDB_CAMERA_TURNTABLE)
     {
         frame_settings_t *fs = vdb::frame_settings;
         vdbDepthTest(true);
@@ -462,6 +462,11 @@ void vdbEndFrame()
             vdbPopMatrix();
         }
         vdbDepthTest(false);
+    }
+    else if (vdb::frame_settings->camera_type == VDB_CAMERA_PLANAR)
+    {
+        vdbPopMatrix(); // pre-scaling
+        vdbPopMatrix(); // pre-permutation
     }
 
     widgets::EndFrame();
