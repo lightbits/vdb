@@ -340,7 +340,7 @@ static void DrawImmediatePoints(imm_list_t list)
     glEnableVertexAttribArray(attrib_in_position);
     glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
 
-    glDrawArraysInstanced(rasterization_mode, 0, rasterization_count, list.count);
+    glDrawArraysInstanced(rasterization_mode, 0, (GLsizei)rasterization_count, (GLsizei)list.count);
 
     glDisableVertexAttribArray(attrib_in_position);
     glDisableVertexAttribArray(attrib_instance_position);
@@ -377,7 +377,7 @@ static void DrawImmediateLinesThin(imm_list_t list)
     glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
     glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
     glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-    glDrawArrays(GL_LINES, 0, list.count);
+    glDrawArrays(GL_LINES, 0, (GLsizei)list.count);
     glDisableVertexAttribArray(attrib_position);
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
@@ -501,7 +501,7 @@ static void DrawImmediateLinesThick(imm_list_t list)
     glEnableVertexAttribArray(attrib_in_position);
     glVertexAttribPointer(attrib_in_position, 2, GL_FLOAT, GL_FALSE, 0, (const void*)(0));
 
-    glDrawArraysInstanced(rasterization_mode, 0, rasterization_count, list.count/2);
+    glDrawArraysInstanced(rasterization_mode, 0, (GLsizei)rasterization_count, (GLsizei)list.count/2);
 
     glDisableVertexAttribArray(attrib_in_position);
 
@@ -568,7 +568,7 @@ static void DrawImmediateTriangles(imm_list_t list)
     glVertexAttribPointer(attrib_position, 4, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(0));
     glVertexAttribPointer(attrib_texel,    2, GL_FLOAT, GL_FALSE, sizeof(imm_vertex_t), (const void*)(4*sizeof(float)));
     glVertexAttribPointer(attrib_color,    4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(imm_vertex_t), (const void*)(6*sizeof(float)));
-    glDrawArrays(GL_TRIANGLES, 0, list.count);
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)list.count);
     glDisableVertexAttribArray(attrib_position);
     glDisableVertexAttribArray(attrib_texel);
     glDisableVertexAttribArray(attrib_color);
