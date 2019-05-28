@@ -80,7 +80,7 @@ namespace vdb
     static bool is_different_label;
     static bool want_step_once;
     static bool want_step_over;
-    static int loaded_font_size;
+    static float loaded_font_size;
     static frame_settings_t *frame_settings;
 }
 
@@ -138,15 +138,15 @@ bool vdbBeginFrame(const char *label)
         ImGui::GetStyle().WindowBorderSize = 0.0f;
     }
 
-    if (vdb::loaded_font_size != settings.font_size)
+    float new_font_size = settings.font_size*settings.dpi_scale/100.0f;
+    if (vdb::loaded_font_size != new_font_size)
     {
-        vdb::loaded_font_size = settings.font_size;
+        vdb::loaded_font_size = new_font_size;
         ImGui_ImplOpenGL3_DestroyDeviceObjects();
         ImGui::GetIO().Fonts->Clear();
         const char *data = (const char*)open_sans_regular_compressed_data;
         const unsigned int size = open_sans_regular_compressed_size;
-        float height = (float)settings.font_size;
-        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, size, height);
+        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, size, new_font_size);
 
         // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
         #if VDB_IMGUI_FREETYPE==1

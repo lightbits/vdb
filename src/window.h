@@ -96,6 +96,10 @@ namespace window
 
     static void Open(int x, int y, int width, int height)
     {
+        #ifdef _WIN32
+        SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+        #endif
+
         if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
         {
             printf("SDL_Init failed: %s\n", SDL_GetError());
@@ -121,10 +125,6 @@ namespace window
         SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, VDB_STENCILBITS);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, VDB_MULTISAMPLES > 0 ? 1 : 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, VDB_MULTISAMPLES);
-
-        #ifdef _WIN32
-        SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-        #endif
 
         sdl_window = SDL_CreateWindow(
             "vdb",

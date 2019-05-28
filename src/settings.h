@@ -117,6 +117,7 @@ struct settings_t
     int font_size;
     bool can_idle;
     int auto_step_delay_ms;
+    int dpi_scale;
 
     void LoadOrDefault(const char *filename);
     void Save(const char *filename);
@@ -160,6 +161,7 @@ void settings_t::LoadOrDefault(const char *filename)
     window.y = -1;
     window.width = 1000;
     window.height = 600;
+    dpi_scale = 100;
     never_ask_on_exit = false;
     show_main_menu = true;
     can_idle = false;
@@ -194,6 +196,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (sscanf(line, "Kp_translate=%f", &f) == 1)       { camera.Kp_translate = f; }
         else if (sscanf(line, "Kp_rotate=%f", &f) == 1)          { camera.Kp_rotate = f; }
         else if (sscanf(line, "font_size=%f", &f) == 1)          { font_size = ClampSetting((int)f, 6, 96); }
+        else if (sscanf(line, "dpi_scale=%d", &i) == 1)          { dpi_scale = ClampSetting(i, 100, 200); }
         else if (sscanf(line, "can_idle=%d", &i) == 1)           { can_idle = (i != 0); }
         else if (sscanf(line, "auto_step_delay_ms=%d", &i) == 1) { auto_step_delay_ms = i; }
         else if (strstr(line, "[frame]=") == line)
@@ -251,6 +254,7 @@ void settings_t::Save(const char *filename)
     fprintf(f, "Kp_translate=%g\n", camera.Kp_translate);
     fprintf(f, "Kp_rotate=%g\n", camera.Kp_rotate);
     fprintf(f, "font_size=%d\n", font_size);
+    fprintf(f, "dpi_scale=%d\n", dpi_scale);
     fprintf(f, "can_idle=%d\n", can_idle);
     fprintf(f, "auto_step_delay_ms=%d\n", auto_step_delay_ms);
     for (int i = 0; i < num_frames; i++)

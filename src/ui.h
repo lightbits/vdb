@@ -137,6 +137,15 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         }
         if (ImGui::BeginMenu("Font"))
         {
+            if (ImGui::BeginMenu("DPI scale"))
+            {
+                if (ImGui::MenuItem("100%", NULL, settings.dpi_scale==100)) settings.dpi_scale = 100;
+                if (ImGui::MenuItem("125%", NULL, settings.dpi_scale==125)) settings.dpi_scale = 125;
+                if (ImGui::MenuItem("150%", NULL, settings.dpi_scale==150)) settings.dpi_scale = 150;
+                if (ImGui::MenuItem("175%", NULL, settings.dpi_scale==175)) settings.dpi_scale = 175;
+                if (ImGui::MenuItem("200%", NULL, settings.dpi_scale==200)) settings.dpi_scale = 200;
+                ImGui::EndMenu();
+            }
             if (ImGui::MenuItem("Larger")) settings.font_size += 1;
             if (ImGui::MenuItem("Smaller") && settings.font_size > 1) settings.font_size -= 1;
             ImGui::Separator();
