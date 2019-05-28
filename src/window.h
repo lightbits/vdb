@@ -1,7 +1,10 @@
 #include "data/window_icon.h"
 
 #ifdef _WIN32
+#pragma comment(lib, "Shcore.lib")
 #include <winuser.h> // for Windows' SetWindowPos (allows you to set topmost)
+#include <ShellScalingAPI.h>
+#include <comdef.h>
 #include "SDL_syswm.h"
 #endif
 
@@ -119,13 +122,17 @@ namespace window
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, VDB_MULTISAMPLES > 0 ? 1 : 0);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, VDB_MULTISAMPLES);
 
+        #ifdef _WIN32
+        SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+        #endif
+
         sdl_window = SDL_CreateWindow(
             "vdb",
             (x < 0) ? SDL_WINDOWPOS_CENTERED : x,
             (y < 0) ? SDL_WINDOWPOS_CENTERED : y,
             width,
             height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN | SDL_WINDOW_ALLOW_HIGHDPI);
 
         assert(sdl_window);
 
