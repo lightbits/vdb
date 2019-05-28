@@ -263,7 +263,7 @@ bool vdbBeginFrame(const char *label)
 
     glDepthMask(GL_TRUE);
     glClearDepth(1.0f);
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
 
@@ -276,7 +276,7 @@ bool vdbBeginFrame(const char *label)
         render_scaler::Begin(w, h, n_up);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
     }
@@ -354,11 +354,11 @@ void vdbEndFrame()
         // draw colored XYZ axes
         if (fs->grid_visible)
         {
-            vdbVec3 color_x_axis(1.0f, 0.2f, 0.32f);
+            vdbVec3 color_x_axis(0.89f, 0.38f, 0.45f);
             vdbVec3 color_y_axis(0.54f, 0.85f, 0.0f);
-            vdbVec3 color_z_axis(0.16f, 0.56f, 0.99f);
-            float neg_alpha = 0.2f;
-            float pos_alpha = 0.5f;
+            vdbVec3 color_z_axis(0.16f, 0.56f, 1.0f);
+            float neg_alpha = 0.3f;
+            float pos_alpha = 0.7f;
 
             if (background_is_bright)
             {
@@ -411,8 +411,8 @@ void vdbEndFrame()
         if (fs->grid_visible)
         {
             vdbVec3 grid_color(1.0f,1.0f,1.0f);
-            float minor_alpha = 0.25f;
-            float major_alpha = 0.40f;
+            float minor_alpha = 0.3f;
+            float major_alpha = 0.5f;
             if (background_is_bright)
             {
                 grid_color = vdbVec3(0.0f,0.0f,0.0f);
