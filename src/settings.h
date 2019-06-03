@@ -65,10 +65,60 @@ static const char *CameraUpToStr(camera_up_t mode)
     return "z_up";
 }
 
+static vdbMat4 Mat4FromStr(const char *str)
+{
+    printf("got it! %s\n", str);
+    vdbMat4 m;
+    if (16 == sscanf(str, "[%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f]",
+        &m.data[ 0], &m.data[ 1], &m.data[ 2], &m.data[ 3],
+        &m.data[ 4], &m.data[ 5], &m.data[ 6], &m.data[ 7],
+        &m.data[ 8], &m.data[ 9], &m.data[10], &m.data[11],
+        &m.data[12], &m.data[13], &m.data[14], &m.data[15]))
+    {
+        return m;
+    }
+    return vdbMatIdentity();
+}
+
+static const char *Mat4ToStr(vdbMat4 m)
+{
+    static char buffer[1024];
+    sprintf(buffer, "[%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f]",
+        m.data[ 0], m.data[ 1], m.data[ 2], m.data[ 3],
+        m.data[ 4], m.data[ 5], m.data[ 6], m.data[ 7],
+        m.data[ 8], m.data[ 9], m.data[10], m.data[11],
+        m.data[12], m.data[13], m.data[14], m.data[15]);
+    return buffer;
+}
+
+static vdbVec4 Vec4FromStr(const char *str)
+{
+    vdbVec4 v;
+    if (4 == sscanf(str, "[%f, %f, %f, %f]", &v.x, &v.y, &v.z, &v.w))
+        return v;
+    return vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
+}
+
+static const char *Vec4ToStr(vdbVec4 v)
+{
+    static char buffer[1024];
+    sprintf(buffer, "[%f, %f, %f, %f]",
+        v.x, v.y, v.z, v.w);
+    return buffer;
+}
+
+struct camera_trackball_settings_t
+{
+    vdbMat4 R; // world to camera
+    vdbVec4 T; // camera relative world in world
+    float zoom;
+};
+
 struct frame_settings_t
 {
     char *name;
     camera_type_t camera_type;
+    camera_trackball_settings_t trackball;
 
     // camera initialization parameters
     float init_radius;
@@ -124,6 +174,7 @@ struct settings_t
 };
 
 static settings_t settings;
+static frame_settings_t *GetFrameSettings(); // defined in vdb.cpp
 
 int ClampSetting(int x, int x_min, int x_max)
 {
@@ -135,6 +186,9 @@ int ClampSetting(int x, int x_min, int x_max)
 void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera_type = VDB_CAMERA_DISABLED;
+    fs->trackball.R = vdbMatIdentity();
+    fs->trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    fs->trackball.zoom = 1.0f;
     fs->init_radius = 1.0f;
     fs->init_look_at = vdbVec3(0.0f, 0.0f, 0.0f);
     fs->y_fov = 0.7f;
@@ -216,17 +270,17 @@ void settings_t::LoadOrDefault(const char *filename)
                 frame->name[--len] = '\0';
             DefaultFrameSettings(frame);
         }
-        else if (frame && sscanf(line, "camera_type=%s", str) == 1)      { frame->camera_type = CameraTypeFromStr(str); }
-        else if (frame && sscanf(line, "camera_radius=%f", &f) == 1)     { frame->init_radius = f; }
-        else if (frame && sscanf(line, "y_fov=%f", &f) == 1)             { frame->y_fov = f; }
-        else if (frame && sscanf(line, "min_depth=%f", &f) == 1)         { frame->min_depth = f; }
-        else if (frame && sscanf(line, "max_depth=%f", &f) == 1)         { frame->max_depth = f; }
-        else if (frame && sscanf(line, "grid_visible=%d", &i) == 1)      { frame->grid_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "grid_scale=%f", &f) == 1)        { frame->grid_scale = f; }
-        else if (frame && sscanf(line, "camera_up=%s", str) == 1)        { frame->camera_up = CameraUpFromStr(str); }
-        else if (frame && sscanf(line, "cube_visible=%d", &i) == 1)      { frame->cube_visible = (i == 1) ? true : false; }
-        else if (frame && sscanf(line, "render_scale_down=%d", &i) == 1) { frame->render_scale_down = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_DOWN); }
-        else if (frame && sscanf(line, "render_scale_up=%d", &i) == 1)   { frame->render_scale_up = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_UP); }
+        else if (frame && 1 == sscanf(line, "camera_type=%s", str))      { frame->camera_type = CameraTypeFromStr(str); }
+        else if (frame && 1 == sscanf(line, "camera_radius=%f", &f))     { frame->init_radius = f; }
+        else if (frame && 1 == sscanf(line, "y_fov=%f", &f))             { frame->y_fov = f; }
+        else if (frame && 1 == sscanf(line, "min_depth=%f", &f))         { frame->min_depth = f; }
+        else if (frame && 1 == sscanf(line, "max_depth=%f", &f))         { frame->max_depth = f; }
+        else if (frame && 1 == sscanf(line, "grid_visible=%d", &i))      { frame->grid_visible = (i == 1) ? true : false; }
+        else if (frame && 1 == sscanf(line, "grid_scale=%f", &f))        { frame->grid_scale = f; }
+        else if (frame && 1 == sscanf(line, "camera_up=%s", str))        { frame->camera_up = CameraUpFromStr(str); }
+        else if (frame && 1 == sscanf(line, "cube_visible=%d", &i))      { frame->cube_visible = (i == 1) ? true : false; }
+        else if (frame && 1 == sscanf(line, "render_scale_down=%d", &i)) { frame->render_scale_down = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_DOWN); }
+        else if (frame && 1 == sscanf(line, "render_scale_up=%d", &i))   { frame->render_scale_up = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_UP); }
     }
     free(line);
     free(str);

@@ -78,14 +78,14 @@ void vdbCamera2D(float init_zoom)
 
 void vdbCameraTrackball(float init_radius)
 {
-    camera_settings_t cs = settings.camera;
-    const float dt = 1.0f/60.0f;
+    const float dt = 1.0f/60.0f; // todo: expose API vdbGetFrameDelta()
 
-    static vdbMat4 R0 = vdbMatRotateXYZ(0.0f,0.0f,0.0f);
-    static vdbVec4 T0 = vdbVec4(0.0f,0.0f,0.0f,1.0f);
-    static vdbMat4 R = R0; // world to camera
-    static vdbVec4 T = T0; // camera relative world in world
-    static float zoom = 1.0f;
+    auto &cs = settings.camera;
+    vdbMat4 &R0 = GetFrameSettings()->trackball.R;
+    vdbVec4 &T = GetFrameSettings()->trackball.T;
+    float &zoom = GetFrameSettings()->trackball.zoom;
+
+    vdbMat4 R = R0;
 
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
     {

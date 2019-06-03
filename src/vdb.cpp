@@ -34,11 +34,11 @@
 #include "stb_image_write.h"
 
 #include "vdb.h"
+#include "matrix.h"
 #include "settings.h"
 #include "keys.h"
 #include "mouse.h"
 #include "window.h"
-#include "matrix.h"
 #include "matrix_stack.h"
 #include "camera.h"
 #include "shader.h"
@@ -107,6 +107,11 @@ void vdbStepOnce()
 void vdbStepOver()
 {
     vdb::want_step_over = true;
+}
+
+static frame_settings_t *GetFrameSettings()
+{
+    return vdb::frame_settings;
 }
 
 bool vdbBeginFrame(const char *label)
