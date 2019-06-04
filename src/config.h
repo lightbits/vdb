@@ -52,6 +52,9 @@
 // Number of frames to pass between saving settings to disk
 #define VDB_SAVE_SETTINGS_PERIOD 60*5
 
+// When true, save settings every SAVE_SAVE_SETTINGS_PERIOD frame
+#define VDB_SAVE_SETTINGS_REGULARLY false
+
 // The state of ImGui windows is remembered between sessions.
 // This path specifies the path (relative to working directory)
 // where the information is stored.

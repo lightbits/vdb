@@ -204,12 +204,15 @@ bool vdbBeginFrame(const char *label)
     // Subsequent functions in VDB may also require a minimum number of frames to settle,
     // e.g. render scaling with 4x upsampling requires 16 frames.
 
-    static int save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
-    save_settings_counter--;
-    if (save_settings_counter <= 0)
+    if (VDB_SAVE_SETTINGS_REGULARLY)
     {
-        save_settings_counter += VDB_SAVE_SETTINGS_PERIOD;
-        settings.Save(VDB_SETTINGS_FILENAME);
+        static int save_settings_counter = VDB_SAVE_SETTINGS_PERIOD;
+        save_settings_counter--;
+        if (save_settings_counter <= 0)
+        {
+            save_settings_counter += VDB_SAVE_SETTINGS_PERIOD;
+            settings.Save(VDB_SETTINGS_FILENAME);
+        }
     }
 
     bool should_step_once = false;
