@@ -105,7 +105,7 @@ int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
     }
     return var->i.value;
 }
-bool vdbToggle(const char *name, bool init)
+bool vdbCheckbox(const char *name, bool init)
 {
     using namespace widgets;
     widget_t *var = vars + (var_index++);
@@ -117,7 +117,7 @@ bool vdbToggle(const char *name, bool init)
     }
     return var->t.enabled;
 }
-bool vdbRadio(const char *name)
+bool vdbRadioButton(const char *name)
 {
     using namespace widgets;
     widget_t *var = vars + (var_index++);
@@ -139,22 +139,4 @@ bool vdbButton(const char *name)
         var->type = VAR_TYPE_BUTTON;
     }
     return var->b.was_pressed;
-}
-
-void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt, bool transpose)
-{
-    if (!m)
-        return;
-    ImGui::PushID("vdbPrintMatrix");
-    ImGui::Begin(name);
-    for (int row = 0; row < rows; row++)
-    for (int col = 0; col < cols; col++)
-    {
-        if (transpose) ImGui::Text(fmt, m[col + 4*row]);
-        else ImGui::Text(fmt, m[row + 4*col]);
-        if (col < cols-1)
-            ImGui::SameLine();
-    }
-    ImGui::End();
-    ImGui::PopID();
 }

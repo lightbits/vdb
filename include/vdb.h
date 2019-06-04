@@ -172,11 +172,10 @@ void vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextu
 
 // These generate easily accessible GUI elements. Useful for simple prototypes.
 float vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
-int vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
-bool vdbToggle(const char *name, bool init);
-bool vdbRadio(const char *name);
-bool vdbButton(const char *name);
-void vdbPrintMatrix(const char *name, float *m, int rows, int cols, const char *fmt="%5.2f", bool transpose=false);
+int   vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
+bool  vdbCheckbox(const char *name, bool init);
+bool  vdbRadioButton(const char *name);
+bool  vdbButton(const char *name);
 
 // Can't be used in conjunction with built-in scaler.
 void vdbBeginRenderScale(int down, int up);
