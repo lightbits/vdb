@@ -138,7 +138,7 @@ struct frame_settings_t
     int render_scale_up;
 };
 
-struct camera_settings_t
+struct global_camera_settings_t
 {
     float mouse_sensitivity;
     float scroll_sensitivity;
@@ -158,7 +158,7 @@ struct window_settings_t
 
 struct settings_t
 {
-    camera_settings_t camera;
+    global_camera_settings_t camera;
     window_settings_t window;
     frame_settings_t frames[MAX_FRAME_SETTINGS];
     int num_frames;

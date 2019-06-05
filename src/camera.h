@@ -4,7 +4,8 @@ void vdbCamera2D(float init_zoom)
 {
     const float dt = 1.0f/60.0f;
 
-    camera_settings_t cs = settings.camera;
+    float scroll_sensitivity = settings.camera.scroll_sensitivity;
+    float mouse_sensitivity = settings.camera.mouse_sensitivity;
     static float zoom = 1.0f;
     static float position_x = 0.0f;
     static float position_y = 0.0f;
@@ -18,7 +19,7 @@ void vdbCamera2D(float init_zoom)
 
     // zooming
     {
-        zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
+        zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
     }
 
     // rotation
@@ -34,7 +35,7 @@ void vdbCamera2D(float init_zoom)
         last_mouse_angle = mouse_angle;
         if (vdbIsMouseRightDown() && fabsf(delta_angle) < 1.9f*pi)
         {
-            angle += cs.mouse_sensitivity*delta_angle*dt;
+            angle += mouse_sensitivity*delta_angle*dt;
         }
 
         if (angle < 0.0f) angle += 2.0f*pi;
@@ -59,8 +60,8 @@ void vdbCamera2D(float init_zoom)
         last_mouse_y = mouse_y;
         if (vdbIsMouseLeftDown())
         {
-            position_x += cs.mouse_sensitivity*zoom*dx*dt;
-            position_y += cs.mouse_sensitivity*zoom*dy*dt;
+            position_x += mouse_sensitivity*zoom*dx*dt;
+            position_y += mouse_sensitivity*zoom*dy*dt;
         }
     }
 
@@ -189,7 +190,8 @@ void vdbCameraTrackball(float init_radius)
 
 void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 {
-    camera_settings_t cs = settings.camera;
+    float scroll_sensitivity = settings.camera.scroll_sensitivity;
+    float mouse_sensitivity = settings.camera.mouse_sensitivity;
     const float dt = 1.0f/60.0f;
 
     static float angle_x = 0.0f;
@@ -203,7 +205,7 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
 
     // zooming
     {
-        radius -= cs.scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
+        radius -= scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
     }
 
     float aspect = vdbGetAspectRatio();
@@ -221,8 +223,8 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     {
         float dx = vdbGetMousePosNDC().x*aspect - last_mouse_x;
         float dy = vdbGetMousePosNDC().y - last_mouse_y;
-        angle_x += cs.mouse_sensitivity*dy*dt;
-        angle_y -= cs.mouse_sensitivity*dx*dt;
+        angle_x += mouse_sensitivity*dy*dt;
+        angle_y -= mouse_sensitivity*dx*dt;
         last_mouse_x = mouse_x;
         last_mouse_y = mouse_y;
         if (!vdbIsMouseLeftDown())
