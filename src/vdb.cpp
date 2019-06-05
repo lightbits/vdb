@@ -294,9 +294,9 @@ bool vdbBeginFrame(const char *label)
     if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
     {
         frame_settings_t *fs = vdb::frame_settings;
-        if      (fs->camera_type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball(fs->init_radius);
-        else if (fs->camera_type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable(fs->init_radius, fs->init_look_at);
-        else                                              vdbCamera2D(fs->init_radius);
+        if      (fs->camera_type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball();
+        else if (fs->camera_type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable();
+        else                                              vdbCamera2D();
 
         if (fs->camera_type != VDB_CAMERA_PLANAR)
         {

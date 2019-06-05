@@ -1,6 +1,6 @@
 enum camera_aspect_mode_t { VDB_STRETCH_TO_FIT, VDB_EQUAL_AXES };
 
-void vdbCamera2D(float init_zoom)
+void vdbCamera2D()
 {
     const float dt = 1.0f/60.0f;
 
@@ -11,16 +11,8 @@ void vdbCamera2D(float init_zoom)
     static float position_y = 0.0f;
     static float angle = 0.0f;
 
-    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
-    {
-        // only set zoom if this is the first frame of a new vdb block
-        if (init_zoom != 0.0f) zoom = init_zoom;
-    }
-
     // zooming
-    {
-        zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
-    }
+    zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
 
     // rotation
     {
@@ -77,7 +69,7 @@ void vdbCamera2D(float init_zoom)
     }
 }
 
-void vdbCameraTrackball(float init_radius)
+void vdbCameraTrackball()
 {
     const float dt = 1.0f/60.0f; // todo: expose API vdbGetFrameDelta()
 
@@ -88,18 +80,11 @@ void vdbCameraTrackball(float init_radius)
 
     vdbMat4 R = R0;
 
-    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
-    {
-        if (init_radius != 0.0f) zoom = init_radius;
-    }
-
     float move_speed = cs.move_speed_normal;
     if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
 
     // zooming
-    {
-        zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
-    }
+    zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
 
     // translation
     {
@@ -188,7 +173,7 @@ void vdbCameraTrackball(float init_radius)
     }
 }
 
-void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
+void vdbCameraTurntable()
 {
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
@@ -198,15 +183,8 @@ void vdbCameraTurntable(float init_radius, vdbVec3 look_at)
     static float angle_y = 0.0f;
     static float radius = 1.0f;
 
-    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
-    {
-        if (init_radius != 0.0f) radius = init_radius;
-    }
-
     // zooming
-    {
-        radius -= scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
-    }
+    radius -= scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
 
     float aspect = vdbGetAspectRatio();
     static bool dragging = false;

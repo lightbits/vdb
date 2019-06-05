@@ -99,9 +99,9 @@ void    vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) m
 // matrix stack utilities
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
-void    vdbCamera2D(float init_radius=1.0f); // Obs! overwrites the current view model matrix
-void    vdbCameraTrackball(float init_radius=1.0f); // Obs! overwrites the current view model matrix
-void    vdbCameraTurntable(float init_radius=1.0f, vdbVec3 look_at=vdbVec3()); // Obs! overwrites the current view model matrix
+void    vdbCamera2D(); // Obs! overwrites the current view model matrix
+void    vdbCameraTrackball(); // Obs! overwrites the current view model matrix
+void    vdbCameraTurntable(); // Obs! overwrites the current view model matrix
 
 // viewport and viewport conversions
 void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
