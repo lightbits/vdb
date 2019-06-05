@@ -25,47 +25,9 @@ enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
 enum { VDB_MAX_RENDER_SCALE_UP = 3 };
 
-static const char *CameraTypeToStr(camera_type_t type)
-{
-    if (type == VDB_CAMERA_DISABLED) return "disabled";
-    else if (type == VDB_CAMERA_PLANAR) return "planar";
-    else if (type == VDB_CAMERA_TRACKBALL) return "trackball";
-    else if (type == VDB_CAMERA_TURNTABLE) return "turntable";
-    return "disabled";
-}
-
-static const char *CameraUpToStr(camera_up_t mode)
-{
-    if      (mode == VDB_Z_UP) return "z_up";
-    else if (mode == VDB_Y_UP) return "y_up";
-    else if (mode == VDB_X_UP) return "x_up";
-    else if (mode == VDB_Z_DOWN) return "z_down";
-    else if (mode == VDB_Y_DOWN) return "y_down";
-    else if (mode == VDB_X_DOWN) return "x_down";
-    return "z_up";
-}
-
-static const char *Mat4ToStr(vdbMat4 m)
-{
-    static char buffer[1024];
-    sprintf(buffer, "[%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f]",
-        m.data[ 0], m.data[ 1], m.data[ 2], m.data[ 3],
-        m.data[ 4], m.data[ 5], m.data[ 6], m.data[ 7],
-        m.data[ 8], m.data[ 9], m.data[10], m.data[11],
-        m.data[12], m.data[13], m.data[14], m.data[15]);
-    return buffer;
-}
-
-static const char *Vec4ToStr(vdbVec4 v)
-{
-    static char buffer[1024];
-    sprintf(buffer, "[%f, %f, %f, %f]",
-        v.x, v.y, v.z, v.w);
-    return buffer;
-}
-
 struct camera_trackball_settings_t
 {
+    bool dirty;
     vdbMat4 R; // world to camera
     vdbVec4 T; // camera relative world in world
     float zoom;
@@ -73,9 +35,18 @@ struct camera_trackball_settings_t
 
 struct camera_turntable_settings_t
 {
+    bool dirty;
     float angle_x;
     float angle_y;
     float radius;
+};
+
+struct camera_planar_settings_t
+{
+    bool dirty;
+    vdbVec2 position;
+    float angle;
+    float zoom;
 };
 
 struct frame_settings_t
@@ -84,6 +55,7 @@ struct frame_settings_t
     camera_type_t camera_type;
     camera_trackball_settings_t trackball;
     camera_turntable_settings_t turntable;
+    camera_planar_settings_t planar;
 
     // perspective projection parameters
     float y_fov;
@@ -140,12 +112,19 @@ static frame_settings_t *GetFrameSettings(); // defined in vdb.cpp
 void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera_type = VDB_CAMERA_DISABLED;
+    fs->trackball.dirty = false;
     fs->trackball.R = vdbMatIdentity();
     fs->trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
     fs->trackball.zoom = 1.0f;
+    fs->turntable.dirty = false;
     fs->turntable.angle_x = 0.0f;
     fs->turntable.angle_y = 0.0f;
     fs->turntable.radius = 1.0f;
+    fs->planar.dirty = false;
+    fs->planar.position.x = 0.0f;
+    fs->planar.position.y = 0.0f;
+    fs->planar.zoom = 1.0f;
+    fs->planar.angle = 0.0f;
     fs->y_fov = 0.7f;
     fs->min_depth = 0.1f;
     fs->max_depth = 50.0f;
@@ -311,6 +290,15 @@ namespace settings_parser
         return true;
     }
 
+    static bool ParseVec2(const char **c, vdbVec2 *x)
+    {
+        ParseBlank(c);
+        if (!ParseFloat(c, &x->x)) return false;
+        if (!ParseComma(c))        return false;
+        if (!ParseFloat(c, &x->y)) return false;
+        return true;
+    }
+
     static bool ParseVec4(const char **c, vdbVec4 *x)
     {
         ParseBlank(c);
@@ -403,26 +391,74 @@ void settings_t::LoadOrDefault(const char *filename)
         }
         else if (frame)
         {
-                 if (ParseKey(c, "camera_type"))       ParseCameraType(c, &frame->camera_type);
-            else if (ParseKey(c, "camera_angle_x"))    ParseFloat(c, &frame->turntable.angle_x);
-            else if (ParseKey(c, "camera_angle_y"))    ParseFloat(c, &frame->turntable.angle_y);
-            else if (ParseKey(c, "camera_radius"))     ParseFloat(c, &frame->turntable.radius);
-            else if (ParseKey(c, "y_fov"))             ParseFloat(c, &frame->y_fov);
-            else if (ParseKey(c, "min_depth"))         ParseFloat(c, &frame->min_depth);
-            else if (ParseKey(c, "max_depth"))         ParseFloat(c, &frame->max_depth);
-            else if (ParseKey(c, "grid_visible"))      ParseBool(c, &frame->grid_visible);
-            else if (ParseKey(c, "grid_scale"))        ParseFloat(c, &frame->grid_scale);
-            else if (ParseKey(c, "camera_up"))         ParseCameraUp(c, &frame->camera_up);
-            else if (ParseKey(c, "cube_visible"))      ParseBool(c, &frame->cube_visible);
-            else if (ParseKey(c, "render_scale_down")) ParseInt(c, &frame->render_scale_down, 0, VDB_MAX_RENDER_SCALE_DOWN);
-            else if (ParseKey(c, "render_scale_up"))   ParseInt(c, &frame->render_scale_up, 0, VDB_MAX_RENDER_SCALE_UP);
+                 if (ParseKey(c, "camera_type"))        ParseCameraType(c, &frame->camera_type);
+            else if (ParseKey(c, "turntable_angle_x"))  ParseFloat(c, &frame->turntable.angle_x);
+            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->turntable.angle_y);
+            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->turntable.radius);
+            else if (ParseKey(c, "planar_position"))    ParseVec2(c, &frame->planar.position);
+            else if (ParseKey(c, "planar_zoom"))        ParseFloat(c, &frame->planar.zoom);
+            else if (ParseKey(c, "planar_angle"))       ParseFloat(c, &frame->planar.angle);
+            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->turntable.angle_y);
+            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->turntable.radius);
+            else if (ParseKey(c, "trackball_R"))        ParseMat4(c, &frame->trackball.R);
+            else if (ParseKey(c, "trackball_T"))        ParseVec4(c, &frame->trackball.T);
+            else if (ParseKey(c, "trackball_zoom"))     ParseFloat(c, &frame->trackball.zoom);
+            else if (ParseKey(c, "y_fov"))              ParseFloat(c, &frame->y_fov);
+            else if (ParseKey(c, "min_depth"))          ParseFloat(c, &frame->min_depth);
+            else if (ParseKey(c, "max_depth"))          ParseFloat(c, &frame->max_depth);
+            else if (ParseKey(c, "grid_visible"))       ParseBool(c, &frame->grid_visible);
+            else if (ParseKey(c, "grid_scale"))         ParseFloat(c, &frame->grid_scale);
+            else if (ParseKey(c, "camera_up"))          ParseCameraUp(c, &frame->camera_up);
+            else if (ParseKey(c, "cube_visible"))       ParseBool(c, &frame->cube_visible);
+            else if (ParseKey(c, "render_scale_down"))  ParseInt(c, &frame->render_scale_down, 0, VDB_MAX_RENDER_SCALE_DOWN);
+            else if (ParseKey(c, "render_scale_up"))    ParseInt(c, &frame->render_scale_up, 0, VDB_MAX_RENDER_SCALE_UP);
+            else *c = *c + 1;
         }
         else *c = *c + 1;
     }
 }
 
+namespace settings_writer
+{
+    static void WriteCameraType(FILE *f, const char *key, camera_type_t type)
+    {
+             if (type == VDB_CAMERA_DISABLED)  fprintf(f, "%s=disabled\n", key);
+        else if (type == VDB_CAMERA_PLANAR)    fprintf(f, "%s=planar\n", key);
+        else if (type == VDB_CAMERA_TRACKBALL) fprintf(f, "%s=trackball\n", key);
+        else if (type == VDB_CAMERA_TURNTABLE) fprintf(f, "%s=turntable\n", key);
+        else                                   fprintf(f, "%s=disabled\n", key);
+    }
+
+    static void WriteCameraUp(FILE *f, const char *key, camera_up_t mode)
+    {
+        if      (mode == VDB_Z_UP)   fprintf(f, "%s=z_up\n", key);
+        else if (mode == VDB_Y_UP)   fprintf(f, "%s=y_up\n", key);
+        else if (mode == VDB_X_UP)   fprintf(f, "%s=x_up\n", key);
+        else if (mode == VDB_Z_DOWN) fprintf(f, "%s=z_down\n", key);
+        else if (mode == VDB_Y_DOWN) fprintf(f, "%s=y_down\n", key);
+        else if (mode == VDB_X_DOWN) fprintf(f, "%s=x_down\n", key);
+        else                         fprintf(f, "%s=z_up\n", key);
+    }
+
+    static void WriteMat4(FILE *f, const char *key, vdbMat4 m)
+    {
+        fprintf(f, "%s=%g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
+            key,
+            m.data[ 0], m.data[ 1], m.data[ 2], m.data[ 3],
+            m.data[ 4], m.data[ 5], m.data[ 6], m.data[ 7],
+            m.data[ 8], m.data[ 9], m.data[10], m.data[11],
+            m.data[12], m.data[13], m.data[14], m.data[15]);
+    }
+
+    static void WriteVec4(FILE *f, const char *key, vdbVec4 v)
+    {
+        fprintf(f, "%s=%g, %g, %g, %g\n", key, v.x, v.y, v.z, v.w);
+    }
+}
+
 void settings_t::Save(const char *filename)
 {
+    using namespace settings_writer;
     FILE *f = fopen(filename, "wb+");
     if (!f)
     {
@@ -449,22 +485,39 @@ void settings_t::Save(const char *filename)
     {
         frame_settings_t *frame = frames + i;
         fprintf(f, "\n[frame]=%s\n", frame->name);
-        if (frame->camera_type != VDB_CAMERA_DISABLED)
-        {
-            fprintf(f, "camera_type=%s\n", CameraTypeToStr(frame->camera_type));
-            if (frame->camera_type != VDB_CAMERA_PLANAR)
-            {
-                fprintf(f, "y_fov=%g\n", frame->y_fov);
-                fprintf(f, "min_depth=%g\n", frame->min_depth);
-                fprintf(f, "max_depth=%g\n", frame->max_depth);
-            }
-            fprintf(f, "grid_visible=%d\n", frame->grid_visible ? 1 : 0);
-            fprintf(f, "grid_scale=%g\n", frame->grid_scale);
-            fprintf(f, "camera_up=%s\n", CameraUpToStr(frame->camera_up));
-            fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
-        }
+
+        // todo: add easy dirty flag checking
+        WriteCameraType(f, "camera_type", frame->camera_type);
+        WriteCameraUp(f, "camera_up", frame->camera_up);
+        fprintf(f, "y_fov=%g\n", frame->y_fov);
+        fprintf(f, "min_depth=%g\n", frame->min_depth);
+        fprintf(f, "max_depth=%g\n", frame->max_depth);
+        fprintf(f, "grid_visible=%d\n", frame->grid_visible ? 1 : 0);
+        fprintf(f, "grid_scale=%g\n", frame->grid_scale);
+        fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
         fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);
         fprintf(f, "render_scale_up=%d\n", frame->render_scale_up);
+
+        if (frame->planar.dirty)
+        {
+            fprintf(f, "planar_position=%g,%g\n", frame->planar.position.x, frame->planar.position.y);
+            fprintf(f, "planar_zoom=%g\n", frame->planar.zoom);
+            fprintf(f, "planar_angle=%g\n", frame->planar.angle);
+        }
+
+        if (frame->turntable.dirty)
+        {
+            fprintf(f, "turntable_angle_x=%g\n", frame->turntable.angle_x);
+            fprintf(f, "turntable_angle_y=%g\n", frame->turntable.angle_y);
+            fprintf(f, "turntable_radius=%g\n", frame->turntable.radius);
+        }
+
+        if (frame->trackball.dirty)
+        {
+            WriteMat4(f, "trackball_R", frame->trackball.R);
+            WriteVec4(f, "trackball_T", frame->trackball.T);
+            fprintf(f, "trackball_zoom=%g\n", frame->trackball.zoom);
+        }
     }
     fclose(f);
 }

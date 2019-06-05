@@ -4,12 +4,13 @@ void vdbCamera2D()
 {
     const float dt = 1.0f/60.0f;
 
+    GetFrameSettings()->planar.dirty = true;
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
-    static float zoom = 1.0f;
-    static float position_x = 0.0f;
-    static float position_y = 0.0f;
-    static float angle = 0.0f;
+    float &zoom = GetFrameSettings()->planar.zoom;
+    float &angle = GetFrameSettings()->planar.angle;
+    float &position_x = GetFrameSettings()->planar.position.x;
+    float &position_y = GetFrameSettings()->planar.position.y;
 
     // zooming
     zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
@@ -74,6 +75,7 @@ void vdbCameraTrackball()
     const float dt = 1.0f/60.0f; // todo: expose API vdbGetFrameDelta()
 
     auto &cs = settings.camera;
+    GetFrameSettings()->trackball.dirty = true;
     vdbMat4 &R0 = GetFrameSettings()->trackball.R;
     vdbVec4 &T = GetFrameSettings()->trackball.T;
     float &zoom = GetFrameSettings()->trackball.zoom;
@@ -175,6 +177,7 @@ void vdbCameraTrackball()
 
 void vdbCameraTurntable()
 {
+    GetFrameSettings()->turntable.dirty = true;
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
     float &angle_x = GetFrameSettings()->turntable.angle_x;
