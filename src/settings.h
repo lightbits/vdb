@@ -160,13 +160,6 @@ struct settings_t
 static settings_t settings;
 static frame_settings_t *GetFrameSettings(); // defined in vdb.cpp
 
-int ClampSetting(int x, int x_min, int x_max)
-{
-    if (x < x_min) return x_min;
-    else if (x > x_max) return x_max;
-    return x;
-}
-
 void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera_type = VDB_CAMERA_DISABLED;
