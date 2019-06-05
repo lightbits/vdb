@@ -275,10 +275,10 @@ bool vdbBeginFrame(const char *label)
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
 
-    if (vdb::frame_settings->render_scale_down > 0)
+    if (vdb::frame_settings->render_scaler.down > 0)
     {
-        int n_down = vdb::frame_settings->render_scale_down;
-        int n_up = vdb::frame_settings->render_scale_up;
+        int n_down = vdb::frame_settings->render_scaler.down;
+        int n_up = vdb::frame_settings->render_scaler.up;
         int w = window::framebuffer_width >> n_down;
         int h = window::framebuffer_height >> n_down;
         render_scaler::Begin(w, h, n_up);
@@ -291,19 +291,21 @@ bool vdbBeginFrame(const char *label)
 
     immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
 
-    if (vdb::frame_settings->camera_type != VDB_CAMERA_DISABLED)
+    if (vdb::frame_settings->camera.type != VDB_CAMERA_DISABLED)
     {
         frame_settings_t *fs = vdb::frame_settings;
-        if      (fs->camera_type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball();
-        else if (fs->camera_type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable();
+        if      (fs->camera.type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball();
+        else if (fs->camera.type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable();
         else                                              vdbCamera2D();
 
-        if (fs->camera_type != VDB_CAMERA_PLANAR)
+        if (fs->camera.type != VDB_CAMERA_PLANAR)
         {
             vdbDepthTest(true);
             vdbDepthWrite(true);
             vdbClearDepth(1.0f);
-            vdbPerspective(fs->y_fov, fs->min_depth, fs->max_depth);
+            vdbPerspective(fs->camera.projection.y_fov,
+                fs->camera.projection.min_depth,
+                fs->camera.projection.max_depth);
         }
 
         // We do PushMatrix to save current state for drawing grid in vdbEndFrame
@@ -311,24 +313,24 @@ bool vdbBeginFrame(const char *label)
         // pre-permutation transform
         // the built-in cameras assume that y axis is up
         vdbPushMatrix();
-        if (fs->camera_up == VDB_Z_UP)
+        if (fs->camera.up == VDB_Z_UP)
             vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
         else
-        if (fs->camera_up == VDB_X_UP)
+        if (fs->camera.up == VDB_X_UP)
             vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
         else
-        if (fs->camera_up == VDB_Z_DOWN)
+        if (fs->camera.up == VDB_Z_DOWN)
             vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
         else
-        if (fs->camera_up == VDB_Y_DOWN)
+        if (fs->camera.up == VDB_Y_DOWN)
             vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1).data);
         else
-        if (fs->camera_up == VDB_X_DOWN)
+        if (fs->camera.up == VDB_X_DOWN)
             vdbMultMatrix(vdbInitMat4(0,0,1,0, -1,0,0,0, 0,-1,0,0, 0,0,0,1).data);
 
         // pre-scaling transform
         vdbPushMatrix();
-        vdbMultMatrix(vdbMatScale(1.0f/fs->grid_scale, 1.0f/fs->grid_scale, 1.0f/fs->grid_scale).data);
+        vdbMultMatrix(vdbMatScale(1.0f/fs->grid.grid_scale, 1.0f/fs->grid.grid_scale, 1.0f/fs->grid.grid_scale).data);
     }
 
     CheckGLError();
@@ -343,8 +345,8 @@ void vdbEndFrame()
     if (render_scaler::has_begun)
         render_scaler::End();
 
-    if (vdb::frame_settings->camera_type == VDB_CAMERA_TRACKBALL ||
-        vdb::frame_settings->camera_type == VDB_CAMERA_TURNTABLE)
+    if (vdb::frame_settings->camera.type == VDB_CAMERA_TRACKBALL ||
+        vdb::frame_settings->camera.type == VDB_CAMERA_TURNTABLE)
     {
         frame_settings_t *fs = vdb::frame_settings;
         vdbDepthTest(true);
@@ -360,7 +362,7 @@ void vdbEndFrame()
         }
 
         // draw colored XYZ axes
-        if (fs->grid_visible)
+        if (fs->grid.grid_visible)
         {
             vdbVec3 color_x_axis(0.89f, 0.38f, 0.45f);
             vdbVec3 color_y_axis(0.54f, 0.85f, 0.0f);
@@ -379,7 +381,7 @@ void vdbEndFrame()
             float t = 10.0f;
             vdbLineWidth(1.0f);
             vdbBeginLines();
-            if (fs->camera_up != VDB_X_UP && fs->camera_up != VDB_X_DOWN)
+            if (fs->camera.up != VDB_X_UP && fs->camera.up != VDB_X_DOWN)
             {
                 vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);
                 vdbColor(color_x_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -387,7 +389,7 @@ void vdbEndFrame()
                 vdbColor(color_x_axis, 0.0f);      vdbVertex(+t, 0.0f, 0.0f);
             }
 
-            if (fs->camera_up != VDB_Y_UP && fs->camera_up != VDB_Y_DOWN)
+            if (fs->camera.up != VDB_Y_UP && fs->camera.up != VDB_Y_DOWN)
             {
                 vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, -t, 0.0f);
                 vdbColor(color_y_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -395,7 +397,7 @@ void vdbEndFrame()
                 vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, +t, 0.0f);
             }
 
-            if (fs->camera_up != VDB_Z_UP && fs->camera_up != VDB_Z_DOWN)
+            if (fs->camera.up != VDB_Z_UP && fs->camera.up != VDB_Z_DOWN)
             {
                 vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, -t);
                 vdbColor(color_z_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -407,7 +409,7 @@ void vdbEndFrame()
 
         vdbPopMatrix(); // pre-permutation
 
-        if (fs->cube_visible)
+        if (fs->grid.cube_visible)
         {
             vdbLineWidth(1.0f);
             if (background_is_bright) vdbColor(0.0f, 0.0f, 0.0f, 0.3f);
@@ -416,7 +418,7 @@ void vdbEndFrame()
         }
 
         // draw major and minor grid lines
-        if (fs->grid_visible)
+        if (fs->grid.grid_visible)
         {
             vdbVec3 grid_color(1.0f,1.0f,1.0f);
             float minor_alpha = 0.3f;
@@ -471,7 +473,7 @@ void vdbEndFrame()
         }
         vdbDepthTest(false);
     }
-    else if (vdb::frame_settings->camera_type == VDB_CAMERA_PLANAR)
+    else if (vdb::frame_settings->camera.type == VDB_CAMERA_PLANAR)
     {
         vdbPopMatrix(); // pre-scaling
         vdbPopMatrix(); // pre-permutation

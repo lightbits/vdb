@@ -88,7 +88,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     main_menu_bar_height = ImGui::GetWindowHeight();
     if (ImGui::BeginMenu("Camera"))
     {
-        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera_type == e)) fs->camera_type = e;
+        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera.type == e)) fs->camera.type = e;
         ITEM("Disabled", VDB_CAMERA_DISABLED);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
         ITEM("Planar", VDB_CAMERA_PLANAR);
@@ -102,20 +102,20 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Grid"))
     {
-        ImGui::MenuItem("Show grid", NULL, &fs->grid_visible);
-        ImGui::MenuItem("Show cube", NULL, &fs->cube_visible);
+        ImGui::MenuItem("Show grid", NULL, &fs->grid.grid_visible);
+        ImGui::MenuItem("Show cube", NULL, &fs->grid.cube_visible);
         ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
         ImGui::PushItemWidth(60.0f);
-        ImGui::DragFloat("Major div.", &fs->grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f);
+        ImGui::DragFloat("Major div.", &fs->grid.grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f);
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::Text("Up: ");
-        ImGui::RadioButton("+Z", &fs->camera_up, VDB_Z_UP); ImGui::SameLine();
-        ImGui::RadioButton("+Y", &fs->camera_up, VDB_Y_UP); ImGui::SameLine();
-        ImGui::RadioButton("+X", &fs->camera_up, VDB_X_UP); ImGui::SameLine();
-        ImGui::RadioButton("-Z", &fs->camera_up, VDB_Z_DOWN); ImGui::SameLine();
-        ImGui::RadioButton("-Y", &fs->camera_up, VDB_Y_DOWN); ImGui::SameLine();
-        ImGui::RadioButton("-X", &fs->camera_up, VDB_X_DOWN);
+        ImGui::RadioButton("+Z", &fs->camera.up, VDB_Z_UP); ImGui::SameLine();
+        ImGui::RadioButton("+Y", &fs->camera.up, VDB_Y_UP); ImGui::SameLine();
+        ImGui::RadioButton("+X", &fs->camera.up, VDB_X_UP); ImGui::SameLine();
+        ImGui::RadioButton("-Z", &fs->camera.up, VDB_Z_DOWN); ImGui::SameLine();
+        ImGui::RadioButton("-Y", &fs->camera.up, VDB_Y_DOWN); ImGui::SameLine();
+        ImGui::RadioButton("-X", &fs->camera.up, VDB_X_DOWN);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Settings"))
@@ -154,10 +154,10 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         }
         if (ImGui::BeginMenu("Render scale"))
         {
-            #define ITEM(label, down, up) \
-                if (ImGui::MenuItem(label, NULL, fs->render_scale_down==down && fs->render_scale_up==up)) { \
-                    fs->render_scale_down = down; \
-                    fs->render_scale_up = up; \
+            #define ITEM(label, _down, _up) \
+                if (ImGui::MenuItem(label, NULL, fs->render_scaler.down==_down && fs->render_scaler.up==_up)) { \
+                    fs->render_scaler.down = _down; \
+                    fs->render_scaler.up = _up; \
                 }
             ITEM("1/1", 0, 0);
             ITEM("1/2", 1, 0);

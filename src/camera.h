@@ -4,13 +4,13 @@ void vdbCamera2D()
 {
     const float dt = 1.0f/60.0f;
 
-    GetFrameSettings()->planar.dirty = true;
+    GetFrameSettings()->camera.planar.dirty = true;
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
-    float &zoom = GetFrameSettings()->planar.zoom;
-    float &angle = GetFrameSettings()->planar.angle;
-    float &position_x = GetFrameSettings()->planar.position.x;
-    float &position_y = GetFrameSettings()->planar.position.y;
+    float &zoom = GetFrameSettings()->camera.planar.zoom;
+    float &angle = GetFrameSettings()->camera.planar.angle;
+    float &position_x = GetFrameSettings()->camera.planar.position.x;
+    float &position_y = GetFrameSettings()->camera.planar.position.y;
 
     // zooming
     zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
@@ -75,10 +75,10 @@ void vdbCameraTrackball()
     const float dt = 1.0f/60.0f; // todo: expose API vdbGetFrameDelta()
 
     auto &cs = settings.camera;
-    GetFrameSettings()->trackball.dirty = true;
-    vdbMat4 &R0 = GetFrameSettings()->trackball.R;
-    vdbVec4 &T = GetFrameSettings()->trackball.T;
-    float &zoom = GetFrameSettings()->trackball.zoom;
+    GetFrameSettings()->camera.trackball.dirty = true;
+    vdbMat4 &R0 = GetFrameSettings()->camera.trackball.R;
+    vdbVec4 &T = GetFrameSettings()->camera.trackball.T;
+    float &zoom = GetFrameSettings()->camera.trackball.zoom;
 
     vdbMat4 R = R0;
 
@@ -177,12 +177,12 @@ void vdbCameraTrackball()
 
 void vdbCameraTurntable()
 {
-    GetFrameSettings()->turntable.dirty = true;
+    GetFrameSettings()->camera.turntable.dirty = true;
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
-    float &angle_x = GetFrameSettings()->turntable.angle_x;
-    float &angle_y = GetFrameSettings()->turntable.angle_y;
-    float &radius = GetFrameSettings()->turntable.radius;
+    float &angle_x = GetFrameSettings()->camera.turntable.angle_x;
+    float &angle_y = GetFrameSettings()->camera.turntable.angle_y;
+    float &radius = GetFrameSettings()->camera.turntable.radius;
     const float dt = 1.0f/60.0f;
 
     // zooming

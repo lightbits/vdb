@@ -49,26 +49,46 @@ struct camera_planar_settings_t
     float zoom;
 };
 
-struct frame_settings_t
+struct projection_settings_t
 {
-    char *name;
-    camera_type_t camera_type;
-    camera_trackball_settings_t trackball;
-    camera_turntable_settings_t turntable;
-    camera_planar_settings_t planar;
-
-    // perspective projection parameters
+    bool dirty;
     float y_fov;
     float min_depth;
     float max_depth;
+};
 
-    camera_up_t camera_up;
+struct grid_settings_t
+{
+    bool dirty;
     bool grid_visible;
     float grid_scale;
     bool cube_visible;
+};
 
-    int render_scale_down;
-    int render_scale_up;
+struct render_scaler_settings_t
+{
+    bool dirty;
+    int down;
+    int up;
+};
+
+struct camera_settings_t
+{
+    bool dirty;
+    projection_settings_t projection;
+    camera_type_t type;
+    camera_trackball_settings_t trackball;
+    camera_turntable_settings_t turntable;
+    camera_planar_settings_t planar;
+    camera_up_t up;
+};
+
+struct frame_settings_t
+{
+    char *name;
+    camera_settings_t camera;
+    render_scaler_settings_t render_scaler;
+    grid_settings_t grid;
 };
 
 struct global_camera_settings_t
@@ -111,29 +131,33 @@ static frame_settings_t *GetFrameSettings(); // defined in vdb.cpp
 
 void DefaultFrameSettings(frame_settings_t *fs)
 {
-    fs->camera_type = VDB_CAMERA_DISABLED;
-    fs->trackball.dirty = false;
-    fs->trackball.R = vdbMatIdentity();
-    fs->trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
-    fs->trackball.zoom = 1.0f;
-    fs->turntable.dirty = false;
-    fs->turntable.angle_x = 0.0f;
-    fs->turntable.angle_y = 0.0f;
-    fs->turntable.radius = 1.0f;
-    fs->planar.dirty = false;
-    fs->planar.position.x = 0.0f;
-    fs->planar.position.y = 0.0f;
-    fs->planar.zoom = 1.0f;
-    fs->planar.angle = 0.0f;
-    fs->y_fov = 0.7f;
-    fs->min_depth = 0.1f;
-    fs->max_depth = 50.0f;
-    fs->grid_visible = false;
-    fs->grid_scale = 2.0f;
-    fs->camera_up = VDB_Z_UP;
-    fs->cube_visible = false;
-    fs->render_scale_down = 0;
-    fs->render_scale_up = 0;
+    fs->camera.dirty = false;
+    fs->camera.type = VDB_CAMERA_DISABLED;
+    fs->camera.trackball.dirty = false;
+    fs->camera.trackball.R = vdbMatIdentity();
+    fs->camera.trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
+    fs->camera.trackball.zoom = 1.0f;
+    fs->camera.turntable.dirty = false;
+    fs->camera.turntable.angle_x = 0.0f;
+    fs->camera.turntable.angle_y = 0.0f;
+    fs->camera.turntable.radius = 1.0f;
+    fs->camera.planar.dirty = false;
+    fs->camera.planar.position.x = 0.0f;
+    fs->camera.planar.position.y = 0.0f;
+    fs->camera.planar.zoom = 1.0f;
+    fs->camera.planar.angle = 0.0f;
+    fs->camera.projection.dirty = false;
+    fs->camera.projection.y_fov = 0.7f;
+    fs->camera.projection.min_depth = 0.1f;
+    fs->camera.projection.max_depth = 50.0f;
+    fs->grid.dirty = false;
+    fs->grid.grid_visible = false;
+    fs->grid.grid_scale = 2.0f;
+    fs->grid.cube_visible = false;
+    fs->camera.up = VDB_Z_UP;
+    fs->render_scaler.dirty = false;
+    fs->render_scaler.down = 0;
+    fs->render_scaler.up = 0;
 }
 
 namespace settings_parser
@@ -347,29 +371,15 @@ void settings_t::LoadOrDefault(const char *filename)
         data[len] = '\0';
         fclose(f);
     }
-    const char **c = (const char **)&data;
+    const char *_c = data;
+    const char **c = &_c;
 
     frame_settings_t *frame = NULL;
 
     while (**c)
     {
         using namespace settings_parser;
-             if (ParseKey(c, "window_pos"))         ParseInt2(c, &window.x, &window.y);
-        else if (ParseKey(c, "window_size"))        ParseInt2(c, &window.width, &window.height);
-        else if (ParseKey(c, "never_ask_on_exit"))  ParseBool(c, &never_ask_on_exit);
-        else if (ParseKey(c, "show_main_menu"))     ParseBool(c, &show_main_menu);
-        else if (ParseKey(c, "mouse_sensitivity"))  ParseFloat(c, &camera.mouse_sensitivity);
-        else if (ParseKey(c, "scroll_sensitivity")) ParseFloat(c, &camera.scroll_sensitivity);
-        else if (ParseKey(c, "move_speed_normal"))  ParseFloat(c, &camera.move_speed_normal);
-        else if (ParseKey(c, "move_speed_slow"))    ParseFloat(c, &camera.move_speed_slow);
-        else if (ParseKey(c, "Kp_zoom"))            ParseFloat(c, &camera.Kp_zoom);
-        else if (ParseKey(c, "Kp_translate"))       ParseFloat(c, &camera.Kp_translate);
-        else if (ParseKey(c, "Kp_rotate"))          ParseFloat(c, &camera.Kp_rotate);
-        else if (ParseKey(c, "font_size"))          ParseFloatToInt(c, &font_size, 6, 96);
-        else if (ParseKey(c, "dpi_scale"))          ParseFloatToInt(c, &dpi_scale, 100, 200);
-        else if (ParseKey(c, "can_idle"))           ParseBool(c, &can_idle);
-        else if (ParseKey(c, "auto_step_delay_ms")) ParseInt(c, &auto_step_delay_ms);
-        else if (ParseKey(c, "[frame]"))
+        if (ParseKey(c, "[frame]"))
         {
             if (num_frames == MAX_FRAME_SETTINGS)
             {
@@ -391,29 +401,44 @@ void settings_t::LoadOrDefault(const char *filename)
         }
         else if (frame)
         {
-                 if (ParseKey(c, "camera_type"))        ParseCameraType(c, &frame->camera_type);
-            else if (ParseKey(c, "turntable_angle_x"))  ParseFloat(c, &frame->turntable.angle_x);
-            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->turntable.angle_y);
-            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->turntable.radius);
-            else if (ParseKey(c, "planar_position"))    ParseVec2(c, &frame->planar.position);
-            else if (ParseKey(c, "planar_zoom"))        ParseFloat(c, &frame->planar.zoom);
-            else if (ParseKey(c, "planar_angle"))       ParseFloat(c, &frame->planar.angle);
-            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->turntable.angle_y);
-            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->turntable.radius);
-            else if (ParseKey(c, "trackball_R"))        ParseMat4(c, &frame->trackball.R);
-            else if (ParseKey(c, "trackball_T"))        ParseVec4(c, &frame->trackball.T);
-            else if (ParseKey(c, "trackball_zoom"))     ParseFloat(c, &frame->trackball.zoom);
-            else if (ParseKey(c, "y_fov"))              ParseFloat(c, &frame->y_fov);
-            else if (ParseKey(c, "min_depth"))          ParseFloat(c, &frame->min_depth);
-            else if (ParseKey(c, "max_depth"))          ParseFloat(c, &frame->max_depth);
-            else if (ParseKey(c, "grid_visible"))       ParseBool(c, &frame->grid_visible);
-            else if (ParseKey(c, "grid_scale"))         ParseFloat(c, &frame->grid_scale);
-            else if (ParseKey(c, "camera_up"))          ParseCameraUp(c, &frame->camera_up);
-            else if (ParseKey(c, "cube_visible"))       ParseBool(c, &frame->cube_visible);
-            else if (ParseKey(c, "render_scale_down"))  ParseInt(c, &frame->render_scale_down, 0, VDB_MAX_RENDER_SCALE_DOWN);
-            else if (ParseKey(c, "render_scale_up"))    ParseInt(c, &frame->render_scale_up, 0, VDB_MAX_RENDER_SCALE_UP);
+                 if (ParseKey(c, "camera_type"))        ParseCameraType(c, &frame->camera.type);
+            else if (ParseKey(c, "camera_up"))          ParseCameraUp(c, &frame->camera.up);
+            else if (ParseKey(c, "turntable_angle_x"))  ParseFloat(c, &frame->camera.turntable.angle_x);
+            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->camera.turntable.angle_y);
+            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->camera.turntable.radius);
+            else if (ParseKey(c, "planar_position"))    ParseVec2(c, &frame->camera.planar.position);
+            else if (ParseKey(c, "planar_zoom"))        ParseFloat(c, &frame->camera.planar.zoom);
+            else if (ParseKey(c, "planar_angle"))       ParseFloat(c, &frame->camera.planar.angle);
+            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->camera.turntable.angle_y);
+            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->camera.turntable.radius);
+            else if (ParseKey(c, "trackball_R"))        ParseMat4(c, &frame->camera.trackball.R);
+            else if (ParseKey(c, "trackball_T"))        ParseVec4(c, &frame->camera.trackball.T);
+            else if (ParseKey(c, "trackball_zoom"))     ParseFloat(c, &frame->camera.trackball.zoom);
+            else if (ParseKey(c, "y_fov"))              ParseFloat(c, &frame->camera.projection.y_fov);
+            else if (ParseKey(c, "min_depth"))          ParseFloat(c, &frame->camera.projection.min_depth);
+            else if (ParseKey(c, "max_depth"))          ParseFloat(c, &frame->camera.projection.max_depth);
+            else if (ParseKey(c, "grid_visible"))       ParseBool(c, &frame->grid.grid_visible);
+            else if (ParseKey(c, "grid_scale"))         ParseFloat(c, &frame->grid.grid_scale);
+            else if (ParseKey(c, "cube_visible"))       ParseBool(c, &frame->grid.cube_visible);
+            else if (ParseKey(c, "render_scale_down"))  ParseInt(c, &frame->render_scaler.down, 0, VDB_MAX_RENDER_SCALE_DOWN);
+            else if (ParseKey(c, "render_scale_up"))    ParseInt(c, &frame->render_scaler.up, 0, VDB_MAX_RENDER_SCALE_UP);
             else *c = *c + 1;
         }
+        else if (ParseKey(c, "window_pos"))         ParseInt2(c, &window.x, &window.y);
+        else if (ParseKey(c, "window_size"))        ParseInt2(c, &window.width, &window.height);
+        else if (ParseKey(c, "never_ask_on_exit"))  ParseBool(c, &never_ask_on_exit);
+        else if (ParseKey(c, "show_main_menu"))     ParseBool(c, &show_main_menu);
+        else if (ParseKey(c, "mouse_sensitivity"))  ParseFloat(c, &camera.mouse_sensitivity);
+        else if (ParseKey(c, "scroll_sensitivity")) ParseFloat(c, &camera.scroll_sensitivity);
+        else if (ParseKey(c, "move_speed_normal"))  ParseFloat(c, &camera.move_speed_normal);
+        else if (ParseKey(c, "move_speed_slow"))    ParseFloat(c, &camera.move_speed_slow);
+        else if (ParseKey(c, "Kp_zoom"))            ParseFloat(c, &camera.Kp_zoom);
+        else if (ParseKey(c, "Kp_translate"))       ParseFloat(c, &camera.Kp_translate);
+        else if (ParseKey(c, "Kp_rotate"))          ParseFloat(c, &camera.Kp_rotate);
+        else if (ParseKey(c, "font_size"))          ParseFloatToInt(c, &font_size, 6, 96);
+        else if (ParseKey(c, "dpi_scale"))          ParseFloatToInt(c, &dpi_scale, 100, 200);
+        else if (ParseKey(c, "can_idle"))           ParseBool(c, &can_idle);
+        else if (ParseKey(c, "auto_step_delay_ms")) ParseInt(c, &auto_step_delay_ms);
         else *c = *c + 1;
     }
 
@@ -488,37 +513,51 @@ void settings_t::Save(const char *filename)
         frame_settings_t *frame = frames + i;
         fprintf(f, "\n[frame]=%s\n", frame->name);
 
-        // todo: add easy dirty flag checking
-        WriteCameraType(f, "camera_type", frame->camera_type);
-        WriteCameraUp(f, "camera_up", frame->camera_up);
-        fprintf(f, "y_fov=%g\n", frame->y_fov);
-        fprintf(f, "min_depth=%g\n", frame->min_depth);
-        fprintf(f, "max_depth=%g\n", frame->max_depth);
-        fprintf(f, "grid_visible=%d\n", frame->grid_visible ? 1 : 0);
-        fprintf(f, "grid_scale=%g\n", frame->grid_scale);
-        fprintf(f, "cube_visible=%d\n", frame->cube_visible ? 1 : 0);
-        fprintf(f, "render_scale_down=%d\n", frame->render_scale_down);
-        fprintf(f, "render_scale_up=%d\n", frame->render_scale_up);
-
-        if (frame->planar.dirty)
+        // if (frame->camera.dirty)
         {
-            fprintf(f, "planar_position=%g,%g\n", frame->planar.position.x, frame->planar.position.y);
-            fprintf(f, "planar_zoom=%g\n", frame->planar.zoom);
-            fprintf(f, "planar_angle=%g\n", frame->planar.angle);
+            WriteCameraType(f, "camera_type", frame->camera.type);
+            WriteCameraUp(f, "camera_up", frame->camera.up);
+
+            // if (frame->camera.planar.dirty)
+            {
+                fprintf(f, "planar_position=%g,%g\n", frame->camera.planar.position.x, frame->camera.planar.position.y);
+                fprintf(f, "planar_zoom=%g\n", frame->camera.planar.zoom);
+                fprintf(f, "planar_angle=%g\n", frame->camera.planar.angle);
+            }
+
+            // if (frame->camera.turntable.dirty)
+            {
+                fprintf(f, "turntable_angle_x=%g\n", frame->camera.turntable.angle_x);
+                fprintf(f, "turntable_angle_y=%g\n", frame->camera.turntable.angle_y);
+                fprintf(f, "turntable_radius=%g\n", frame->camera.turntable.radius);
+            }
+
+            // if (frame->camera.trackball.dirty)
+            {
+                WriteMat4(f, "trackball_R", frame->camera.trackball.R);
+                WriteVec4(f, "trackball_T", frame->camera.trackball.T);
+                fprintf(f, "trackball_zoom=%g\n", frame->camera.trackball.zoom);
+            }
+
+            // if (frame->camera.projection.dirty)
+            {
+                fprintf(f, "y_fov=%g\n", frame->camera.projection.y_fov);
+                fprintf(f, "min_depth=%g\n", frame->camera.projection.min_depth);
+                fprintf(f, "max_depth=%g\n", frame->camera.projection.max_depth);
+            }
+
+            // if (frame->grid.dirty)
+            {
+                fprintf(f, "grid_visible=%d\n", frame->grid.grid_visible ? 1 : 0);
+                fprintf(f, "grid_scale=%g\n", frame->grid.grid_scale);
+                fprintf(f, "cube_visible=%d\n", frame->grid.cube_visible ? 1 : 0);
+            }
         }
 
-        if (frame->turntable.dirty)
+        // if (frame->render_scaler.dirty)
         {
-            fprintf(f, "turntable_angle_x=%g\n", frame->turntable.angle_x);
-            fprintf(f, "turntable_angle_y=%g\n", frame->turntable.angle_y);
-            fprintf(f, "turntable_radius=%g\n", frame->turntable.radius);
-        }
-
-        if (frame->trackball.dirty)
-        {
-            WriteMat4(f, "trackball_R", frame->trackball.R);
-            WriteVec4(f, "trackball_T", frame->trackball.T);
-            fprintf(f, "trackball_zoom=%g\n", frame->trackball.zoom);
+            fprintf(f, "render_scale_down=%d\n", frame->render_scaler.down);
+            fprintf(f, "render_scale_up=%d\n", frame->render_scaler.up);
         }
     }
     fclose(f);
