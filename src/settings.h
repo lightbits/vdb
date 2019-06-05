@@ -416,6 +416,8 @@ void settings_t::LoadOrDefault(const char *filename)
         }
         else *c = *c + 1;
     }
+
+    free(data);
 }
 
 namespace settings_writer
