@@ -25,15 +25,6 @@ enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
 enum { VDB_MAX_RENDER_SCALE_UP = 3 };
 
-static camera_type_t CameraTypeFromStr(const char *str)
-{
-    if (strcmp(str, "disabled") == 0) return VDB_CAMERA_DISABLED;
-    else if (strcmp(str, "planar") == 0) return VDB_CAMERA_PLANAR;
-    else if (strcmp(str, "trackball") == 0) return VDB_CAMERA_TRACKBALL;
-    else if (strcmp(str, "turntable") == 0) return VDB_CAMERA_TURNTABLE;
-    return VDB_CAMERA_DISABLED;
-}
-
 static const char *CameraTypeToStr(camera_type_t type)
 {
     if (type == VDB_CAMERA_DISABLED) return "disabled";
@@ -41,17 +32,6 @@ static const char *CameraTypeToStr(camera_type_t type)
     else if (type == VDB_CAMERA_TRACKBALL) return "trackball";
     else if (type == VDB_CAMERA_TURNTABLE) return "turntable";
     return "disabled";
-}
-
-static camera_up_t CameraUpFromStr(const char *str)
-{
-    if      (strcmp(str, "z_up") == 0) return VDB_Z_UP;
-    else if (strcmp(str, "y_up") == 0) return VDB_Y_UP;
-    else if (strcmp(str, "x_up") == 0) return VDB_X_UP;
-    else if (strcmp(str, "z_down") == 0) return VDB_Z_DOWN;
-    else if (strcmp(str, "y_down") == 0) return VDB_Y_DOWN;
-    else if (strcmp(str, "x_down") == 0) return VDB_X_DOWN;
-    return VDB_Z_UP;
 }
 
 static const char *CameraUpToStr(camera_up_t mode)
@@ -207,6 +187,147 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->render_scale_up = 0;
 }
 
+namespace settings_parser
+{
+    static bool IsAlphaNumeric(char c)
+    {
+        return (c >= 'a' && c <= 'z') ||
+               (c >= 'A' && c <= 'Z') ||
+               (c >= '0' && c <= '9');
+    }
+
+    static void ParseBlank(const char **c)
+    {
+        while (**c == ' ' || **c == '\n' || **c == '\r' || **c == '\t')
+            *c = *c + 1;
+    }
+
+    static void ClampInt(int *x, int x_min, int x_max)
+    {
+        if (*x < x_min) *x = x_min;
+        if (*x > x_max) *x = x_max;
+    }
+
+    static bool ParseInt(const char **c, int *x, int x_min=0, int x_max=0)
+    {
+        ParseBlank(c);
+        int b;
+        if (1 == sscanf(*c, "%d%n", x, &b))
+        {
+            if (x_min != x_max)
+                ClampInt(x, x_min, x_max);
+            *c = *c + b;
+            return true;
+        }
+        return false;
+    }
+
+    static bool ParseFloat(const char **c, float *x)
+    {
+        ParseBlank(c);
+        int b;
+        if (1 == sscanf(*c, "%f%n", x, &b))
+        {
+            *c = *c + b;
+            return true;
+        }
+        return false;
+    }
+
+    static bool ParseFloatToInt(const char **c, int *x, int x_min, int x_max)
+    {
+        ParseBlank(c);
+        int b;
+        float f;
+        if (1 == sscanf(*c, "%f%n", &f, &b))
+        {
+            *x = (int)f;
+            ClampInt(x, x_min, x_max);
+            *c = *c + b;
+            return true;
+        }
+        return false;
+    }
+
+    static bool ParseComma(const char **c)
+    {
+        ParseBlank(c);
+        if (**c == ',')
+        {
+            *c = *c + 1;
+            return true;
+        }
+        return false;
+    }
+
+    static bool ParseString(const char **c, const char *match)
+    {
+        ParseBlank(c);
+        const char *a = *c;
+        const char *b = match;
+        while (*a && *b)
+        {
+            if (*a != *b)
+                return false;
+            a++;
+            b++;
+        }
+        if (*b) return false;
+        *c = a;
+        return true;
+    }
+
+    static bool ParseKey(const char **c, const char *match)
+    {
+        if (!ParseString(c, match)) return false;
+        ParseBlank(c);
+        if (**c != '=') return false;
+        *c = *c + 1;
+        return true;
+    }
+
+    static bool ParseBool(const char **c, bool *x)
+    {
+        ParseBlank(c);
+             if (**c == '0')           { *x = false; *c = *c + 1; return true; }
+        else if (**c == '1')           { *x = true; *c = *c + 1; return true; }
+        else if (ParseString(c, "False")) { *x = false; return true; }
+        else if (ParseString(c, "True"))  { *x = true; return true; }
+        else if (ParseString(c, "false")) { *x = false; return true; }
+        else if (ParseString(c, "true"))  { *x = true; return true; }
+        return false;
+    }
+
+    static bool ParseCameraType(const char **c, camera_type_t *type)
+    {
+        if      (ParseString(c, "disabled"))  { *type = VDB_CAMERA_DISABLED; return true; }
+        else if (ParseString(c, "planar"))    { *type = VDB_CAMERA_PLANAR; return true; }
+        else if (ParseString(c, "trackball")) { *type = VDB_CAMERA_TRACKBALL; return true; }
+        else if (ParseString(c, "turntable")) { *type = VDB_CAMERA_TURNTABLE; return true; }
+        return false;
+    }
+
+    static bool ParseCameraUp(const char **c, camera_up_t *up)
+    {
+        if      (ParseString(c, "z_up"))   { *up = VDB_Z_UP; return true; }
+        else if (ParseString(c, "y_up"))   { *up = VDB_Y_UP; return true; }
+        else if (ParseString(c, "x_up"))   { *up = VDB_X_UP; return true; }
+        else if (ParseString(c, "z_down")) { *up = VDB_Z_DOWN; return true; }
+        else if (ParseString(c, "y_down")) { *up = VDB_Y_DOWN; return true; }
+        else if (ParseString(c, "x_down")) { *up = VDB_X_DOWN; return true; }
+        return false;
+    }
+
+    static bool ParseInt2(const char **c, int *x, int *y)
+    {
+        if (!ParseInt(c, x)) return false;
+        if (!ParseComma(c)) return false;
+        if (!ParseInt(c, y)) return false;
+        return true;
+    }
+}
+
+
 void settings_t::LoadOrDefault(const char *filename)
 {
     camera.mouse_sensitivity = 50.0f;
@@ -228,37 +349,42 @@ void settings_t::LoadOrDefault(const char *filename)
     auto_step_delay_ms = 250;
     font_size = (int)(VDB_DEFAULT_FONT_SIZE);
 
-    FILE *f = fopen(filename, "rb");
-    if (!f) return;
-    if (fseek(f, 0, SEEK_END)) { fclose(f); return; }
-    int file_size = (int)ftell(f);
-    if (file_size <= 0)        { fclose(f); return; }
-    if (fseek(f, 0, SEEK_SET)) { fclose(f); return; }
+    char *data = NULL;
+    {
+        FILE *f = fopen(filename, "rb");
+        if (!f) return;
+        if (fseek(f, 0, SEEK_END)) { fclose(f); return; }
+        int len = (int)ftell(f);
+        if (len <= 0)        { fclose(f); return; }
+        if (fseek(f, 0, SEEK_SET)) { fclose(f); return; }
+        data = (char*)malloc(len + 1);
+        if (!fread(data, 1, len, f)) { fclose(f); free(data); return; }
+        data[len] = '\0';
+        fclose(f);
+    }
+    const char **c = (const char **)&data;
 
     frame_settings_t *frame = NULL;
-    char *line = (char*)malloc(file_size);
-    char *str = (char*)malloc(file_size);
-    while (fgets(line, file_size, f))
+
+    while (**c)
     {
-        int x,y;
-        int i;
-        float f;
-        if      (2 == sscanf(line, "window_pos=%d,%d", &x, &y))  { window.x = x; window.y = y; }
-        else if (2 == sscanf(line, "window_size=%d,%d", &x, &y)) { window.width = x; window.height = y; }
-        else if (1 == sscanf(line, "never_ask_on_exit=%d", &i))  { never_ask_on_exit = (i != 0); }
-        else if (1 == sscanf(line, "show_main_menu=%d", &i))     { show_main_menu = (i != 0); }
-        else if (1 == sscanf(line, "mouse_sensitivity=%f", &f))  { camera.mouse_sensitivity = f; }
-        else if (1 == sscanf(line, "scroll_sensitivity=%f", &f)) { camera.scroll_sensitivity = f; }
-        else if (1 == sscanf(line, "move_speed_normal=%f", &f))  { camera.move_speed_normal = f; }
-        else if (1 == sscanf(line, "move_speed_slow=%f", &f))    { camera.move_speed_slow = f; }
-        else if (1 == sscanf(line, "Kp_zoom=%f", &f))            { camera.Kp_zoom = f; }
-        else if (1 == sscanf(line, "Kp_translate=%f", &f))       { camera.Kp_translate = f; }
-        else if (1 == sscanf(line, "Kp_rotate=%f", &f))          { camera.Kp_rotate = f; }
-        else if (1 == sscanf(line, "font_size=%f", &f))          { font_size = ClampSetting((int)f, 6, 96); }
-        else if (1 == sscanf(line, "dpi_scale=%d", &i))          { dpi_scale = ClampSetting(i, 100, 200); }
-        else if (1 == sscanf(line, "can_idle=%d", &i))           { can_idle = (i != 0); }
-        else if (1 == sscanf(line, "auto_step_delay_ms=%d", &i)) { auto_step_delay_ms = i; }
-        else if (line == strstr(line, "[frame]="))
+        using namespace settings_parser;
+             if (ParseKey(c, "window_pos"))         ParseInt2(c, &window.x, &window.y);
+        else if (ParseKey(c, "window_size"))        ParseInt2(c, &window.width, &window.height);
+        else if (ParseKey(c, "never_ask_on_exit"))  ParseBool(c, &never_ask_on_exit);
+        else if (ParseKey(c, "show_main_menu"))     ParseBool(c, &show_main_menu);
+        else if (ParseKey(c, "mouse_sensitivity"))  ParseFloat(c, &camera.mouse_sensitivity);
+        else if (ParseKey(c, "scroll_sensitivity")) ParseFloat(c, &camera.scroll_sensitivity);
+        else if (ParseKey(c, "move_speed_normal"))  ParseFloat(c, &camera.move_speed_normal);
+        else if (ParseKey(c, "move_speed_slow"))    ParseFloat(c, &camera.move_speed_slow);
+        else if (ParseKey(c, "Kp_zoom"))            ParseFloat(c, &camera.Kp_zoom);
+        else if (ParseKey(c, "Kp_translate"))       ParseFloat(c, &camera.Kp_translate);
+        else if (ParseKey(c, "Kp_rotate"))          ParseFloat(c, &camera.Kp_rotate);
+        else if (ParseKey(c, "font_size"))          ParseFloatToInt(c, &font_size, 6, 96);
+        else if (ParseKey(c, "dpi_scale"))          ParseFloatToInt(c, &dpi_scale, 100, 200);
+        else if (ParseKey(c, "can_idle"))           ParseBool(c, &can_idle);
+        else if (ParseKey(c, "auto_step_delay_ms")) ParseInt(c, &auto_step_delay_ms);
+        else if (ParseKey(c, "[frame]"))
         {
             if (num_frames == MAX_FRAME_SETTINGS)
             {
@@ -268,30 +394,31 @@ void settings_t::LoadOrDefault(const char *filename)
             }
             assert(num_frames < MAX_FRAME_SETTINGS);
             frame = frames + (num_frames++);
-            frame->name = strdup(line + strlen("[frame]="));
-            // remove trailing newlines:
-            size_t len = strlen(frame->name);
-            while (len > 0 && (frame->name[len-1] == '\n' || frame->name[len-1] == '\r'))
-                frame->name[--len] = '\0';
+            const char *name_begin = *c;
+            while (**c && !(**c == '\n' || **c == '\r'))
+                *c = *c + 1;
+            const char *name_end = *c;
+            size_t len = name_end - name_begin;
+            frame->name = (char*)malloc(len + 1);
+            memcpy(frame->name, name_begin, len);
+            frame->name[len] = '\0';
             DefaultFrameSettings(frame);
         }
         else if (frame)
         {
-                 if (1 == sscanf(line, "camera_type=%s", str))      { frame->camera_type = CameraTypeFromStr(str); }
-            else if (1 == sscanf(line, "y_fov=%f", &f))             { frame->y_fov = f; }
-            else if (1 == sscanf(line, "min_depth=%f", &f))         { frame->min_depth = f; }
-            else if (1 == sscanf(line, "max_depth=%f", &f))         { frame->max_depth = f; }
-            else if (1 == sscanf(line, "grid_visible=%d", &i))      { frame->grid_visible = (i == 1) ? true : false; }
-            else if (1 == sscanf(line, "grid_scale=%f", &f))        { frame->grid_scale = f; }
-            else if (1 == sscanf(line, "camera_up=%s", str))        { frame->camera_up = CameraUpFromStr(str); }
-            else if (1 == sscanf(line, "cube_visible=%d", &i))      { frame->cube_visible = (i == 1) ? true : false; }
-            else if (1 == sscanf(line, "render_scale_down=%d", &i)) { frame->render_scale_down = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_DOWN); }
-            else if (1 == sscanf(line, "render_scale_up=%d", &i))   { frame->render_scale_up = ClampSetting(i, 0, VDB_MAX_RENDER_SCALE_UP); }
+                 if (ParseKey(c, "camera_type"))       ParseCameraType(c, &frame->camera_type);
+            else if (ParseKey(c, "y_fov"))             ParseFloat(c, &frame->y_fov);
+            else if (ParseKey(c, "min_depth"))         ParseFloat(c, &frame->min_depth);
+            else if (ParseKey(c, "max_depth"))         ParseFloat(c, &frame->max_depth);
+            else if (ParseKey(c, "grid_visible"))      ParseBool(c, &frame->grid_visible);
+            else if (ParseKey(c, "grid_scale"))        ParseFloat(c, &frame->grid_scale);
+            else if (ParseKey(c, "camera_up"))         ParseCameraUp(c, &frame->camera_up);
+            else if (ParseKey(c, "cube_visible"))      ParseBool(c, &frame->cube_visible);
+            else if (ParseKey(c, "render_scale_down")) ParseInt(c, &frame->render_scale_down, 0, VDB_MAX_RENDER_SCALE_DOWN);
+            else if (ParseKey(c, "render_scale_up"))   ParseInt(c, &frame->render_scale_up, 0, VDB_MAX_RENDER_SCALE_UP);
         }
+        else *c = *c + 1;
     }
-    free(line);
-    free(str);
-    fclose(f);
 }
 
 void settings_t::Save(const char *filename)
