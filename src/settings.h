@@ -403,17 +403,17 @@ void settings_t::LoadOrDefault(const char *filename)
         {
                  if (ParseKey(c, "camera_type"))        ParseCameraType(c, &frame->camera.type);
             else if (ParseKey(c, "camera_up"))          ParseCameraUp(c, &frame->camera.up);
-            else if (ParseKey(c, "turntable_angle_x"))  ParseFloat(c, &frame->camera.turntable.angle_x);
-            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->camera.turntable.angle_y);
-            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->camera.turntable.radius);
-            else if (ParseKey(c, "planar_position"))    ParseVec2(c, &frame->camera.planar.position);
-            else if (ParseKey(c, "planar_zoom"))        ParseFloat(c, &frame->camera.planar.zoom);
-            else if (ParseKey(c, "planar_angle"))       ParseFloat(c, &frame->camera.planar.angle);
-            else if (ParseKey(c, "turntable_angle_y"))  ParseFloat(c, &frame->camera.turntable.angle_y);
-            else if (ParseKey(c, "turntable_radius"))   ParseFloat(c, &frame->camera.turntable.radius);
-            else if (ParseKey(c, "trackball_R"))        ParseMat4(c, &frame->camera.trackball.R);
-            else if (ParseKey(c, "trackball_T"))        ParseVec4(c, &frame->camera.trackball.T);
-            else if (ParseKey(c, "trackball_zoom"))     ParseFloat(c, &frame->camera.trackball.zoom);
+            else if (ParseKey(c, "turntable_angle_x"))  { ParseFloat(c, &frame->camera.turntable.angle_x); frame->camera.turntable.dirty = true; }
+            else if (ParseKey(c, "turntable_angle_y"))  { ParseFloat(c, &frame->camera.turntable.angle_y); frame->camera.turntable.dirty = true; }
+            else if (ParseKey(c, "turntable_radius"))   { ParseFloat(c, &frame->camera.turntable.radius); frame->camera.turntable.dirty = true; }
+            else if (ParseKey(c, "planar_position"))    { ParseVec2(c, &frame->camera.planar.position); frame->camera.planar.dirty = true; }
+            else if (ParseKey(c, "planar_zoom"))        { ParseFloat(c, &frame->camera.planar.zoom); frame->camera.planar.dirty = true; }
+            else if (ParseKey(c, "planar_angle"))       { ParseFloat(c, &frame->camera.planar.angle); frame->camera.planar.dirty = true; }
+            else if (ParseKey(c, "turntable_angle_y"))  { ParseFloat(c, &frame->camera.turntable.angle_y); frame->camera.turntable.dirty = true; }
+            else if (ParseKey(c, "turntable_radius"))   { ParseFloat(c, &frame->camera.turntable.radius); frame->camera.turntable.dirty = true; }
+            else if (ParseKey(c, "trackball_R"))        { ParseMat4(c, &frame->camera.trackball.R); frame->camera.trackball.dirty = true; }
+            else if (ParseKey(c, "trackball_T"))        { ParseVec4(c, &frame->camera.trackball.T); frame->camera.trackball.dirty = true; }
+            else if (ParseKey(c, "trackball_zoom"))     { ParseFloat(c, &frame->camera.trackball.zoom); frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "y_fov"))              ParseFloat(c, &frame->camera.projection.y_fov);
             else if (ParseKey(c, "min_depth"))          ParseFloat(c, &frame->camera.projection.min_depth);
             else if (ParseKey(c, "max_depth"))          ParseFloat(c, &frame->camera.projection.max_depth);
@@ -518,21 +518,21 @@ void settings_t::Save(const char *filename)
             WriteCameraType(f, "camera_type", frame->camera.type);
             WriteCameraUp(f, "camera_up", frame->camera.up);
 
-            // if (frame->camera.planar.dirty)
+            if (frame->camera.planar.dirty)
             {
                 fprintf(f, "planar_position=%g,%g\n", frame->camera.planar.position.x, frame->camera.planar.position.y);
                 fprintf(f, "planar_zoom=%g\n", frame->camera.planar.zoom);
                 fprintf(f, "planar_angle=%g\n", frame->camera.planar.angle);
             }
 
-            // if (frame->camera.turntable.dirty)
+            if (frame->camera.turntable.dirty)
             {
                 fprintf(f, "turntable_angle_x=%g\n", frame->camera.turntable.angle_x);
                 fprintf(f, "turntable_angle_y=%g\n", frame->camera.turntable.angle_y);
                 fprintf(f, "turntable_radius=%g\n", frame->camera.turntable.radius);
             }
 
-            // if (frame->camera.trackball.dirty)
+            if (frame->camera.trackball.dirty)
             {
                 WriteMat4(f, "trackball_R", frame->camera.trackball.R);
                 WriteVec4(f, "trackball_T", frame->camera.trackball.T);
