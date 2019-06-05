@@ -414,12 +414,12 @@ void settings_t::LoadOrDefault(const char *filename)
             else if (ParseKey(c, "trackball_R"))        { ParseMat4(c, &frame->camera.trackball.R); frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "trackball_T"))        { ParseVec4(c, &frame->camera.trackball.T); frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "trackball_zoom"))     { ParseFloat(c, &frame->camera.trackball.zoom); frame->camera.trackball.dirty = true; }
-            else if (ParseKey(c, "y_fov"))              ParseFloat(c, &frame->camera.projection.y_fov);
-            else if (ParseKey(c, "min_depth"))          ParseFloat(c, &frame->camera.projection.min_depth);
-            else if (ParseKey(c, "max_depth"))          ParseFloat(c, &frame->camera.projection.max_depth);
-            else if (ParseKey(c, "grid_visible"))       ParseBool(c, &frame->grid.grid_visible);
-            else if (ParseKey(c, "grid_scale"))         ParseFloat(c, &frame->grid.grid_scale);
-            else if (ParseKey(c, "cube_visible"))       ParseBool(c, &frame->grid.cube_visible);
+            else if (ParseKey(c, "y_fov"))              { ParseFloat(c, &frame->camera.projection.y_fov); frame->camera.projection.dirty = true; }
+            else if (ParseKey(c, "min_depth"))          { ParseFloat(c, &frame->camera.projection.min_depth); frame->camera.projection.dirty = true; }
+            else if (ParseKey(c, "max_depth"))          { ParseFloat(c, &frame->camera.projection.max_depth); frame->camera.projection.dirty = true; }
+            else if (ParseKey(c, "grid_visible"))       { ParseBool(c, &frame->grid.grid_visible); frame->grid.dirty = true; }
+            else if (ParseKey(c, "grid_scale"))         { ParseFloat(c, &frame->grid.grid_scale); frame->grid.dirty = true; }
+            else if (ParseKey(c, "cube_visible"))       { ParseBool(c, &frame->grid.cube_visible); frame->grid.dirty = true; }
             else if (ParseKey(c, "render_scale_down"))  ParseInt(c, &frame->render_scaler.down, 0, VDB_MAX_RENDER_SCALE_DOWN);
             else if (ParseKey(c, "render_scale_up"))    ParseInt(c, &frame->render_scaler.up, 0, VDB_MAX_RENDER_SCALE_UP);
             else *c = *c + 1;
@@ -539,14 +539,14 @@ void settings_t::Save(const char *filename)
                 fprintf(f, "trackball_zoom=%g\n", frame->camera.trackball.zoom);
             }
 
-            // if (frame->camera.projection.dirty)
+            if (frame->camera.projection.dirty)
             {
                 fprintf(f, "y_fov=%g\n", frame->camera.projection.y_fov);
                 fprintf(f, "min_depth=%g\n", frame->camera.projection.min_depth);
                 fprintf(f, "max_depth=%g\n", frame->camera.projection.max_depth);
             }
 
-            // if (frame->grid.dirty)
+            if (frame->grid.dirty)
             {
                 fprintf(f, "grid_visible=%d\n", frame->grid.grid_visible ? 1 : 0);
                 fprintf(f, "grid_scale=%g\n", frame->grid.grid_scale);
