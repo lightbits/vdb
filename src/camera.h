@@ -177,11 +177,10 @@ void vdbCameraTurntable()
 {
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
+    float &angle_x = GetFrameSettings()->turntable.angle_x;
+    float &angle_y = GetFrameSettings()->turntable.angle_y;
+    float &radius = GetFrameSettings()->turntable.radius;
     const float dt = 1.0f/60.0f;
-
-    static float angle_x = 0.0f;
-    static float angle_y = 0.0f;
-    static float radius = 1.0f;
 
     // zooming
     radius -= scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
