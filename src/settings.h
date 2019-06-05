@@ -45,21 +45,6 @@ static const char *CameraUpToStr(camera_up_t mode)
     return "z_up";
 }
 
-static vdbMat4 Mat4FromStr(const char *str)
-{
-    printf("got it! %s\n", str);
-    vdbMat4 m;
-    if (16 == sscanf(str, "[%f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %f]",
-        &m.data[ 0], &m.data[ 1], &m.data[ 2], &m.data[ 3],
-        &m.data[ 4], &m.data[ 5], &m.data[ 6], &m.data[ 7],
-        &m.data[ 8], &m.data[ 9], &m.data[10], &m.data[11],
-        &m.data[12], &m.data[13], &m.data[14], &m.data[15]))
-    {
-        return m;
-    }
-    return vdbMatIdentity();
-}
-
 static const char *Mat4ToStr(vdbMat4 m)
 {
     static char buffer[1024];
@@ -69,14 +54,6 @@ static const char *Mat4ToStr(vdbMat4 m)
         m.data[ 8], m.data[ 9], m.data[10], m.data[11],
         m.data[12], m.data[13], m.data[14], m.data[15]);
     return buffer;
-}
-
-static vdbVec4 Vec4FromStr(const char *str)
-{
-    vdbVec4 v;
-    if (4 == sscanf(str, "[%f, %f, %f, %f]", &v.x, &v.y, &v.z, &v.w))
-        return v;
-    return vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 static const char *Vec4ToStr(vdbVec4 v)
@@ -272,6 +249,7 @@ namespace settings_parser
 
     static bool ParseKey(const char **c, const char *match)
     {
+        ParseBlank(c);
         if (!ParseString(c, match)) return false;
         ParseBlank(c);
         if (**c != '=') return false;
@@ -293,6 +271,7 @@ namespace settings_parser
 
     static bool ParseCameraType(const char **c, camera_type_t *type)
     {
+        ParseBlank(c);
         if      (ParseString(c, "disabled"))  { *type = VDB_CAMERA_DISABLED; return true; }
         else if (ParseString(c, "planar"))    { *type = VDB_CAMERA_PLANAR; return true; }
         else if (ParseString(c, "trackball")) { *type = VDB_CAMERA_TRACKBALL; return true; }
@@ -302,6 +281,7 @@ namespace settings_parser
 
     static bool ParseCameraUp(const char **c, camera_up_t *up)
     {
+        ParseBlank(c);
         if      (ParseString(c, "z_up"))   { *up = VDB_Z_UP; return true; }
         else if (ParseString(c, "y_up"))   { *up = VDB_Y_UP; return true; }
         else if (ParseString(c, "x_up"))   { *up = VDB_X_UP; return true; }
@@ -313,13 +293,37 @@ namespace settings_parser
 
     static bool ParseInt2(const char **c, int *x, int *y)
     {
+        ParseBlank(c);
         if (!ParseInt(c, x)) return false;
         if (!ParseComma(c)) return false;
         if (!ParseInt(c, y)) return false;
         return true;
     }
-}
 
+    static bool ParseMat4(const char **c, vdbMat4 *x)
+    {
+        ParseBlank(c);
+        for (int i = 0; i < 16; i++)
+        {
+            if (i > 0 && !ParseComma(c)) return false;
+            if (!ParseFloat(c, &x->data[i])) return false;
+        }
+        return true;
+    }
+
+    static bool ParseVec4(const char **c, vdbVec4 *x)
+    {
+        ParseBlank(c);
+        if (!ParseFloat(c, &x->x)) return false;
+        if (!ParseComma(c))        return false;
+        if (!ParseFloat(c, &x->y)) return false;
+        if (!ParseComma(c))        return false;
+        if (!ParseFloat(c, &x->z)) return false;
+        if (!ParseComma(c))        return false;
+        if (!ParseFloat(c, &x->w)) return false;
+        return true;
+    }
+}
 
 void settings_t::LoadOrDefault(const char *filename)
 {
@@ -400,6 +404,9 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (frame)
         {
                  if (ParseKey(c, "camera_type"))       ParseCameraType(c, &frame->camera_type);
+            else if (ParseKey(c, "camera_angle_x"))    ParseFloat(c, &frame->turntable.angle_x);
+            else if (ParseKey(c, "camera_angle_y"))    ParseFloat(c, &frame->turntable.angle_y);
+            else if (ParseKey(c, "camera_radius"))     ParseFloat(c, &frame->turntable.radius);
             else if (ParseKey(c, "y_fov"))             ParseFloat(c, &frame->y_fov);
             else if (ParseKey(c, "min_depth"))         ParseFloat(c, &frame->min_depth);
             else if (ParseKey(c, "max_depth"))         ParseFloat(c, &frame->max_depth);
