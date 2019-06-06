@@ -313,20 +313,12 @@ bool vdbBeginFrame(const char *label)
         // pre-permutation transform
         // the built-in cameras assume that y axis is up
         vdbPushMatrix();
-        if (fs->camera.up == VDB_Z_UP)
-            vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
-        else
-        if (fs->camera.up == VDB_X_UP)
-            vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
-        else
-        if (fs->camera.up == VDB_Z_DOWN)
-            vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
-        else
-        if (fs->camera.up == VDB_Y_DOWN)
-            vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1).data);
-        else
-        if (fs->camera.up == VDB_X_DOWN)
-            vdbMultMatrix(vdbInitMat4(0,0,1,0, -1,0,0,0, 0,-1,0,0, 0,0,0,1).data);
+        camera_up_t up = *GetCameraUp();
+        if      (up == VDB_Z_UP)   vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
+        else if (up == VDB_X_UP)   vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
+        else if (up == VDB_Z_DOWN) vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
+        else if (up == VDB_Y_DOWN) vdbMultMatrix(vdbInitMat4(1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1).data);
+        else if (up == VDB_X_DOWN) vdbMultMatrix(vdbInitMat4(0,0,1,0, -1,0,0,0, 0,-1,0,0, 0,0,0,1).data);
 
         // pre-scaling transform
         vdbPushMatrix();
@@ -381,7 +373,8 @@ void vdbEndFrame()
             float t = 10.0f;
             vdbLineWidth(1.0f);
             vdbBeginLines();
-            if (fs->camera.up != VDB_X_UP && fs->camera.up != VDB_X_DOWN)
+            camera_up_t up = *GetCameraUp();
+            if (up != VDB_X_UP && up != VDB_X_DOWN)
             {
                 vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);
                 vdbColor(color_x_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -389,7 +382,7 @@ void vdbEndFrame()
                 vdbColor(color_x_axis, 0.0f);      vdbVertex(+t, 0.0f, 0.0f);
             }
 
-            if (fs->camera.up != VDB_Y_UP && fs->camera.up != VDB_Y_DOWN)
+            if (up != VDB_Y_UP && up != VDB_Y_DOWN)
             {
                 vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, -t, 0.0f);
                 vdbColor(color_y_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
@@ -397,7 +390,7 @@ void vdbEndFrame()
                 vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, +t, 0.0f);
             }
 
-            if (fs->camera.up != VDB_Z_UP && fs->camera.up != VDB_Z_DOWN)
+            if (up != VDB_Z_UP && up != VDB_Z_DOWN)
             {
                 vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, -t);
                 vdbColor(color_z_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);

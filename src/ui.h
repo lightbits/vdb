@@ -110,12 +110,14 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::Text("Up: ");
-        if (ImGui::RadioButton("+Z", &fs->camera.up, VDB_Z_UP)) fs->camera.dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("+Y", &fs->camera.up, VDB_Y_UP)) fs->camera.dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("+X", &fs->camera.up, VDB_X_UP)) fs->camera.dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-Z", &fs->camera.up, VDB_Z_DOWN)) fs->camera.dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-Y", &fs->camera.up, VDB_Y_DOWN)) fs->camera.dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-X", &fs->camera.up, VDB_X_DOWN)) fs->camera.dirty = true;
+        camera_up_t *up = GetCameraUp();
+        bool *dirty = GetCameraDirty();
+        if (ImGui::RadioButton("+Z", up, VDB_Z_UP)) *dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("+Y", up, VDB_Y_UP)) *dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("+X", up, VDB_X_UP)) *dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-Z", up, VDB_Z_DOWN)) *dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-Y", up, VDB_Y_DOWN)) *dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-X", up, VDB_X_DOWN)) *dirty = true;
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Settings"))
