@@ -141,20 +141,6 @@ void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int 
     GetImage(slot)->channels = channels;
 }
 
-void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *height, int *channels)
-{
-    int w,h,n;
-    unsigned char *data = stbi_load(filename, &w, &h, &n, 4);
-    assert(data && "Failed to load image from file.");
-    vdbLoadImage(slot, data, w, h, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_RGBA);
-    GetImage(slot)->channels = n;
-    free(data);
-
-    if (width) *width = w;
-    if (height) *height = h;
-    if (channels) *channels = n;
-}
-
 void vdbDrawImage(int slot,
     float x, float y,
     float w, float h,
