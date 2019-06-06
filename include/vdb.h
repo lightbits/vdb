@@ -33,6 +33,9 @@ void    vdbBlendAlpha();
 void    vdbCullFace(bool enable);       // if enabled, back-facing triangles are not drawn
 void    vdbDepthTest(bool enable);      // if enabled, fragments are tested against depth buffer
 void    vdbDepthWrite(bool enable);     // if enabled, fragments write to the depth buffer
+void    vdbDepthFuncLess();             // (default) fragments are written if depth is < current
+void    vdbDepthFuncLessOrEqual();      // fragments are written if depth is <= current
+void    vdbDepthFuncAlways();           // fragments are always written
 void    vdbLineWidth(float width);      // line diameter in framebuffer pixels
 void    vdbPointSegments(int segments); // points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
 void    vdbPointSize(float size);       // point diameter in framebuffer pixels (size=1 and segments=4 gives pixel-perfect rendering)

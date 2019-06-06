@@ -45,6 +45,7 @@ struct imm_state_t
     GLenum blend_dst_alpha;
     GLenum blend_equation_rgb;
     GLenum blend_equation_alpha;
+    GLenum depth_func;
     GLboolean depth_writemask;
     GLboolean enable_blend;
     GLboolean enable_cull_face;
@@ -99,6 +100,7 @@ namespace immediate
         vdbDepthTest(false);
         vdbCullFace(false);
         vdbInverseColor(false);
+        vdbDepthFuncLess();
         glDisable(GL_SCISSOR_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -112,6 +114,7 @@ namespace immediate
         glGetIntegerv(GL_BLEND_DST_ALPHA, (GLint*)&s.blend_dst_alpha);
         glGetIntegerv(GL_BLEND_EQUATION_RGB, (GLint*)&s.blend_equation_rgb);
         glGetIntegerv(GL_BLEND_EQUATION_ALPHA, (GLint*)&s.blend_equation_alpha);
+        glGetIntegerv(GL_DEPTH_FUNC, (GLint*)&s.depth_func);
         glGetBooleanv(GL_DEPTH_WRITEMASK, (GLboolean*)&s.depth_writemask);
         s.enable_blend = glIsEnabled(GL_BLEND);
         s.enable_cull_face = glIsEnabled(GL_CULL_FACE);
@@ -130,6 +133,7 @@ namespace immediate
     {
         glBlendEquationSeparate(s.blend_equation_rgb, s.blend_equation_alpha);
         glBlendFuncSeparate(s.blend_src_rgb, s.blend_dst_rgb, s.blend_src_alpha, s.blend_dst_alpha);
+        glDepthFunc(s.depth_func);
         glDepthMask(s.depth_writemask);
         if (s.enable_blend) glEnable(GL_BLEND); else glDisable(GL_BLEND);
         if (s.enable_cull_face) glEnable(GL_CULL_FACE); else glDisable(GL_CULL_FACE);
@@ -770,6 +774,10 @@ void vdbBlendAlpha()
     glBlendEquation(GL_FUNC_ADD);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 }
+
+void vdbDepthFuncAlways() { glDepthFunc(GL_ALWAYS); }
+void vdbDepthFuncLess() { glDepthFunc(GL_LESS); }
+void vdbDepthFuncLessOrEqual() { glDepthFunc(GL_LEQUAL); }
 
 void vdbDepthTest(bool enabled)
 {

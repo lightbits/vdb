@@ -56,11 +56,33 @@ namespace render_scaler
             output = MakeRenderTexture(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
             EnableRenderTexture(&output);
+            // Although we do _eventually_ overwrite all pixels in
+            // the output RT, the user may see some garbage frames
+            // after a new RT is created, unless it's cleared.
+            GLboolean depth_test = glIsEnabled(GL_DEPTH_TEST);
+            GLboolean depth_mask; glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_mask);
+            vdbDepthWrite(true);
+            vdbDepthTest(true);
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+            vdbDepthWrite(depth_mask);
+            vdbDepthTest(depth_test);
             DisableRenderTexture(&output);
         }
+
         EnableRenderTexture(&lowres);
-        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+        // We don't assume the user will clear the RT after calling
+        // BeginRenderScaler, as it's easy to forget it. So we clear
+        // it for them.
+        {
+            GLboolean depth_test = glIsEnabled(GL_DEPTH_TEST);
+            GLboolean depth_mask; glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_mask);
+            vdbDepthWrite(true);
+            vdbDepthTest(true);
+            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+            vdbDepthWrite(depth_mask);
+            vdbDepthTest(depth_test);
+        }
 
         // calculate the sample position for this frame
         {
@@ -165,9 +187,9 @@ namespace render_scaler
         vdbLoadMatrix(NULL);
         vdbBlendNone();
         vdbCullFace(false);
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_ALWAYS);
-        glEnable(GL_DEPTH_TEST); // When depth testing is disabled, writes to the depth buffer are also disabled.
+        vdbDepthWrite(true);
+        vdbDepthTest(true); // When depth testing is disabled, writes to the depth buffer are also disabled.
+        vdbDepthFuncAlways();
         immediate::SetRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
 
         // interleave just-rendered frame into full resolution framebuffer
@@ -208,13 +230,11 @@ namespace render_scaler
             DisableRenderTexture(&output);
         }
 
-        // draw full resolution framebuffer onto window framebuffer
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_TRUE);
+        // composite full resolution framebuffer onto window framebuffer
+        // note: we re-enable user's draw state (e.g. depth test/write).
+        immediate::SetState(last_state);
         DrawRenderTextureWithDepth(output);
 
-        immediate::SetState(last_state);
         vdbPopMatrix();
         vdbProjection(last_projection);
 
