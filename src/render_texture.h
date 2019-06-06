@@ -83,11 +83,8 @@ namespace render_texture
             // DEPTH_COMPONENT24
             // DEPTH_COMPONENT32
             // DEPTH_COMPONENT32F
-            glGenRenderbuffers(1, &result.depth);
-            glBindRenderbuffer(GL_RENDERBUFFER, result.depth);
-            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-            glBindRenderbuffer(GL_RENDERBUFFER, 0);
-            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, result.depth);
+            result.depth = TexImage2D(NULL, width, height, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, GL_NEAREST, GL_NEAREST, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_DEPTH_COMPONENT24);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, result.depth, 0);
         }
 
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -158,6 +155,68 @@ void vdbBindRenderTexture(int slot, vdbTextureFilter filter, vdbTextureWrap wrap
 void vdbUnbindRenderTexture()
 {
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void DrawRenderTextureWithDepth(render_texture_t rt)
+{
+    #define SHADER(S) "#version 150\n" #S
+    const char *vs = SHADER(
+        in vec2 position;
+        out vec2 texel;
+        void main()
+        {
+            texel = vec2(0.5) + 0.5*position;
+            gl_Position = vec4(position, 0.0, 1.0);
+        }
+    );
+
+    const char *fs = SHADER(
+        in vec2 texel;
+        uniform sampler2D sampler0;
+        uniform sampler2D sampler1;
+        out vec4 out_color;
+        void main()
+        {
+            out_color = texture(sampler0, texel);
+            gl_FragDepth = texture(sampler1, texel).x;
+        }
+    );
+    #undef SHADER
+
+    static GLuint program = LoadShaderFromMemory(vs,fs);
+    static GLint attrib_position = glGetAttribLocation(program, "position");
+    static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
+    static GLint uniform_sampler1 = glGetUniformLocation(program, "sampler1");
+
+    static GLuint vao = 0;
+    static GLuint vbo = 0;
+    if (!vao)
+    {
+        static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
+    }
+    assert(vao);
+    assert(vbo);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glUseProgram(program);
+    glActiveTexture(GL_TEXTURE1);
+    glUniform1i(uniform_sampler1, 1);
+    glBindTexture(GL_TEXTURE_2D, rt.depth);
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1i(uniform_sampler0, 0);
+    glBindTexture(GL_TEXTURE_2D, rt.color[0]);
+    glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(attrib_position);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDisableVertexAttribArray(attrib_position);
+    glUseProgram(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 void vdbDrawRenderTexture(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)

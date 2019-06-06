@@ -53,14 +53,14 @@ namespace render_scaler
         if (output.width != w<<n_up || output.height != h<<n_up)
         {
             FreeRenderTexture(&output);
-            output = MakeRenderTexture(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, false);
+            output = MakeRenderTexture(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
             EnableRenderTexture(&output);
-            glClear(GL_COLOR_BUFFER_BIT);
+            glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
             DisableRenderTexture(&output);
         }
         EnableRenderTexture(&lowres);
-        glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         // calculate the sample position for this frame
         {
@@ -97,6 +97,7 @@ namespace render_scaler
         static GLuint program = 0;
         static GLint attrib_position = 0;
         static GLint uniform_sampler0 = 0;
+        static GLint uniform_sampler1 = 0;
         static GLint uniform_dx = 0;
         static GLint uniform_dy = 0;
         static GLint uniform_nx = 0;
@@ -116,26 +117,33 @@ namespace render_scaler
             const char *fs = SHADER(
             in vec2 texel;
             uniform sampler2D sampler0;
+            uniform sampler2D sampler1;
             uniform float dx;
             uniform float dy;
             uniform float nx;
             out vec4 out_color;
             void main()
             {
-                out_color = texture(sampler0, texel);
                 float ix = trunc(mod(gl_FragCoord.x,nx));
                 float iy = trunc(mod(gl_FragCoord.y,nx));
                 if (ix == dx && iy == dy)
-                    out_color = texture(sampler0,texel);
+                {
+                    out_color = texture(sampler0, texel);
+                    gl_FragDepth = texture(sampler1, texel).x;
+                }
                 else
+                {
                     discard;
+                }
             }
             );
             #undef SHADER
 
             program = LoadShaderFromMemory(vs,fs);
+            assert(program && "Failed to compile TemporalBlend shader");
             attrib_position = glGetAttribLocation(program, "position");
             uniform_sampler0 = glGetUniformLocation(program, "sampler0");
+            uniform_sampler1 = glGetUniformLocation(program, "sampler1");
             uniform_dx = glGetUniformLocation(program, "dx");
             uniform_dy = glGetUniformLocation(program, "dy");
             uniform_nx = glGetUniformLocation(program, "nx");
@@ -144,7 +152,6 @@ namespace render_scaler
             assert(uniform_dx >= 0 && "Unused or nonexistent uniform");
             assert(uniform_dy >= 0 && "Unused or nonexistent uniform");
             assert(uniform_nx >= 0 && "Unused or nonexistent uniform");
-            assert(program && "Failed to compile TemporalBlend shader");
         }
 
         has_begun = false;
@@ -158,8 +165,9 @@ namespace render_scaler
         vdbLoadMatrix(NULL);
         vdbBlendNone();
         vdbCullFace(false);
-        vdbDepthTest(false);
-        vdbDepthWrite(false);
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_ALWAYS);
+        glEnable(GL_DEPTH_TEST); // When depth testing is disabled, writes to the depth buffer are also disabled.
         immediate::SetRenderOffsetNDC(vdbVec2(0.0f, 0.0f));
 
         // interleave just-rendered frame into full resolution framebuffer
@@ -181,6 +189,9 @@ namespace render_scaler
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUseProgram(program);
+            glActiveTexture(GL_TEXTURE1);
+            glUniform1i(uniform_sampler1, 1);
+            glBindTexture(GL_TEXTURE_2D, lowres.depth);
             glActiveTexture(GL_TEXTURE0);
             glUniform1i(uniform_sampler0, 0);
             glBindTexture(GL_TEXTURE_2D, lowres.color[0]);
@@ -198,19 +209,10 @@ namespace render_scaler
         }
 
         // draw full resolution framebuffer onto window framebuffer
-        {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, output.color[0]);
-            vdbBeginTriangles();
-            vdbColor(1,1,1,1);
-            vdbTexel(0,0); vdbVertex(-1,-1);
-            vdbTexel(1,0); vdbVertex(+1,-1);
-            vdbTexel(1,1); vdbVertex(+1,+1);
-            vdbTexel(1,1); vdbVertex(+1,+1);
-            vdbTexel(0,1); vdbVertex(-1,+1);
-            vdbTexel(0,0); vdbVertex(-1,-1);
-            vdbEnd();
-        }
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_TRUE);
+        DrawRenderTextureWithDepth(output);
 
         immediate::SetState(last_state);
         vdbPopMatrix();
