@@ -60,7 +60,7 @@ namespace render_scaler
             DisableRenderTexture(&output);
         }
         EnableRenderTexture(&lowres);
-        glClear(GL_DEPTH_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
         // calculate the sample position for this frame
         {
