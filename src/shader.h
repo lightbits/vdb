@@ -2,92 +2,120 @@
 #include <stdlib.h> // malloc, free
 #include <stdio.h> // printf
 
-GLuint LoadShaderFromMemory(const char *vs, const char *fs)
+static bool ShaderCompileStatus(GLuint shader)
 {
-    GLenum types[2] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
-    const char *sources[2] = { vs, fs };
-    GLuint shaders[2] = {0};
-    for (int i = 0; i < 2; i++)
-    {
-        GLint status = 0;
-        shaders[i] = glCreateShader(types[i]);
-        glShaderSource(shaders[i], 1, (const GLchar **)&sources[i], 0);
-        glCompileShader(shaders[i]);
-        glGetShaderiv(shaders[i], GL_COMPILE_STATUS, &status);
-
-        // print zany driver error message if it failed
-        if (!status)
-        {
-            GLint length;
-            glGetShaderiv(shaders[i], GL_INFO_LOG_LENGTH, &length);
-            char *info = (char*)malloc(length);
-            glGetShaderInfoLog(shaders[i], length, NULL, info);
-            printf("Failed to compile shader:\n%s\n", info);
-            free(info);
-            for (int j = 0; j <= i; j++)
-            {
-                glDeleteShader(shaders[j]);
-            }
-            return 0;
-        }
-    }
-
-    // link and get status
     GLint status;
-    GLuint program = 0;
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+    if (!status)
     {
-        program = glCreateProgram();
-        for (int i = 0; i < 2; i++)
-            glAttachShader(program, shaders[i]);
-        glLinkProgram(program);
-        for (int i = 0; i < 2; i++)
-        {
-            glDetachShader(program, shaders[i]);
-            glDeleteShader(shaders[i]);
-        }
-        glGetProgramiv(program, GL_LINK_STATUS, &status);
+        GLint length;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+        char *info = (char*)malloc(length);
+        glGetShaderInfoLog(shader, length, NULL, info);
+        fprintf(stderr, "Failed to compile shader:\n%s\n", info);
+        free(info);
+        return false;
     }
+    return true;
+}
 
+static bool ProgramLinkStatus(GLuint program)
+{
+    GLint status;
+    glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (!status)
     {
         GLint length;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
         char *info = (char*)malloc(length);
         glGetProgramInfoLog(program, length, NULL, info);
-        printf("Failed to link program:\n%s", info);
+        fprintf(stderr, "Failed to link program:\n%s", info);
         free(info);
+        return false;
+    }
+    return true;
+}
+
+static GLuint LoadShaderFromMemory(
+    const char **vs_source, int num_vs_source,
+    const char **fs_source, int num_fs_source)
+{
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    {
+        glShaderSource(vs, num_vs_source, vs_source, 0);
+        glCompileShader(vs);
+        if (!ShaderCompileStatus(vs))
+        {
+            glDeleteShader(vs);
+            return 0;
+        }
+    }
+
+    GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+    {
+        glShaderSource(fs, num_fs_source, fs_source, 0);
+        glCompileShader(fs);
+        if (!ShaderCompileStatus(fs))
+        {
+            glDeleteShader(vs);
+            glDeleteShader(fs);
+            return 0;
+        }
+    }
+
+    GLuint program = glCreateProgram();
+    glAttachShader(program, vs);
+    glAttachShader(program, fs);
+    glLinkProgram(program);
+    glDetachShader(program, vs);
+    glDetachShader(program, fs);
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+    if (!ProgramLinkStatus(program))
+    {
+        glDeleteProgram(program);
         return 0;
     }
 
     return program;
 }
 
+static GLuint LoadShaderFromMemory(
+    const char *vs_source,
+    const char *fs_source)
+{
+    return LoadShaderFromMemory(&vs_source, 1, &fs_source, 1);
+}
+
 GLuint vdb_gl_current_program = 0;
 enum { vdb_max_shaders = 1000 };
 static GLuint vdb_gl_shaders[vdb_max_shaders];
 
-void vdbLoadShader(int slot, const char *fragment_shader_string)
+void vdbLoadShader(int slot, const char *fs_source)
 {
     assert(slot >= 0 && slot < vdb_max_shaders && "You are trying to set a pixel shader beyond the available number of slots.");
     if (vdb_gl_shaders[slot])
         glDeleteProgram(vdb_gl_shaders[slot]);
 
-    const char *vertex_shader_string =
-    "#version 150\n"
-    "in vec2 in_position;\n"
-    "void main()\n"
-    "{\n"
-    "    gl_Position = vec4(in_position, 0.0, 1.0);\n"
-    "}\n"
+    const char *vs_source =
+        "#version 150\n"
+        "in vec2 in_position;\n"
+        "void main()\n"
+        "{\n"
+        "    gl_Position = vec4(in_position, 0.0, 1.0);\n"
+        "}\n"
     ;
-    vdb_gl_shaders[slot] = LoadShaderFromMemory(vertex_shader_string, fragment_shader_string);
+
+    vdb_gl_shaders[slot] = LoadShaderFromMemory(&vs_source, 1, &fs_source, 1);
     assert(vdb_gl_shaders[slot] && "Failed to load shader.");
 }
+
 void vdbBeginShader(int slot)
 {
     vdb_gl_current_program = vdb_gl_shaders[slot];
     glUseProgram(vdb_gl_shaders[slot]);
 }
+
 void vdbEndShader()
 {
     static GLuint vao = 0;
