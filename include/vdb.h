@@ -150,8 +150,10 @@ void    vdbUniform1i(const char *name, int x);
 void    vdbUniform2i(const char *name, int x, int y);
 void    vdbUniform3i(const char *name, int x, int y, int z);
 void    vdbUniform4i(const char *name, int x, int y, int z, int w);
-void    vdbUniformMatrix4fv(const char *name, float *x, bool transpose=false);
-void    vdbUniformMatrix3fv(const char *name, float *x, bool transpose=false);
+void    vdbUniformMatrix4fv(const char *name, float *x);
+void    vdbUniformMatrix3fv(const char *name, float *x);
+void    vdbUniformRowMajMatrix4fv(const char *name, float *x);
+void    vdbUniformRowMajMatrix3fv(const char *name, float *x);
 
 // render texture
 void    vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
