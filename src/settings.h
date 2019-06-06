@@ -401,8 +401,8 @@ void settings_t::LoadOrDefault(const char *filename)
         }
         else if (frame)
         {
-                 if (ParseKey(c, "camera_type"))        ParseCameraType(c, &frame->camera.type);
-            else if (ParseKey(c, "camera_up"))          ParseCameraUp(c, &frame->camera.up);
+                 if (ParseKey(c, "camera_type"))        { ParseCameraType(c, &frame->camera.type); frame->camera.dirty = true; }
+            else if (ParseKey(c, "camera_up"))          { ParseCameraUp(c, &frame->camera.up); frame->camera.dirty = true; }
             else if (ParseKey(c, "turntable_angle_x"))  { ParseFloat(c, &frame->camera.turntable.angle_x); frame->camera.turntable.dirty = true; }
             else if (ParseKey(c, "turntable_angle_y"))  { ParseFloat(c, &frame->camera.turntable.angle_y); frame->camera.turntable.dirty = true; }
             else if (ParseKey(c, "turntable_radius"))   { ParseFloat(c, &frame->camera.turntable.radius); frame->camera.turntable.dirty = true; }
@@ -420,8 +420,8 @@ void settings_t::LoadOrDefault(const char *filename)
             else if (ParseKey(c, "grid_visible"))       { ParseBool(c, &frame->grid.grid_visible); frame->grid.dirty = true; }
             else if (ParseKey(c, "grid_scale"))         { ParseFloat(c, &frame->grid.grid_scale); frame->grid.dirty = true; }
             else if (ParseKey(c, "cube_visible"))       { ParseBool(c, &frame->grid.cube_visible); frame->grid.dirty = true; }
-            else if (ParseKey(c, "render_scale_down"))  ParseInt(c, &frame->render_scaler.down, 0, VDB_MAX_RENDER_SCALE_DOWN);
-            else if (ParseKey(c, "render_scale_up"))    ParseInt(c, &frame->render_scaler.up, 0, VDB_MAX_RENDER_SCALE_UP);
+            else if (ParseKey(c, "render_scale_down"))  { ParseInt(c, &frame->render_scaler.down, 0, VDB_MAX_RENDER_SCALE_DOWN); frame->render_scaler.dirty = true; }
+            else if (ParseKey(c, "render_scale_up"))    { ParseInt(c, &frame->render_scaler.up, 0, VDB_MAX_RENDER_SCALE_UP); frame->render_scaler.dirty = true; }
             else *c = *c + 1;
         }
         else if (ParseKey(c, "window_pos"))         ParseInt2(c, &window.x, &window.y);
@@ -513,7 +513,7 @@ void settings_t::Save(const char *filename)
         frame_settings_t *frame = frames + i;
         fprintf(f, "\n[frame]=%s\n", frame->name);
 
-        // if (frame->camera.dirty)
+        if (frame->camera.dirty)
         {
             WriteCameraType(f, "camera_type", frame->camera.type);
             WriteCameraUp(f, "camera_up", frame->camera.up);
@@ -545,16 +545,16 @@ void settings_t::Save(const char *filename)
                 fprintf(f, "min_depth=%g\n", frame->camera.projection.min_depth);
                 fprintf(f, "max_depth=%g\n", frame->camera.projection.max_depth);
             }
-
-            if (frame->grid.dirty)
-            {
-                fprintf(f, "grid_visible=%d\n", frame->grid.grid_visible ? 1 : 0);
-                fprintf(f, "grid_scale=%g\n", frame->grid.grid_scale);
-                fprintf(f, "cube_visible=%d\n", frame->grid.cube_visible ? 1 : 0);
-            }
         }
 
-        // if (frame->render_scaler.dirty)
+        if (frame->grid.dirty)
+        {
+            fprintf(f, "grid_visible=%d\n", frame->grid.grid_visible ? 1 : 0);
+            fprintf(f, "grid_scale=%g\n", frame->grid.grid_scale);
+            fprintf(f, "cube_visible=%d\n", frame->grid.cube_visible ? 1 : 0);
+        }
+
+        if (frame->render_scaler.dirty)
         {
             fprintf(f, "render_scale_down=%d\n", frame->render_scaler.down);
             fprintf(f, "render_scale_up=%d\n", frame->render_scaler.up);

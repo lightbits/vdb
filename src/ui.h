@@ -88,7 +88,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     main_menu_bar_height = ImGui::GetWindowHeight();
     if (ImGui::BeginMenu("Camera"))
     {
-        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera.type == e)) fs->camera.type = e;
+        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera.type == e)) { fs->camera.type = e; fs->camera.dirty = true; }
         ITEM("Disabled", VDB_CAMERA_DISABLED);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
         ITEM("Planar", VDB_CAMERA_PLANAR);
@@ -110,12 +110,12 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::Text("Up: ");
-        ImGui::RadioButton("+Z", &fs->camera.up, VDB_Z_UP); ImGui::SameLine();
-        ImGui::RadioButton("+Y", &fs->camera.up, VDB_Y_UP); ImGui::SameLine();
-        ImGui::RadioButton("+X", &fs->camera.up, VDB_X_UP); ImGui::SameLine();
-        ImGui::RadioButton("-Z", &fs->camera.up, VDB_Z_DOWN); ImGui::SameLine();
-        ImGui::RadioButton("-Y", &fs->camera.up, VDB_Y_DOWN); ImGui::SameLine();
-        ImGui::RadioButton("-X", &fs->camera.up, VDB_X_DOWN);
+        if (ImGui::RadioButton("+Z", &fs->camera.up, VDB_Z_UP)) fs->camera.dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("+Y", &fs->camera.up, VDB_Y_UP)) fs->camera.dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("+X", &fs->camera.up, VDB_X_UP)) fs->camera.dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-Z", &fs->camera.up, VDB_Z_DOWN)) fs->camera.dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-Y", &fs->camera.up, VDB_Y_DOWN)) fs->camera.dirty = true; ImGui::SameLine();
+        if (ImGui::RadioButton("-X", &fs->camera.up, VDB_X_DOWN)) fs->camera.dirty = true;
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Settings"))
@@ -158,6 +158,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
                 if (ImGui::MenuItem(label, NULL, fs->render_scaler.down==_down && fs->render_scaler.up==_up)) { \
                     fs->render_scaler.down = _down; \
                     fs->render_scaler.up = _up; \
+                    fs->render_scaler.dirty = true; \
                 }
             ITEM("1/1", 0, 0);
             ITEM("1/2", 1, 0);
