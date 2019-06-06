@@ -187,7 +187,7 @@ int main(int, char **)
     {
         if (vdbIsFirstFrame())
             vdbLoadImageUint8(0, data, width, height, 3);
-        vdbDrawImage(0, VDB_NEAREST, VDB_CLAMP);
+        vdbDrawImage(0, -1.0f,-1.0f,2.0f,2.0f, VDB_NEAREST, VDB_CLAMP);
         ImGui::TextWrapped("You can access variables outside the block, like this RGB image.");
     }
     VDBE();

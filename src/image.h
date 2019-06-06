@@ -155,11 +155,17 @@ void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *heigh
     if (channels) *channels = n;
 }
 
-void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec4 v_min, vdbVec4 v_max)
+void vdbDrawImage(int slot,
+    float x, float y,
+    float w, float h,
+    vdbTextureFilter filter,
+    vdbTextureWrap wrap,
+    vdbVec4 v_min,
+    vdbVec4 v_max)
 {
     static GLuint program = LoadShaderFromMemory(shader_image_vs, shader_image_fs);
     assert(program);
-    static GLint attrib_position  = glGetAttribLocation(program, "position");
+    static GLint attrib_quad_pos  = glGetAttribLocation(program, "quad_pos");
     static GLint uniform_pvm      = glGetUniformLocation(program, "pvm");
     static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
     static GLint uniform_sampler1 = glGetUniformLocation(program, "sampler1");
@@ -167,6 +173,8 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec
     static GLint uniform_vmax     = glGetUniformLocation(program, "vmax");
     static GLint uniform_is_mono  = glGetUniformLocation(program, "is_mono");
     static GLint uniform_is_cmap  = glGetUniformLocation(program, "is_cmap");
+    static GLint uniform_im_pos   = glGetUniformLocation(program, "im_pos");
+    static GLint uniform_im_size  = glGetUniformLocation(program, "im_size");
 
     // upload 1D colormap as 2D texture of height 1
     static GLuint color_map_tex = TexImage2D(
@@ -197,6 +205,8 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec
     UniformMat4fv(uniform_pvm, 1, pvm);
     glUniform1i(uniform_is_mono, GetImage(slot)->channels == 1 ? 1 : 0);
     glUniform1i(uniform_is_cmap, 0);
+    glUniform2f(uniform_im_pos, x, y);
+    glUniform2f(uniform_im_size, w, h);
     UniformVec4(uniform_vmin, v_min);
     UniformVec4(uniform_vmax, v_max);
 
@@ -205,7 +215,7 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec
     static GLuint vbo = 0;
     if (!vao)
     {
-        static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+        static float position[] = { 0,0, 1,0, 1,1, 1,1, 0,1, 0,0 };
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -217,12 +227,12 @@ void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec
     // draw
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glEnableVertexAttribArray(attrib_position);
-    glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(attrib_quad_pos);
+    glVertexAttribPointer(attrib_quad_pos, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
 
     // cleanup
-    glDisableVertexAttribArray(attrib_position);
+    glDisableVertexAttribArray(attrib_quad_pos);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0);

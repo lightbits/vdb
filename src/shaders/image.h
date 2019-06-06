@@ -1,13 +1,15 @@
 #pragma once
 #define SHADER(S) "#version 150\n" #S
 const char *shader_image_vs = SHADER(
-in vec2 position;
+in vec2 quad_pos;
 uniform mat4 pvm;
+uniform vec2 im_pos;
+uniform vec2 im_size;
 out vec2 texel;
 void main()
 {
-    texel = vec2(0.5) + 0.5*position;
-    gl_Position = pvm*vec4(position, 0.0, 1.0);
+    texel = quad_pos;
+    gl_Position = pvm*vec4(im_pos + im_size*quad_pos, 0.0, 1.0);
 }
 );
 
