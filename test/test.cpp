@@ -167,7 +167,7 @@ int main(int, char **)
     }
     VDBE();
 
-    const int width = 129;
+    const int width = 128;
     const int height = 128;
     unsigned char data[width*height*3];
     for (int y = 0; y < height; y++)
@@ -185,7 +185,8 @@ int main(int, char **)
 
     VDBB("Variable access");
     {
-        vdbLoadImageUint8(0, data, width, height, 3);
+        if (vdbIsFirstFrame())
+            vdbLoadImageUint8(0, data, width, height, 3);
         vdbDrawImage(0, VDB_NEAREST, VDB_CLAMP);
         ImGui::TextWrapped("You can access variables outside the block, like this RGB image.");
     }

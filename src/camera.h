@@ -13,7 +13,30 @@ void vdbCamera2D()
     float &position_y = GetFrameSettings()->camera.planar.position.y;
 
     // zooming
+    #if 1
+    // this version keeps the point underneath the cursor fixed
+    {
+        float W = (float)vdbGetFramebufferWidth();
+        float H = (float)vdbGetFramebufferHeight();
+        float A = W < H ? W : H;
+        if (vdbGetMouseWheel() < 0.0f)
+        {
+            float next_zoom = zoom*1.2f;
+            position_x += W/A*vdbGetMousePosNDC().x*(next_zoom - zoom);
+            position_y += H/A*vdbGetMousePosNDC().y*(next_zoom - zoom);
+            zoom = next_zoom;
+        }
+        else if (vdbGetMouseWheel() > 0.0f)
+        {
+            float next_zoom = zoom/1.2f;
+            position_x += W/A*vdbGetMousePosNDC().x*(next_zoom - zoom);
+            position_y += H/A*vdbGetMousePosNDC().y*(next_zoom - zoom);
+            zoom = next_zoom;
+        }
+    }
+    #else
     zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
+    #endif
 
     // rotation
     {
