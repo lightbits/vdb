@@ -187,88 +187,86 @@ void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int column
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
 
-// Subset of scancodes copied from SDL_scancodes.h
-enum vdbKey_
-{
-    VDB_KEY_A = 4,
-    VDB_KEY_B = 5,
-    VDB_KEY_C = 6,
-    VDB_KEY_D = 7,
-    VDB_KEY_E = 8,
-    VDB_KEY_F = 9,
-    VDB_KEY_G = 10,
-    VDB_KEY_H = 11,
-    VDB_KEY_I = 12,
-    VDB_KEY_J = 13,
-    VDB_KEY_K = 14,
-    VDB_KEY_L = 15,
-    VDB_KEY_M = 16,
-    VDB_KEY_N = 17,
-    VDB_KEY_O = 18,
-    VDB_KEY_P = 19,
-    VDB_KEY_Q = 20,
-    VDB_KEY_R = 21,
-    VDB_KEY_S = 22,
-    VDB_KEY_T = 23,
-    VDB_KEY_U = 24,
-    VDB_KEY_V = 25,
-    VDB_KEY_W = 26,
-    VDB_KEY_X = 27,
-    VDB_KEY_Y = 28,
-    VDB_KEY_Z = 29,
+typedef int vdbKey;
 
-    VDB_KEY_1 = 30,
-    VDB_KEY_2 = 31,
-    VDB_KEY_3 = 32,
-    VDB_KEY_4 = 33,
-    VDB_KEY_5 = 34,
-    VDB_KEY_6 = 35,
-    VDB_KEY_7 = 36,
-    VDB_KEY_8 = 37,
-    VDB_KEY_9 = 38,
-    VDB_KEY_0 = 39,
+extern vdbKey VDB_KEY_A;
+extern vdbKey VDB_KEY_B;
+extern vdbKey VDB_KEY_C;
+extern vdbKey VDB_KEY_D;
+extern vdbKey VDB_KEY_E;
+extern vdbKey VDB_KEY_F;
+extern vdbKey VDB_KEY_G;
+extern vdbKey VDB_KEY_H;
+extern vdbKey VDB_KEY_I;
+extern vdbKey VDB_KEY_J;
+extern vdbKey VDB_KEY_K;
+extern vdbKey VDB_KEY_L;
+extern vdbKey VDB_KEY_M;
+extern vdbKey VDB_KEY_N;
+extern vdbKey VDB_KEY_O;
+extern vdbKey VDB_KEY_P;
+extern vdbKey VDB_KEY_Q;
+extern vdbKey VDB_KEY_R;
+extern vdbKey VDB_KEY_S;
+extern vdbKey VDB_KEY_T;
+extern vdbKey VDB_KEY_U;
+extern vdbKey VDB_KEY_V;
+extern vdbKey VDB_KEY_W;
+extern vdbKey VDB_KEY_X;
+extern vdbKey VDB_KEY_Y;
+extern vdbKey VDB_KEY_Z;
 
-    VDB_KEY_RETURN = 40,
-    VDB_KEY_ESCAPE = 41,
-    VDB_KEY_BACKSPACE = 42,
-    VDB_KEY_TAB = 43,
-    VDB_KEY_SPACE = 44,
+extern vdbKey VDB_KEY_1;
+extern vdbKey VDB_KEY_2;
+extern vdbKey VDB_KEY_3;
+extern vdbKey VDB_KEY_4;
+extern vdbKey VDB_KEY_5;
+extern vdbKey VDB_KEY_6;
+extern vdbKey VDB_KEY_7;
+extern vdbKey VDB_KEY_8;
+extern vdbKey VDB_KEY_9;
+extern vdbKey VDB_KEY_0;
 
-    VDB_KEY_F1 = 58,
-    VDB_KEY_F2 = 59,
-    VDB_KEY_F3 = 60,
-    VDB_KEY_F4 = 61,
-    VDB_KEY_F5 = 62,
-    VDB_KEY_F6 = 63,
-    VDB_KEY_F7 = 64,
-    VDB_KEY_F8 = 65,
-    VDB_KEY_F9 = 66,
-    VDB_KEY_F10 = 67,
-    VDB_KEY_F11 = 68,
-    VDB_KEY_F12 = 69,
+extern vdbKey VDB_KEY_RETURN;
+extern vdbKey VDB_KEY_ESCAPE;
+extern vdbKey VDB_KEY_BACKSPACE;
+extern vdbKey VDB_KEY_TAB;
+extern vdbKey VDB_KEY_SPACE;
 
-    VDB_KEY_HOME = 74,
-    VDB_KEY_PAGEUP = 75,
-    VDB_KEY_DELETE = 76,
-    VDB_KEY_END = 77,
-    VDB_KEY_PAGEDOWN = 78,
-    VDB_KEY_RIGHT = 79,
-    VDB_KEY_LEFT = 80,
-    VDB_KEY_DOWN = 81,
-    VDB_KEY_UP = 82,
+extern vdbKey VDB_KEY_F1;
+extern vdbKey VDB_KEY_F2;
+extern vdbKey VDB_KEY_F3;
+extern vdbKey VDB_KEY_F4;
+extern vdbKey VDB_KEY_F5;
+extern vdbKey VDB_KEY_F6;
+extern vdbKey VDB_KEY_F7;
+extern vdbKey VDB_KEY_F8;
+extern vdbKey VDB_KEY_F9;
+extern vdbKey VDB_KEY_F10;
+extern vdbKey VDB_KEY_F11;
+extern vdbKey VDB_KEY_F12;
 
-    VDB_KEY_LCTRL = 224,
-    VDB_KEY_LSHIFT = 225,
-    VDB_KEY_LALT = 226, /**< alt, option */
-    VDB_KEY_LGUI = 227, /**< windows, command (apple), meta */
+extern vdbKey VDB_KEY_HOME;
+extern vdbKey VDB_KEY_PAGEUP;
+extern vdbKey VDB_KEY_DELETE;
+extern vdbKey VDB_KEY_END;
+extern vdbKey VDB_KEY_PAGEDOWN;
+extern vdbKey VDB_KEY_RIGHT;
+extern vdbKey VDB_KEY_LEFT;
+extern vdbKey VDB_KEY_DOWN;
+extern vdbKey VDB_KEY_UP;
 
-    VDB_KEY_RCTRL = 228,
-    VDB_KEY_RSHIFT = 229,
-    VDB_KEY_RALT = 230, /**< alt gr, option */
-    VDB_KEY_RGUI = 231, /**< windows, command (apple), meta */
+extern vdbKey VDB_KEY_LCTRL;
+extern vdbKey VDB_KEY_LSHIFT;
+extern vdbKey VDB_KEY_LALT; /**< alt, option */
+extern vdbKey VDB_KEY_LGUI; /**< windows, command (apple), meta */
 
-    VDB_NUM_KEYS = 512
-};
+extern vdbKey VDB_KEY_RCTRL;
+extern vdbKey VDB_KEY_RSHIFT;
+extern vdbKey VDB_KEY_RALT; /**< alt gr, option */
+extern vdbKey VDB_KEY_RGUI; /**< windows, command (apple), meta */
+
+enum { VDB_NUM_KEYS = 512 };
 
 /*
 FREQUENTLY ASKED QUESTIONS
