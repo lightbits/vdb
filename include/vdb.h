@@ -9,20 +9,9 @@ typedef int vdbKey;
 typedef int vdbTextureFormat;
 typedef int vdbTextureFilter;
 typedef int vdbTextureWrap;
-typedef int vdbColorMap;
 enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
 enum vdbTextureFilter_ { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
 enum vdbTextureWrap_   { VDB_CLAMP=0, VDB_REPEAT };
-enum vdbColorMap_      { VDB_COLORMAP_NONE=0, VDB_COLORMAP_INFERNO };
-struct vdbTextureOptions
-{
-    vdbVec4 vmin,vmax;
-    vdbVec4 gather;
-    vdbColorMap cmap;
-    vdbTextureFilter filter;
-    vdbTextureWrap wrap;
-    vdbTextureOptions() : vmin(), vmax(), gather(), cmap(0), filter(VDB_LINEAR), wrap(VDB_CLAMP) { }
-};
 
 void    vdbDetachGLContext();
 void    vdbStepOnce();
