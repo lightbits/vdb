@@ -4,14 +4,10 @@
 struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
-
 typedef int vdbKey;
-typedef int vdbTextureFormat;
-typedef int vdbTextureFilter;
-typedef int vdbTextureWrap;
-enum vdbTextureFormat_ { VDB_RGBA32F, VDB_RGBA8U };
-enum vdbTextureFilter_ { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
-enum vdbTextureWrap_   { VDB_CLAMP=0, VDB_REPEAT };
+enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
+enum vdbTextureFilter { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
+enum vdbTextureWrap   { VDB_CLAMP=0, VDB_REPEAT };
 
 void    vdbDetachGLContext();
 void    vdbStepOnce();
@@ -188,8 +184,6 @@ void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int column
 
 #define VDBB(label) while (vdbBeginFrame(label)) {
 #define VDBE() vdbEndFrame(); }
-
-typedef int vdbKey;
 
 extern vdbKey VDB_KEY_A;
 extern vdbKey VDB_KEY_B;
