@@ -139,13 +139,12 @@ bool    vdbIsMouseRightDown();
 bool    vdbIsMouseMiddleDown();
 
 // image
+void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
+void    vdbUnbindImage();
 void    vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void    vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void    vdbLoadImageFromFile(int slot, const char *filename, int *width=0, int *height=0, int *channels=0);
-void    vdbUnbindImage();
-void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbDrawImage(int slot, vdbTextureOptions options);
+void    vdbDrawImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
 
 // shader
 void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
