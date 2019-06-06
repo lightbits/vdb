@@ -15,7 +15,6 @@ const char *shader_image_fs = SHADER(
 in vec2 texel;
 uniform vec4 vmin;
 uniform vec4 vmax;
-uniform vec4 gather;
 uniform int is_mono;
 uniform int is_cmap;
 uniform sampler2D sampler0;
@@ -28,7 +27,7 @@ void main()
     color0 = clamp(color0, vec4(0.0), vec4(1.0));
     if (is_mono == 1)
     {
-        float i = clamp(dot(gather, color0), 0.0, 1.0);
+        float i = color0.x;
         if (is_cmap == 1)
             color0 = texture(sampler1, vec2(i, 0.0));
         else

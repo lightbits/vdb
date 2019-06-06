@@ -1,6 +1,24 @@
 #include "cmap/inferno.h"
 #include "shaders/image.h"
 
+struct image_t
+{
+    GLuint handle;
+    int width;
+    int height;
+    int channels;
+    bool from_file;
+};
+
+enum { MAX_IMAGES = 1024 };
+static image_t images[MAX_IMAGES];
+
+image_t *GetImage(int slot)
+{
+    assert(slot >= 0 && slot < MAX_IMAGES && "Tried to access an image beyond the available slots");
+    return &images[slot];
+}
+
 GLenum TextureFormatToGL(vdbTextureFormat format)
 {
     if (format == VDB_RGBA32F) return GL_RGBA32F;
@@ -69,28 +87,6 @@ GLuint TexImage2D(
     return result;
 }
 
-GLuint GetTexture(int slot)
-{
-    enum { MAX_TEXTURES = 1024 };
-    static GLuint textures[MAX_TEXTURES] = {0};
-
-    assert(slot >= 0 && slot < MAX_TEXTURES);
-
-    if (!textures[slot])
-    {
-        glGenTextures(1, &textures[slot]);
-        // todo: this?
-        // glBindTexture(GL_TEXTURE_2D);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        // glBindTexture(0);
-    }
-
-    return textures[slot];
-}
-
 void vdbLoadImage(int slot,
                   const void *data,
                   int width,
@@ -103,8 +99,12 @@ void vdbLoadImage(int slot,
                   GLenum wrap_t = GL_CLAMP_TO_EDGE,
                   GLenum internal_format = GL_RGBA)
 {
-    GLuint tex = GetTexture(slot);
-    glBindTexture(GL_TEXTURE_2D, tex);
+    image_t *image = GetImage(slot);
+    image->width = width;
+    image->height = height;
+    if (!image->handle)
+        glGenTextures(1, &image->handle);
+    glBindTexture(GL_TEXTURE_2D, image->handle);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min_filter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrap_s);
@@ -129,6 +129,8 @@ void vdbLoadImageUint8(int slot, const void *data, int width, int height, int ch
     else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE);
     else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE);
     else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
+    GetImage(slot)->from_file = false;
+    GetImage(slot)->channels = channels;
 }
 
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels)
@@ -138,6 +140,8 @@ void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int 
     else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_FLOAT);
     else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_FLOAT);
     else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_FLOAT);
+    GetImage(slot)->from_file = false;
+    GetImage(slot)->channels = channels;
 }
 
 void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *height, int *channels)
@@ -146,6 +150,8 @@ void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *heigh
     unsigned char *data = stbi_load(filename, &w, &h, &n, 4);
     assert(data && "Failed to load image from file.");
     vdbLoadImage(slot, data, w, h, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, GL_RGBA);
+    GetImage(slot)->from_file = true;
+    GetImage(slot)->channels = n;
     free(data);
 
     if (width) *width = w;
@@ -155,45 +161,16 @@ void vdbLoadImageFromFile(int slot, const char *filename, int *width, int *heigh
 
 void vdbDrawImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
-    glBindTexture(GL_TEXTURE_2D, GetTexture(slot));
-    vdbSetTextureParameters(filter, wrap, false);
-    vdbBeginTriangles();
-    vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
-    vdbColor(1,1,1,1); vdbTexel(1,0); vdbVertex(+1,-1);
-    vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
-    vdbColor(1,1,1,1); vdbTexel(1,1); vdbVertex(+1,+1);
-    vdbColor(1,1,1,1); vdbTexel(0,1); vdbVertex(-1,+1);
-    vdbColor(1,1,1,1); vdbTexel(0,0); vdbVertex(-1,-1);
-    vdbEnd();
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void vdbDrawImage(int slot, vdbTextureOptions options)
-{
-    static GLuint program = 0;
-    static GLint attrib_position = 0;
-    static GLint uniform_vmin = 0;
-    static GLint uniform_vmax = 0;
-    static GLint uniform_gather = 0;
-    static GLint uniform_is_mono = 0;
-    static GLint uniform_is_cmap = 0;
-    static GLint uniform_sampler0 = 0;
-    static GLint uniform_sampler1 = 0;
-    static GLint uniform_pvm = 0;
-    if (!program)
-    {
-        program = LoadShaderFromMemory(shader_image_vs, shader_image_fs);
-        attrib_position = glGetAttribLocation(program, "position");
-        uniform_pvm = glGetUniformLocation(program, "pvm");
-        uniform_sampler0 = glGetUniformLocation(program, "sampler0");
-        uniform_sampler1 = glGetUniformLocation(program, "sampler1");
-        uniform_vmin = glGetUniformLocation(program, "vmin");
-        uniform_vmax = glGetUniformLocation(program, "vmax");
-        uniform_gather = glGetUniformLocation(program, "gather");
-        uniform_is_mono = glGetUniformLocation(program, "is_mono");
-        uniform_is_cmap = glGetUniformLocation(program, "is_cmap");
-    }
+    static GLuint program = LoadShaderFromMemory(shader_image_vs, shader_image_fs);
     assert(program);
+    static GLint attrib_position  = glGetAttribLocation(program, "position");
+    static GLint uniform_pvm      = glGetUniformLocation(program, "pvm");
+    static GLint uniform_sampler0 = glGetUniformLocation(program, "sampler0");
+    static GLint uniform_sampler1 = glGetUniformLocation(program, "sampler1");
+    static GLint uniform_vmin     = glGetUniformLocation(program, "vmin");
+    static GLint uniform_vmax     = glGetUniformLocation(program, "vmax");
+    static GLint uniform_is_mono  = glGetUniformLocation(program, "is_mono");
+    static GLint uniform_is_cmap  = glGetUniformLocation(program, "is_cmap");
 
     // upload 1D colormap as 2D texture of height 1
     static GLuint color_map_tex = TexImage2D(
@@ -207,70 +184,53 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
         GL_RGBA);
 
     glUseProgram(program);
+
+    // primary texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GetTexture(slot));
-    vdbSetTextureParameters(options.filter, options.wrap, true);
+    glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
+    bool generate_mipmaps = GetImage(slot)->from_file ? true : false;
+    vdbSetTextureParameters(filter, wrap, generate_mipmaps);
     glUniform1i(uniform_sampler0, 0);
+
+    // colormap texture
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, color_map_tex);
     glUniform1i(uniform_sampler1, 1);
 
+    // other uniforms
     float pvm[4*4];
     vdbGetPVM(pvm);
     UniformMat4fv(uniform_pvm, 1, pvm);
+    glUniform1i(uniform_is_mono, GetImage(slot)->channels == 1 ? 1 : 0);
+    glUniform1i(uniform_is_cmap, 0);
+    UniformVec4(uniform_vmin, vdbVec4(0.0f,0.0f,0.0f,0.0f));
+    UniformVec4(uniform_vmax, vdbVec4(1.0f,1.0f,1.0f,1.0f));
 
-    if (options.vmin.x == options.vmax.x &&
-        options.vmin.y == options.vmax.y &&
-        options.vmin.z == options.vmax.z &&
-        options.vmin.w == options.vmax.w)
+    // generate buffers
+    static GLuint vao = 0;
+    static GLuint vbo = 0;
+    if (!vao)
     {
-        options.vmax.x = 1.0f;
-        options.vmax.y = 1.0f;
-        options.vmax.z = 1.0f;
-        options.vmax.w = 1.0f;
-    }
-
-    if (options.gather.x == 0.0f &&
-        options.gather.y == 0.0f &&
-        options.gather.z == 0.0f &&
-        options.gather.w == 0.0f)
-    {
-        assert(options.cmap == VDB_COLORMAP_NONE && "Colormaps only make sense if you combine the channels into a single scalar (using gather.xyzw as linear weights)");
-        glUniform1i(uniform_is_mono, 0);
-    }
-    else
-    {
-        UniformVec4(uniform_gather, options.gather);
-        glUniform1i(uniform_is_mono, 1);
-    }
-
-    UniformVec4(uniform_vmin, options.vmin);
-    UniformVec4(uniform_vmax, options.vmax);
-    glUniform1i(uniform_is_cmap, options.cmap == VDB_COLORMAP_NONE ? 0 : 1);
-
-    {
-        static GLuint vao = 0;
-        static GLuint vbo = 0;
-        if (!vao)
-        {
-            static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
-            glGenVertexArrays(1, &vao);
-            glGenBuffers(1, &vbo);
-            glBindBuffer(GL_ARRAY_BUFFER, vbo);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
-        }
-        assert(vao);
-        assert(vbo);
-        glBindVertexArray(vao);
+        static float position[] = { -1,-1, 1,-1, 1,1, 1,1, -1,1, -1,-1 };
+        glGenVertexArrays(1, &vao);
+        glGenBuffers(1, &vbo);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glEnableVertexAttribArray(attrib_position);
-        glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glDisableVertexAttribArray(attrib_position);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(position), position, GL_STATIC_DRAW);
     }
+    assert(vao);
+    assert(vbo);
 
+    // draw
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glEnableVertexAttribArray(attrib_position);
+    glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+
+    // cleanup
+    glDisableVertexAttribArray(attrib_position);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
@@ -279,7 +239,7 @@ void vdbDrawImage(int slot, vdbTextureOptions options)
 void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GetTexture(slot));
+    glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
     vdbSetTextureParameters(filter, wrap, false);
 }
 
