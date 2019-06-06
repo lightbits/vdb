@@ -323,8 +323,8 @@ int main(int, char **)
                         color.rgb = 0.5*(vec3(0.5) + 0.5*normalize(p));
                         color.a = 1.0;
                         vec4 clip = pvm*vec4(p, 1.0);
-                        float z_ndc = clip.z/clip.w;
-                        gl_FragDepth = 0.5 + 0.5*z_ndc;
+                        float z_d = clip.z/clip.w;
+                        gl_FragDepth = gl_DepthRange.near + (gl_DepthRange.diff)*(0.5 + 0.5*z_d);
                         break;
                     }
                     t += d;
