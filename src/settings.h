@@ -1,22 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-vdbHintKey VDB_CAMERA_TYPE = 0;
-vdbHintKey VDB_ORIENTATION = 1;
-vdbHintKey VDB_VIEW_SCALE  = 2;
-vdbHintKey VDB_SHOW_GRID   = 3;
+vdbHintKey VDB_CAMERA_TYPE  = 0;
+vdbHintKey VDB_ORIENTATION  = 1;
+vdbHintKey VDB_VIEW_SCALE   = 2;
+vdbHintKey VDB_SHOW_GRID    = 3;
 
-vdbCameraType VDB_CUSTOM   =0;
-vdbCameraType VDB_PLANAR   =1;
-vdbCameraType VDB_TRACKBALL=2;
-vdbCameraType VDB_TURNTABLE=3;
+vdbCameraType VDB_CUSTOM    = 0;
+vdbCameraType VDB_PLANAR    = 1;
+vdbCameraType VDB_TRACKBALL = 2;
+vdbCameraType VDB_TURNTABLE = 3;
 
-vdbOrientation VDB_Z_UP  =0;
-vdbOrientation VDB_Y_UP  =1;
-vdbOrientation VDB_X_UP  =2;
-vdbOrientation VDB_Z_DOWN=3;
-vdbOrientation VDB_Y_DOWN=4;
-vdbOrientation VDB_X_DOWN=5;
+vdbOrientation VDB_Z_UP     = 0;
+vdbOrientation VDB_Y_UP     = 1;
+vdbOrientation VDB_X_UP     = 2;
+vdbOrientation VDB_Z_DOWN   = 3;
+vdbOrientation VDB_Y_DOWN   = 4;
+vdbOrientation VDB_X_DOWN   = 5;
 
 enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
@@ -96,11 +96,6 @@ struct global_camera_settings_t
     float scroll_sensitivity;
     float move_speed_normal;
     float move_speed_slow;
-
-    // proportional smoothing gains
-    float Kp_zoom;
-    float Kp_translate;
-    float Kp_rotate;
 };
 
 struct window_settings_t
@@ -364,9 +359,6 @@ void settings_t::LoadOrDefault(const char *filename)
     camera.scroll_sensitivity = 5.0f;
     camera.move_speed_normal = 1.0f;
     camera.move_speed_slow = 0.5f;
-    camera.Kp_zoom = 5.0f;
-    camera.Kp_translate = 5.0f;
-    camera.Kp_rotate = 10.0f;
     window.x = -1;
     window.y = -1;
     window.width = 1000;
@@ -453,9 +445,6 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (ParseKey(c, "scroll_sensitivity")) ParseFloat(c,      &camera.scroll_sensitivity);
         else if (ParseKey(c, "move_speed_normal"))  ParseFloat(c,      &camera.move_speed_normal);
         else if (ParseKey(c, "move_speed_slow"))    ParseFloat(c,      &camera.move_speed_slow);
-        else if (ParseKey(c, "Kp_zoom"))            ParseFloat(c,      &camera.Kp_zoom);
-        else if (ParseKey(c, "Kp_translate"))       ParseFloat(c,      &camera.Kp_translate);
-        else if (ParseKey(c, "Kp_rotate"))          ParseFloat(c,      &camera.Kp_rotate);
         else if (ParseKey(c, "font_size"))          ParseFloatToInt(c, &font_size, 6, 96);
         else if (ParseKey(c, "dpi_scale"))          ParseFloatToInt(c, &dpi_scale, 100, 200);
         else if (ParseKey(c, "can_idle"))           ParseBool(c,       &can_idle);
@@ -522,9 +511,6 @@ void settings_t::Save(const char *filename)
     fprintf(f, "scroll_sensitivity=%g\n", camera.scroll_sensitivity);
     fprintf(f, "move_speed_normal=%g\n", camera.move_speed_normal);
     fprintf(f, "move_speed_slow=%g\n", camera.move_speed_slow);
-    fprintf(f, "Kp_zoom=%g\n", camera.Kp_zoom);
-    fprintf(f, "Kp_translate=%g\n", camera.Kp_translate);
-    fprintf(f, "Kp_rotate=%g\n", camera.Kp_rotate);
     fprintf(f, "font_size=%d\n", font_size);
     fprintf(f, "dpi_scale=%d\n", dpi_scale);
     fprintf(f, "can_idle=%d\n", can_idle);
