@@ -1,12 +1,13 @@
-enum camera_aspect_mode_t { VDB_STRETCH_TO_FIT, VDB_EQUAL_AXES };
-
+#if 0
+// This doesn't work; we can't adjust the settings mid-frame.
+// (e.g. changing camera type)
 void vdbViewHint(vdbViewHintKey key, float value)
 {
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
     {
         if (key == VDB_VIEW_SCALE)
         {
-            if (!GetFrameSettings()->grid.dirty)
+            // if (!GetFrameSettings()->grid.dirty)
             {
                 GetFrameSettings()->grid.grid_scale = value;
                 GetFrameSettings()->grid.dirty = true;
@@ -21,7 +22,7 @@ void vdbViewHint(vdbViewHintKey key, bool value)
     {
         if (key == VDB_SHOW_GRID)
         {
-            if (!GetFrameSettings()->grid.dirty)
+            // if (!GetFrameSettings()->grid.dirty)
             {
                 GetFrameSettings()->grid.grid_visible = value;
                 GetFrameSettings()->grid.dirty = true;
@@ -41,7 +42,7 @@ void vdbViewHint(vdbViewHintKey key, int value)
              value == VDB_TRACKBALL ||
              value == VDB_TURNTABLE))
         {
-            if (!GetFrameSettings()->camera.dirty)
+            // if (!GetFrameSettings()->camera.dirty)
             {
                 GetFrameSettings()->camera.type = value;
                 GetFrameSettings()->camera.dirty = true;
@@ -62,6 +63,7 @@ void vdbViewHint(vdbViewHintKey key, int value)
         }
     }
 }
+#endif
 
 void vdbCamera2D()
 {

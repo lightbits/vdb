@@ -42,6 +42,7 @@ int main(int, char **)
 {
     VDBB("Hello VDB");
     {
+        vdbOrtho(-1.0f,+1.0f,-1.0f,+1.0f);
         ImGui::TextWrapped("Press F10 to continue.");
     }
     VDBE();

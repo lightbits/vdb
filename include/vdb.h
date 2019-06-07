@@ -18,10 +18,10 @@ extern vdbViewHintKey   VDB_ORIENTATION;// value=VDB_X_DOWN, etc.
 extern vdbViewHintKey   VDB_VIEW_SCALE; // value=float
 extern vdbViewHintKey   VDB_SHOW_GRID;  // value=bool
 
-extern vdbCameraType VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
-extern vdbOrientation VDB_X_DOWN,VDB_X_UP;
-extern vdbOrientation VDB_Y_DOWN,VDB_Y_UP;
-extern vdbOrientation VDB_Z_DOWN,VDB_Z_UP;
+extern vdbCameraType    VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
+extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;
+extern vdbOrientation   VDB_Y_DOWN,VDB_Y_UP;
+extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
 
 void    vdbDetachGLContext();
 void    vdbStepOnce();
@@ -32,15 +32,6 @@ bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
 vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
 vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
-
-// These specify initial view settings that are applied
-// on the first rendered frame. E.g. camera orientation,
-// camera type, view scale. If the vdb.ini file has an
-// entry for the setting, the hint is ignored.
-void    vdbViewHint(vdbViewHintKey key, vdbCameraType value);
-void    vdbViewHint(vdbViewHintKey key, vdbOrientation value);
-void    vdbViewHint(vdbViewHintKey key, float value);
-void    vdbViewHint(vdbViewHintKey key, bool value);
 
 // immediate mode 2D/3D drawing API
 void    vdbInverseColor(bool enable);
@@ -203,6 +194,17 @@ void    vdbLogMatrixRow(const char *label, float *x, int columns); // append row
 void    vdbLogMatrixCol(const char *label, float *x, int rows); // append column to existing matrix (or create new)
 void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
 void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
+
+#if 0 // WIP
+// These specify initial view settings that are applied
+// on the first rendered frame. E.g. camera orientation,
+// camera type, view scale. If the vdb.ini file has an
+// entry for the setting, the hint is ignored.
+void    vdbViewHint(vdbViewHintKey key, vdbCameraType value);
+void    vdbViewHint(vdbViewHintKey key, vdbOrientation value);
+void    vdbViewHint(vdbViewHintKey key, float value);
+void    vdbViewHint(vdbViewHintKey key, bool value);
+#endif
 
 #define VDBB(label) while (vdbBeginBreak(label)) {
 #define VDBE() vdbEndBreak(); }
