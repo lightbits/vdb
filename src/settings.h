@@ -1,25 +1,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-typedef int camera_type_t;
-enum camera_type_
-{
-    VDB_CAMERA_DISABLED=0,
-    VDB_CAMERA_PLANAR,
-    VDB_CAMERA_TRACKBALL,
-    VDB_CAMERA_TURNTABLE
-};
+vdbViewHintKey VDB_CAMERA_TYPE = 0;
+vdbViewHintKey VDB_ORIENTATION = 1;
+vdbViewHintKey VDB_VIEW_SCALE  = 2;
+vdbViewHintKey VDB_SHOW_GRID   = 3;
 
-typedef int camera_up_t;
-enum camera_up_
-{
-    VDB_Z_UP=0,
-    VDB_Y_UP,
-    VDB_X_UP,
-    VDB_Z_DOWN,
-    VDB_Y_DOWN,
-    VDB_X_DOWN,
-};
+vdbCameraType VDB_CUSTOM   =0;
+vdbCameraType VDB_PLANAR   =1;
+vdbCameraType VDB_TRACKBALL=2;
+vdbCameraType VDB_TURNTABLE=3;
+
+vdbOrientation VDB_Z_UP  =0;
+vdbOrientation VDB_Y_UP  =1;
+vdbOrientation VDB_X_UP  =2;
+vdbOrientation VDB_Z_DOWN=3;
+vdbOrientation VDB_Y_DOWN=4;
+vdbOrientation VDB_X_DOWN=5;
 
 enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
@@ -31,7 +28,7 @@ struct camera_trackball_settings_t
     vdbMat4 R; // world to camera
     vdbVec4 T; // camera relative world in world
     float zoom;
-    camera_up_t up;
+    vdbOrientation up;
 };
 
 struct camera_turntable_settings_t
@@ -40,7 +37,7 @@ struct camera_turntable_settings_t
     float angle_x;
     float angle_y;
     float radius;
-    camera_up_t up;
+    vdbOrientation up;
 };
 
 struct camera_planar_settings_t
@@ -49,7 +46,7 @@ struct camera_planar_settings_t
     vdbVec2 position;
     float angle;
     float zoom;
-    camera_up_t up;
+    vdbOrientation up;
 };
 
 struct projection_settings_t
@@ -79,7 +76,7 @@ struct camera_settings_t
 {
     bool dirty;
     projection_settings_t projection;
-    camera_type_t type;
+    vdbCameraType type;
     camera_trackball_settings_t trackball;
     camera_turntable_settings_t turntable;
     camera_planar_settings_t planar;
@@ -131,16 +128,13 @@ struct settings_t
 static settings_t settings;
 static frame_settings_t *GetFrameSettings(); // defined in vdb.cpp
 
-camera_up_t *GetCameraUp()
+vdbOrientation *GetCameraUp()
 {
-    static camera_up_t dummy = VDB_Z_UP;
+    static vdbOrientation dummy = VDB_Z_UP;
     frame_settings_t *fs = GetFrameSettings();
-    switch (fs->camera.type)
-    {
-        case VDB_CAMERA_PLANAR:    return &fs->camera.planar.up;
-        case VDB_CAMERA_TRACKBALL: return &fs->camera.trackball.up;
-        case VDB_CAMERA_TURNTABLE: return &fs->camera.turntable.up;
-    }
+    if      (fs->camera.type == VDB_PLANAR)    return &fs->camera.planar.up;
+    else if (fs->camera.type == VDB_TRACKBALL) return &fs->camera.trackball.up;
+    else if (fs->camera.type == VDB_TURNTABLE) return &fs->camera.turntable.up;
     return &dummy;
 }
 
@@ -148,19 +142,16 @@ bool *GetCameraDirty()
 {
     static bool dummy = false;
     frame_settings_t *fs = GetFrameSettings();
-    switch (fs->camera.type)
-    {
-        case VDB_CAMERA_PLANAR:    return &fs->camera.planar.dirty;
-        case VDB_CAMERA_TRACKBALL: return &fs->camera.trackball.dirty;
-        case VDB_CAMERA_TURNTABLE: return &fs->camera.turntable.dirty;
-    }
+    if      (fs->camera.type == VDB_PLANAR)    return &fs->camera.planar.dirty;
+    else if (fs->camera.type == VDB_TRACKBALL) return &fs->camera.trackball.dirty;
+    else if (fs->camera.type == VDB_TURNTABLE) return &fs->camera.turntable.dirty;
     return &dummy;
 }
 
 void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera.dirty = false;
-    fs->camera.type = VDB_CAMERA_DISABLED;
+    fs->camera.type = VDB_CUSTOM;
     fs->camera.trackball.dirty = false;
     fs->camera.trackball.R = vdbMatIdentity();
     fs->camera.trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -302,17 +293,17 @@ namespace settings_parser
         return false;
     }
 
-    static bool ParseCameraType(const char **c, camera_type_t *type)
+    static bool ParseCameraType(const char **c, vdbCameraType *type)
     {
         ParseBlank(c);
-        if      (ParseString(c, "disabled"))  { *type = VDB_CAMERA_DISABLED; return true; }
-        else if (ParseString(c, "planar"))    { *type = VDB_CAMERA_PLANAR; return true; }
-        else if (ParseString(c, "trackball")) { *type = VDB_CAMERA_TRACKBALL; return true; }
-        else if (ParseString(c, "turntable")) { *type = VDB_CAMERA_TURNTABLE; return true; }
+        if      (ParseString(c, "disabled"))  { *type = VDB_CUSTOM; return true; }
+        else if (ParseString(c, "planar"))    { *type = VDB_PLANAR; return true; }
+        else if (ParseString(c, "trackball")) { *type = VDB_TRACKBALL; return true; }
+        else if (ParseString(c, "turntable")) { *type = VDB_TURNTABLE; return true; }
         return false;
     }
 
-    static bool ParseCameraUp(const char **c, camera_up_t *up)
+    static bool ParseCameraUp(const char **c, vdbOrientation *up)
     {
         ParseBlank(c);
         if      (ParseString(c, "z_up"))   { *up = VDB_Z_UP; return true; }
@@ -477,16 +468,16 @@ void settings_t::LoadOrDefault(const char *filename)
 
 namespace settings_writer
 {
-    static void WriteCameraType(FILE *f, const char *key, camera_type_t type)
+    static void WriteCameraType(FILE *f, const char *key, vdbCameraType type)
     {
-             if (type == VDB_CAMERA_DISABLED)  fprintf(f, "%s=disabled\n", key);
-        else if (type == VDB_CAMERA_PLANAR)    fprintf(f, "%s=planar\n", key);
-        else if (type == VDB_CAMERA_TRACKBALL) fprintf(f, "%s=trackball\n", key);
-        else if (type == VDB_CAMERA_TURNTABLE) fprintf(f, "%s=turntable\n", key);
+             if (type == VDB_CUSTOM)  fprintf(f, "%s=disabled\n", key);
+        else if (type == VDB_PLANAR)    fprintf(f, "%s=planar\n", key);
+        else if (type == VDB_TRACKBALL) fprintf(f, "%s=trackball\n", key);
+        else if (type == VDB_TURNTABLE) fprintf(f, "%s=turntable\n", key);
         else                                   fprintf(f, "%s=disabled\n", key);
     }
 
-    static void WriteCameraUp(FILE *f, const char *key, camera_up_t mode)
+    static void WriteCameraUp(FILE *f, const char *key, vdbOrientation mode)
     {
         if      (mode == VDB_Z_UP)   fprintf(f, "%s=z_up\n", key);
         else if (mode == VDB_Y_UP)   fprintf(f, "%s=y_up\n", key);

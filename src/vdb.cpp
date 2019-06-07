@@ -114,7 +114,7 @@ static frame_settings_t *GetFrameSettings()
     return vdb::frame_settings;
 }
 
-bool vdbBeginFrame(const char *label)
+bool vdbBeginBreak(const char *label)
 {
     static const char *skip_label = NULL;
     static const char *prev_label = NULL;
@@ -291,14 +291,14 @@ bool vdbBeginFrame(const char *label)
 
     immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
 
-    if (vdb::frame_settings->camera.type != VDB_CAMERA_DISABLED)
+    if (vdb::frame_settings->camera.type != VDB_CUSTOM)
     {
         frame_settings_t *fs = vdb::frame_settings;
-        if      (fs->camera.type == VDB_CAMERA_TRACKBALL) vdbCameraTrackball();
-        else if (fs->camera.type == VDB_CAMERA_TURNTABLE) vdbCameraTurntable();
+        if      (fs->camera.type == VDB_TRACKBALL) vdbCameraTrackball();
+        else if (fs->camera.type == VDB_TURNTABLE) vdbCameraTurntable();
         else                                              vdbCamera2D();
 
-        if (fs->camera.type != VDB_CAMERA_PLANAR)
+        if (fs->camera.type != VDB_PLANAR)
         {
             vdbDepthTest(true);
             vdbDepthWrite(true);
@@ -308,12 +308,12 @@ bool vdbBeginFrame(const char *label)
                 fs->camera.projection.max_depth);
         }
 
-        // We do PushMatrix to save current state for drawing grid in vdbEndFrame
+        // We do PushMatrix to save current state for drawing grid in vdbEndBreak
 
         // pre-permutation transform
         // the built-in cameras assume that y axis is up
         vdbPushMatrix();
-        camera_up_t up = *GetCameraUp();
+        vdbOrientation up = *GetCameraUp();
         if      (up == VDB_Z_UP)   vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,1).data);
         else if (up == VDB_X_UP)   vdbMultMatrix(vdbInitMat4(0,0,1,0, 1,0,0,0, 0,1,0,0, 0,0,0,1).data);
         else if (up == VDB_Z_DOWN) vdbMultMatrix(vdbInitMat4(0,1,0,0, 0,0,-1,0, -1,0,0,0, 0,0,0,1).data);
@@ -330,7 +330,7 @@ bool vdbBeginFrame(const char *label)
     return true;
 }
 
-void vdbEndFrame()
+void vdbEndBreak()
 {
     frame_settings_t *fs = vdb::frame_settings;
 
@@ -373,8 +373,8 @@ void vdbEndFrame()
             major_alpha = 0.5f;
         }
 
-        if (fs->camera.type == VDB_CAMERA_TRACKBALL ||
-            fs->camera.type == VDB_CAMERA_TURNTABLE)
+        if (fs->camera.type == VDB_TRACKBALL ||
+            fs->camera.type == VDB_TURNTABLE)
         {
             vdbDepthTest(true);
             vdbPopMatrix(); // pre-scaling
@@ -385,7 +385,7 @@ void vdbEndFrame()
                 float t = 10.0f;
                 vdbLineWidth(1.0f);
                 vdbBeginLines();
-                camera_up_t up = *GetCameraUp();
+                vdbOrientation up = *GetCameraUp();
                 if (up != VDB_X_UP && up != VDB_X_DOWN)
                 {
                     vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);
@@ -468,7 +468,7 @@ void vdbEndFrame()
             }
             vdbDepthTest(false);
         }
-        else if (vdb::frame_settings->camera.type == VDB_CAMERA_PLANAR)
+        else if (vdb::frame_settings->camera.type == VDB_PLANAR)
         {
             #if 0
             // draw major and minor grid lines
@@ -535,7 +535,7 @@ void vdbEndFrame()
                 float t = 10.0f;
                 vdbLineWidth(1.0f);
                 vdbBeginLines();
-                camera_up_t up = *GetCameraUp();
+                vdbOrientation up = *GetCameraUp();
                 if (up != VDB_Z_UP && up != VDB_Z_DOWN)
                 {
                     vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);

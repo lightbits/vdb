@@ -89,13 +89,13 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     if (ImGui::BeginMenu("Camera"))
     {
         #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera.type == e)) { fs->camera.type = e; fs->camera.dirty = true; }
-        ITEM("Disabled", VDB_CAMERA_DISABLED);
+        ITEM("Disabled", VDB_CUSTOM);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
-        ITEM("Planar", VDB_CAMERA_PLANAR);
+        ITEM("Planar", VDB_PLANAR);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
-        ITEM("Trackball", VDB_CAMERA_TRACKBALL);
+        ITEM("Trackball", VDB_TRACKBALL);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
-        ITEM("Turntable", VDB_CAMERA_TURNTABLE);
+        ITEM("Turntable", VDB_TURNTABLE);
         // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
         #undef ITEM
         ImGui::EndMenu();
@@ -110,7 +110,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         ImGui::PopItemWidth();
         ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         ImGui::Text("Up: ");
-        camera_up_t *up = GetCameraUp();
+        vdbOrientation *up = GetCameraUp();
         bool *dirty = GetCameraDirty();
         if (ImGui::RadioButton("+Z", up, VDB_Z_UP)) *dirty = true; ImGui::SameLine();
         if (ImGui::RadioButton("+Y", up, VDB_Y_UP)) *dirty = true; ImGui::SameLine();

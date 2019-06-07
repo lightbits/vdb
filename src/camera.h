@@ -1,11 +1,56 @@
 enum camera_aspect_mode_t { VDB_STRETCH_TO_FIT, VDB_EQUAL_AXES };
 
-void vdbMajorDivScale(float scale)
+void vdbViewHint(vdbViewHintKey key, float value)
 {
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
     {
-        GetFrameSettings()->grid.grid_scale = scale;
-        GetFrameSettings()->grid.dirty = true;
+        if (key == VDB_VIEW_SCALE)
+        {
+            GetFrameSettings()->grid.grid_scale = value;
+            GetFrameSettings()->grid.dirty = true;
+        }
+    }
+}
+
+void vdbViewHint(vdbViewHintKey key, bool value)
+{
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        if (key == VDB_SHOW_GRID)
+        {
+            GetFrameSettings()->grid.grid_visible = value;
+            GetFrameSettings()->grid.dirty = true;
+        }
+    }
+}
+
+void vdbViewHint(vdbViewHintKey key, int value)
+{
+    static bool orientation_pending = false;
+    static vdbOrientation orientation = 0;
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        if (key == VDB_CAMERA_TYPE &&
+            (value == VDB_PLANAR ||
+             value == VDB_TRACKBALL ||
+             value == VDB_TURNTABLE))
+        {
+            GetFrameSettings()->camera.type = value;
+            GetFrameSettings()->camera.dirty = true;
+            if (orientation_pending)
+            {
+                *GetCameraUp() = orientation;
+                orientation_pending = false;
+            }
+        }
+        else if (key == VDB_ORIENTATION &&
+            (value == VDB_Y_UP || value == VDB_Y_DOWN ||
+             value == VDB_X_UP || value == VDB_X_DOWN ||
+             value == VDB_Z_UP || value == VDB_Z_DOWN))
+        {
+            orientation_pending = true;
+            orientation = value;
+        }
     }
 }
 

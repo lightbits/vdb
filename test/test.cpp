@@ -99,6 +99,10 @@ int main(int, char **)
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         #endif
 
+        vdbViewHint(VDB_VIEW_SCALE, 2.0f);
+        vdbViewHint(VDB_ORIENTATION, VDB_Z_UP);
+        vdbViewHint(VDB_CAMERA_TYPE, VDB_TURNTABLE);
+
         vdbPointSize(6.0f);
         vdbBeginPoints();
         {

@@ -1,23 +1,45 @@
 #pragma once
 #include <stdarg.h>
 
+typedef int vdbKey;
+typedef int vdbViewHintKey;
+typedef int vdbCameraType;
+typedef int vdbOrientation;
 struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
-typedef int vdbKey;
+
 enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
 enum vdbTextureFilter { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
 enum vdbTextureWrap   { VDB_CLAMP=0, VDB_REPEAT };
 
+extern vdbViewHintKey   VDB_CAMERA_TYPE;// value=VDB_PLANAR, etc.
+extern vdbViewHintKey   VDB_ORIENTATION;// value=VDB_X_DOWN, etc.
+extern vdbViewHintKey   VDB_VIEW_SCALE; // value=float
+extern vdbViewHintKey   VDB_SHOW_GRID;  // value=bool
+
+extern vdbCameraType VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
+extern vdbOrientation VDB_X_DOWN,VDB_X_UP;
+extern vdbOrientation VDB_Y_DOWN,VDB_Y_UP;
+extern vdbOrientation VDB_Z_DOWN,VDB_Z_UP;
+
 void    vdbDetachGLContext();
 void    vdbStepOnce();
 void    vdbStepOver();
-bool    vdbBeginFrame(const char *label);
-void    vdbEndFrame();
+bool    vdbBeginBreak(const char *label);
+void    vdbEndBreak();
 bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
 vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
 vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
+
+// These specify initial view settings that are applied
+// on the first rendered frame. E.g. camera orientation,
+// camera type, view scale.
+void    vdbViewHint(vdbViewHintKey key, vdbCameraType value);
+void    vdbViewHint(vdbViewHintKey key, vdbOrientation value);
+void    vdbViewHint(vdbViewHintKey key, float value);
+void    vdbViewHint(vdbViewHintKey key, bool value);
 
 // immediate mode 2D/3D drawing API
 void    vdbInverseColor(bool enable);
@@ -90,7 +112,6 @@ void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0
 void    vdbCamera2D(); // Obs! overwrites the current view model matrix
 void    vdbCameraTrackball(); // Obs! overwrites the current view model matrix
 void    vdbCameraTurntable(); // Obs! overwrites the current view model matrix
-void    vdbMajorDivScale(float scale);
 
 // viewport and viewport conversions
 void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
@@ -182,8 +203,8 @@ void    vdbLogMatrixCol(const char *label, float *x, int rows); // append column
 void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
 void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
 
-#define VDBB(label) while (vdbBeginFrame(label)) {
-#define VDBE() vdbEndFrame(); }
+#define VDBB(label) while (vdbBeginBreak(label)) {
+#define VDBE() vdbEndBreak(); }
 
 extern vdbKey VDB_KEY_A;
 extern vdbKey VDB_KEY_B;
