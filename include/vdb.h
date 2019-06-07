@@ -1,6 +1,9 @@
 #pragma once
 #include <stdarg.h>
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Types
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef int vdbKey;
 typedef int vdbHintKey;
 typedef int vdbCameraType;
@@ -12,29 +15,35 @@ struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Enums
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 extern vdbTextureFormat VDB_RGBA32F, VDB_RGBA8;
 extern vdbTextureFilter VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST;
 extern vdbTextureWrap   VDB_CLAMP, VDB_REPEAT;
-
-extern vdbHintKey   VDB_CAMERA_TYPE; // value=VDB_PLANAR, etc.
-extern vdbHintKey   VDB_ORIENTATION; // value=VDB_X_DOWN, etc.
-extern vdbHintKey   VDB_VIEW_SCALE;  // value=float
-extern vdbHintKey   VDB_SHOW_GRID;   // value=bool
-
+extern vdbHintKey       VDB_CAMERA_TYPE; // value=VDB_PLANAR, etc.
+extern vdbHintKey       VDB_ORIENTATION; // value=VDB_X_DOWN, etc.
+extern vdbHintKey       VDB_VIEW_SCALE;  // value=float
+extern vdbHintKey       VDB_SHOW_GRID;   // value=bool
 extern vdbCameraType    VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
 extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;
 extern vdbOrientation   VDB_Y_DOWN,VDB_Y_UP;
 extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Hints:
 // These specify initial view settings that are applied
 // on the first rendered frame. E.g. camera orientation,
 // camera type, view scale.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbHint(vdbHintKey key, vdbCameraType value);
 void    vdbHint(vdbHintKey key, vdbOrientation value);
 void    vdbHint(vdbHintKey key, float value);
 void    vdbHint(vdbHintKey key, bool value);
 
-// Immediate mode 2D/3D drawing API
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Immediate mode 2D/3D drawing API
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbInverseColor(bool enable);
 void    vdbClearColor(float r, float g, float b, float a);
 void    vdbClearDepth(float d);
@@ -73,7 +82,9 @@ void    vdbColor(vdbVec3 rgb, float a=1.0f);
 void    vdbColor(vdbVec4 rgba);
 void    vdbTexel(float u, float v);
 
-// Immediate mode utilities
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Utility drawing functions
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
 void    vdbNote(float x, float y, const char *fmt, ...);
 void    vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
@@ -84,8 +95,9 @@ void    vdbLineRect(float x, float y, float size_x, float size_y);
 void    vdbFillRect(float x, float y, float size_x, float size_y);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
 
-// Matrix stack
-// Matrix = transformation from model coordinates to view coordinates (before projection)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Matrix stack
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
 void    vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
 void    vdbProjection(float *m);                 // NULL -> Load 4x4 identity matrix
@@ -98,14 +110,18 @@ void    vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Transla
 void    vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
 void    vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
 
-// Camera
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Camera
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
 void    vdbCamera2D(); // Obs! overwrites the current view model matrix
 void    vdbCameraTrackball(); // Obs! overwrites the current view model matrix
 void    vdbCameraTurntable(); // Obs! overwrites the current view model matrix
 
-// Viewport
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Window
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
 void    vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
 vdbVec2 vdbNDCToWindow(float xn, float yn);
@@ -118,12 +134,12 @@ int     vdbGetFramebufferHeight();
 int     vdbGetWindowWidth(); // Note: the window size may not be the same as the framebuffer resolution on retina displays.
 int     vdbGetWindowHeight();
 
-// Keyboard
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Mouse & Keyboard
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 bool    vdbWasKeyPressed(vdbKey key);
 bool    vdbWasKeyReleased(vdbKey key);
 bool    vdbIsKeyDown(vdbKey key);
-
-// Mouse
 bool    vdbWasMouseOver(float x, float y, float z=0.0f, float w=1.0f);
 int     vdbGetMouseOverIndex(float *x=0, float *y=0, float *z=0);
 vdbVec2 vdbGetMousePos();    // upper-left: (0,0). bottom-right: (WindowWidth, WindowHeight)
@@ -140,14 +156,18 @@ bool    vdbIsMouseLeftDown();
 bool    vdbIsMouseRightDown();
 bool    vdbIsMouseMiddleDown();
 
-// Image
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Images
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
 void    vdbUnbindImage();
 void    vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
 void    vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
 
-// Shader
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Shaders
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void    vdbBeginShader(int slot);
 void    vdbEndShader();
@@ -164,26 +184,35 @@ void    vdbUniformMatrix3fv(const char *name, float *x);
 void    vdbUniformRowMajMatrix4fv(const char *name, float *x);
 void    vdbUniformRowMajMatrix3fv(const char *name, float *x);
 
-// Render texture
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Render texture
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void    vdbEndRenderTexture(int slot);
 void    vdbUnbindRenderTexture();
 void    vdbBindRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Widgets:
 // These generate easily accessible GUI elements. Useful for simple prototypes.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
 int     vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
 bool    vdbCheckbox(const char *name, bool init);
 bool    vdbRadioButton(const char *name);
 bool    vdbButton(const char *name);
 
-// Can't be used in conjunction with built-in scaler.
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Render scaler
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginRenderScale(int down, int up);
 void    vdbBeginRenderScale(int width, int height, int up);
 void    vdbEndRenderScale();
 
-// Low-level functionality
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Low-level functionality
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbDetachGLContext();
 void    vdbStepOnce();
 void    vdbStepOver();
@@ -194,7 +223,9 @@ bool    vdbIsDifferentLabel();
 vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
 vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
-// Logging and plotting
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Logging
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbClearLog(const char *label=0);
 void    vdbLogScalar(const char *label, float x, bool overwrite=false); // create new scalar
 void    vdbLogArray(const char *label, float x); // append one element to existing array (or create new)
