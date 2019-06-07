@@ -50,12 +50,12 @@ void    vdbClearDepth(float d);
 void    vdbBlendNone();
 void    vdbBlendAdd();
 void    vdbBlendAlpha();
-void    vdbCullFace(bool enable);       // if enabled, back-facing triangles are not drawn
-void    vdbDepthTest(bool enable);      // if enabled, fragments are tested against depth buffer
-void    vdbDepthWrite(bool enable);     // if enabled, fragments write to the depth buffer
-void    vdbDepthFuncLess();             // (default) fragments are written if depth is < current
-void    vdbDepthFuncLessOrEqual();      // fragments are written if depth is <= current
-void    vdbDepthFuncAlways();           // fragments are always written
+void    vdbCullFace(bool enable);
+void    vdbDepthTest(bool enable);
+void    vdbDepthWrite(bool enable);
+void    vdbDepthFuncLess();
+void    vdbDepthFuncLessOrEqual();
+void    vdbDepthFuncAlways();
 void    vdbLineWidth(float width);      // line diameter in framebuffer pixels
 void    vdbPointSegments(int segments); // points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
 void    vdbPointSize(float size);       // point diameter in framebuffer pixels (size=1 and segments=4 gives pixel-perfect rendering)
@@ -64,8 +64,6 @@ void    vdbBeginLines();
 void    vdbBeginPoints();
 void    vdbBeginTriangles();
 void    vdbEnd();
-void    vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
-void    vdbDrawList(int list);
 void    vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
 void    vdbVertex3fv(float *v, float w=1.0f);
@@ -81,6 +79,8 @@ void    vdbColor3fv(float *v, float a=1.0f);
 void    vdbColor(vdbVec3 rgb, float a=1.0f);
 void    vdbColor(vdbVec4 rgba);
 void    vdbTexel(float u, float v);
+void    vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
+void    vdbDrawList(int list);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Utility drawing functions
