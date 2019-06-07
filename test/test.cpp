@@ -249,7 +249,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("RenderTexture");
+    VDBB("RenderTarget");
     {
         static int tile = 0;
         int tiles_x = 16;
@@ -259,7 +259,7 @@ int main(int, char **)
         int tile_x = tile % tiles_x;
         int tile_y = tile / tiles_x;
 
-        vdbBeginRenderTexture(0, tiles_x*tile_w, tiles_y*tile_h, VDB_RGBA8);
+        vdbBeginRenderTarget(0, tiles_x*tile_w, tiles_y*tile_h, VDB_RGBA8);
         vdbViewporti(tile_x*tile_w, tile_y*tile_h, tile_w, tile_h);
         if (tile == 0)
             vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
@@ -268,8 +268,8 @@ int main(int, char **)
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
-        vdbEndRenderTexture(0);
-        vdbDrawRenderTexture(0);
+        vdbEndRenderTarget(0);
+        vdbDrawRenderTarget(0);
 
         tile++;
         if (tile == tiles_x*tiles_y)

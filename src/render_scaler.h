@@ -26,8 +26,8 @@
 // assuming a static scene.
 namespace render_scaler
 {
-    static render_texture_t output;
-    static render_texture_t lowres;
+    static render_target_t output;
+    static render_target_t lowres;
     static int subpixel;
     static bool has_begun;
     static int scale_up;
@@ -46,16 +46,16 @@ namespace render_scaler
 
         if (lowres.width != w || lowres.height != h)
         {
-            FreeRenderTexture(&lowres);
-            lowres = MakeRenderTexture(w, h, GL_NEAREST, GL_NEAREST, true);
+            FreeRenderTarget(&lowres);
+            lowres = MakeRenderTarget(w, h, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
         }
         if (output.width != w<<n_up || output.height != h<<n_up)
         {
-            FreeRenderTexture(&output);
-            output = MakeRenderTexture(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
+            FreeRenderTarget(&output);
+            output = MakeRenderTarget(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
-            EnableRenderTexture(&output);
+            EnableRenderTarget(&output);
             // Although we do _eventually_ overwrite all pixels in
             // the output RT, the user may see some garbage frames
             // after a new RT is created, unless it's cleared.
@@ -66,10 +66,10 @@ namespace render_scaler
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
             vdbDepthWrite(depth_mask);
             vdbDepthTest(depth_test);
-            DisableRenderTexture(&output);
+            DisableRenderTarget(&output);
         }
 
-        EnableRenderTexture(&lowres);
+        EnableRenderTarget(&lowres);
 
         // We don't assume the user will clear the RT after calling
         // BeginRenderScaler, as it's easy to forget it. So we clear
@@ -177,7 +177,7 @@ namespace render_scaler
         }
 
         has_begun = false;
-        DisableRenderTexture(&lowres);
+        DisableRenderTarget(&lowres);
 
         imm_state_t last_state = immediate::GetState();
         float last_projection[4*4];
@@ -207,7 +207,7 @@ namespace render_scaler
             assert(vao);
             assert(vbo);
 
-            EnableRenderTexture(&output);
+            EnableRenderTarget(&output);
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUseProgram(program);
@@ -227,13 +227,13 @@ namespace render_scaler
             glUseProgram(0);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
-            DisableRenderTexture(&output);
+            DisableRenderTarget(&output);
         }
 
         // composite full resolution framebuffer onto window framebuffer
         // note: we re-enable user's draw state (e.g. depth test/write).
         immediate::SetState(last_state);
-        DrawRenderTextureWithDepth(output);
+        DrawRenderTargetWithDepth(output);
 
         vdbPopMatrix();
         vdbProjection(last_projection);

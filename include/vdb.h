@@ -178,17 +178,16 @@ void    vdbUniformRowMajMatrix4fv(const char *name, float *x);
 void    vdbUniformRowMajMatrix3fv(const char *name, float *x);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Render texture
+// § Render targets
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbBeginRenderTexture(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
-void    vdbEndRenderTexture(int slot);
-void    vdbUnbindRenderTexture();
-void    vdbBindRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbDrawRenderTexture(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbBeginRenderTarget(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
+void    vdbEndRenderTarget(int slot);
+void    vdbUnbindRenderTarget();
+void    vdbBindRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Widgets:
-// These generate easily accessible GUI elements. Useful for simple prototypes.
+// § Widgets
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
 int     vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
