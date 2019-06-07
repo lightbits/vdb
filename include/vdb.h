@@ -109,15 +109,8 @@ void    vdbGetPVM(float *m);                     // You allocate m, e.g.: float 
 void    vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Translate(x,y,z)
 void    vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
 void    vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Camera
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
-void    vdbCamera2D(); // Obs! overwrites the current view model matrix
-void    vdbCameraTrackball(); // Obs! overwrites the current view model matrix
-void    vdbCameraTurntable(); // Obs! overwrites the current view model matrix
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Window

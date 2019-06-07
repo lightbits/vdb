@@ -88,20 +88,6 @@ int main(int, char **)
     VDBB("3D");
     {
         static float t = 0.0f; t += 1.0f/60.0f;
-
-        // You can also programmatically control the camera as well as
-        // other aspects, such as depth testing, blend mode, etc.
-        // See vdb.h for an API reference.
-        #if 0
-        vdbDepthTest(true);
-        vdbDepthWrite(true);
-        vdbClearDepth(1.0f);
-        vdbCameraTurntable();
-        // vdbCameraTrackball(); // try this one too!
-        vdbRotateXYZ(-3.14f/2.0f,0,0);
-        vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
-        #endif
-
         vdbPointSize(6.0f);
         vdbBeginPoints();
         {
