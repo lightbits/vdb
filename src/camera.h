@@ -1,6 +1,3 @@
-#if 0
-// This doesn't work; we can't adjust the settings mid-frame.
-// (e.g. changing camera type)
 void vdbViewHint(vdbViewHintKey key, float value)
 {
     if (vdbIsFirstFrame() && vdbIsDifferentLabel())
@@ -42,6 +39,9 @@ void vdbViewHint(vdbViewHintKey key, int value)
              value == VDB_TRACKBALL ||
              value == VDB_TURNTABLE))
         {
+            #if 0
+            // todo: can't adjust camera type mid-frame, as it breaks
+            // the camera post-stuff at vdbEndBreak.
             // if (!GetFrameSettings()->camera.dirty)
             {
                 GetFrameSettings()->camera.type = value;
@@ -52,6 +52,7 @@ void vdbViewHint(vdbViewHintKey key, int value)
                     orientation_pending = false;
                 }
             }
+            #endif
         }
         else if (key == VDB_ORIENTATION &&
             (value == VDB_Y_UP || value == VDB_Y_DOWN ||
@@ -63,7 +64,6 @@ void vdbViewHint(vdbViewHintKey key, int value)
         }
     }
 }
-#endif
 
 void vdbCamera2D()
 {

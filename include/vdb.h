@@ -195,16 +195,16 @@ void    vdbLogMatrixCol(const char *label, float *x, int rows); // append column
 void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
 void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
 
-#if 0 // WIP
 // These specify initial view settings that are applied
 // on the first rendered frame. E.g. camera orientation,
 // camera type, view scale. If the vdb.ini file has an
 // entry for the setting, the hint is ignored.
+#if 0 // not supported yet
 void    vdbViewHint(vdbViewHintKey key, vdbCameraType value);
+#endif
 void    vdbViewHint(vdbViewHintKey key, vdbOrientation value);
 void    vdbViewHint(vdbViewHintKey key, float value);
 void    vdbViewHint(vdbViewHintKey key, bool value);
-#endif
 
 #define VDBB(label) while (vdbBeginBreak(label)) {
 #define VDBE() vdbEndBreak(); }
