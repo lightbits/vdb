@@ -1,6 +1,17 @@
 #include "cmap/inferno.h"
 #include "shaders/image.h"
 
+vdbTextureFormat
+    VDB_RGBA32F = 0,
+    VDB_RGBA8   = 1;
+vdbTextureFilter
+    VDB_LINEAR        = 0,
+    VDB_LINEAR_MIPMAP = 1,
+    VDB_NEAREST       = 2;
+vdbTextureWrap
+    VDB_CLAMP  = 0,
+    VDB_REPEAT = 1;
+
 struct image_t
 {
     GLuint handle;
@@ -23,7 +34,7 @@ image_t *GetImage(int slot)
 GLenum TextureFormatToGL(vdbTextureFormat format)
 {
     if (format == VDB_RGBA32F) return GL_RGBA32F;
-    else if (format == VDB_RGBA8U) return GL_RGBA8;
+    else if (format == VDB_RGBA8) return GL_RGBA8;
     assert(false && "Unrecognized vdbTextureFormat");
     return GL_RGBA;
 }

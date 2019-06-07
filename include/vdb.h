@@ -5,18 +5,21 @@ typedef int vdbKey;
 typedef int vdbHintKey;
 typedef int vdbCameraType;
 typedef int vdbOrientation;
+typedef int vdbTextureFormat;
+typedef int vdbTextureFilter;
+typedef int vdbTextureWrap;
 struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
 
-enum vdbTextureFormat { VDB_RGBA32F, VDB_RGBA8U };
-enum vdbTextureFilter { VDB_LINEAR=0, VDB_LINEAR_MIPMAP, VDB_NEAREST };
-enum vdbTextureWrap   { VDB_CLAMP=0, VDB_REPEAT };
+extern vdbTextureFormat VDB_RGBA32F, VDB_RGBA8;
+extern vdbTextureFilter VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST;
+extern vdbTextureWrap   VDB_CLAMP, VDB_REPEAT;
 
-extern vdbHintKey   VDB_CAMERA_TYPE;// value=VDB_PLANAR, etc.
-extern vdbHintKey   VDB_ORIENTATION;// value=VDB_X_DOWN, etc.
-extern vdbHintKey   VDB_VIEW_SCALE; // value=float
-extern vdbHintKey   VDB_SHOW_GRID;  // value=bool
+extern vdbHintKey   VDB_CAMERA_TYPE; // value=VDB_PLANAR, etc.
+extern vdbHintKey   VDB_ORIENTATION; // value=VDB_X_DOWN, etc.
+extern vdbHintKey   VDB_VIEW_SCALE;  // value=float
+extern vdbHintKey   VDB_SHOW_GRID;   // value=bool
 
 extern vdbCameraType    VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
 extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;

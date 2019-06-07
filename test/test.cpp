@@ -235,6 +235,7 @@ int main(int, char **)
         vdbRotateXYZ(0,0,0.1f*t);
         vdbOrtho(-2.0f*vdbGetAspectRatio(),+2.0f*vdbGetAspectRatio(),-2.0f,+2.0f);
         vdbBeginTriangles();
+        vdbColor(1.0f, 1.0f, 1.0f, 1.0f);
         vdbVertex(-1, -1, 0);
         vdbVertex(+1, -1, 0);
         vdbVertex( 0, +1, 0);
@@ -272,7 +273,7 @@ int main(int, char **)
         int tile_x = tile % tiles_x;
         int tile_y = tile / tiles_x;
 
-        vdbBeginRenderTexture(0, tiles_x*tile_w, tiles_y*tile_h, VDB_RGBA8U);
+        vdbBeginRenderTexture(0, tiles_x*tile_w, tiles_y*tile_h, VDB_RGBA8);
         vdbViewporti(tile_x*tile_w, tile_y*tile_h, tile_w, tile_h);
         if (tile == 0)
             vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);
