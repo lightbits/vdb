@@ -35,7 +35,8 @@ vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
 // These specify initial view settings that are applied
 // on the first rendered frame. E.g. camera orientation,
-// camera type, view scale.
+// camera type, view scale. If the vdb.ini file has an
+// entry for the setting, the hint is ignored.
 void    vdbViewHint(vdbViewHintKey key, vdbCameraType value);
 void    vdbViewHint(vdbViewHintKey key, vdbOrientation value);
 void    vdbViewHint(vdbViewHintKey key, float value);

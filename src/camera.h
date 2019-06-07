@@ -6,8 +6,11 @@ void vdbViewHint(vdbViewHintKey key, float value)
     {
         if (key == VDB_VIEW_SCALE)
         {
-            GetFrameSettings()->grid.grid_scale = value;
-            GetFrameSettings()->grid.dirty = true;
+            if (!GetFrameSettings()->grid.dirty)
+            {
+                GetFrameSettings()->grid.grid_scale = value;
+                GetFrameSettings()->grid.dirty = true;
+            }
         }
     }
 }
@@ -18,8 +21,11 @@ void vdbViewHint(vdbViewHintKey key, bool value)
     {
         if (key == VDB_SHOW_GRID)
         {
-            GetFrameSettings()->grid.grid_visible = value;
-            GetFrameSettings()->grid.dirty = true;
+            if (!GetFrameSettings()->grid.dirty)
+            {
+                GetFrameSettings()->grid.grid_visible = value;
+                GetFrameSettings()->grid.dirty = true;
+            }
         }
     }
 }
@@ -35,12 +41,15 @@ void vdbViewHint(vdbViewHintKey key, int value)
              value == VDB_TRACKBALL ||
              value == VDB_TURNTABLE))
         {
-            GetFrameSettings()->camera.type = value;
-            GetFrameSettings()->camera.dirty = true;
-            if (orientation_pending)
+            if (!GetFrameSettings()->camera.dirty)
             {
-                *GetCameraUp() = orientation;
-                orientation_pending = false;
+                GetFrameSettings()->camera.type = value;
+                GetFrameSettings()->camera.dirty = true;
+                if (orientation_pending)
+                {
+                    *GetCameraUp() = orientation;
+                    orientation_pending = false;
+                }
             }
         }
         else if (key == VDB_ORIENTATION &&
