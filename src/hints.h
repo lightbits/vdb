@@ -1,4 +1,4 @@
-namespace view_hints
+namespace hints
 {
     static float view_scale;           static bool view_scale_pending;
     static bool show_grid;             static bool show_grid_pending;
@@ -6,9 +6,9 @@ namespace view_hints
     static vdbOrientation orientation; static bool orientation_pending;
 }
 
-static void ApplyViewHints()
+static void ApplyHints()
 {
-    using namespace view_hints;
+    using namespace hints;
     if (view_scale_pending)
     {
         GetFrameSettings()->grid.grid_scale = view_scale;
@@ -35,40 +35,40 @@ static void ApplyViewHints()
     }
 }
 
-void vdbViewHint(vdbViewHintKey key, float value)
+void vdbHint(vdbHintKey key, float value)
 {
     if (key == VDB_VIEW_SCALE)
     {
-        view_hints::view_scale = value;
-        view_hints::view_scale_pending = true;
+        hints::view_scale = value;
+        hints::view_scale_pending = true;
     }
 }
 
-void vdbViewHint(vdbViewHintKey key, bool value)
+void vdbHint(vdbHintKey key, bool value)
 {
     if (key == VDB_SHOW_GRID)
     {
-        view_hints::show_grid = value;
-        view_hints::show_grid_pending = true;
+        hints::show_grid = value;
+        hints::show_grid_pending = true;
     }
 }
 
-void vdbViewHint(vdbViewHintKey key, int value)
+void vdbHint(vdbHintKey key, int value)
 {
     if (key == VDB_CAMERA_TYPE &&
         (value == VDB_PLANAR ||
          value == VDB_TRACKBALL ||
          value == VDB_TURNTABLE))
     {
-        view_hints::camera_type = value;
-        view_hints::camera_type_pending = true;
+        hints::camera_type = value;
+        hints::camera_type_pending = true;
     }
     else if (key == VDB_ORIENTATION &&
             (value == VDB_Y_UP || value == VDB_Y_DOWN ||
              value == VDB_X_UP || value == VDB_X_DOWN ||
              value == VDB_Z_UP || value == VDB_Z_DOWN))
     {
-        view_hints::orientation = value;
-        view_hints::orientation_pending = true;
+        hints::orientation = value;
+        hints::orientation_pending = true;
     }
 }

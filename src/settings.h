@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-vdbViewHintKey VDB_CAMERA_TYPE = 0;
-vdbViewHintKey VDB_ORIENTATION = 1;
-vdbViewHintKey VDB_VIEW_SCALE  = 2;
-vdbViewHintKey VDB_SHOW_GRID   = 3;
+vdbHintKey VDB_CAMERA_TYPE = 0;
+vdbHintKey VDB_ORIENTATION = 1;
+vdbHintKey VDB_VIEW_SCALE  = 2;
+vdbHintKey VDB_SHOW_GRID   = 3;
 
 vdbCameraType VDB_CUSTOM   =0;
 vdbCameraType VDB_PLANAR   =1;

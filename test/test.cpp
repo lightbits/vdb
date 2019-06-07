@@ -82,6 +82,9 @@ int main(int, char **)
     }
     VDBE();
 
+    vdbHint(VDB_VIEW_SCALE, 2.0f);
+    vdbHint(VDB_ORIENTATION, VDB_Z_UP);
+    vdbHint(VDB_CAMERA_TYPE, VDB_TURNTABLE);
     VDBB("3D");
     {
         static float t = 0.0f; t += 1.0f/60.0f;
@@ -98,10 +101,6 @@ int main(int, char **)
         vdbRotateXYZ(-3.14f/2.0f,0,0);
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         #endif
-
-        vdbViewHint(VDB_VIEW_SCALE, 2.0f);
-        vdbViewHint(VDB_ORIENTATION, VDB_Z_UP);
-        vdbViewHint(VDB_CAMERA_TYPE, VDB_TURNTABLE);
 
         vdbPointSize(6.0f);
         vdbBeginPoints();
