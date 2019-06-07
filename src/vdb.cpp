@@ -52,6 +52,7 @@
 #include "log.h"
 #include "ui.h"
 #include "widgets.h"
+#include "view_hint.h"
 #include "data/open_sans_regular.h"
 // #include "data/source_sans_pro.h"
 
@@ -192,6 +193,8 @@ bool vdbBeginBreak(const char *label)
 
         vdb::frame_settings = fs;
     }
+
+    ApplyViewHints();
 
     window::EnsureGLContextIsCurrent();
 
