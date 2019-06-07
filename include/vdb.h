@@ -21,7 +21,7 @@ vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
 // immediate mode 2D/3D drawing API
 void    vdbInverseColor(bool enable);
-void    vdbClearColor(float r, float g, float b, float a=1.0f);
+void    vdbClearColor(float r, float g, float b, float a);
 void    vdbClearDepth(float d);
 void    vdbBlendNone();
 void    vdbBlendAdd();
@@ -90,6 +90,7 @@ void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0
 void    vdbCamera2D(); // Obs! overwrites the current view model matrix
 void    vdbCameraTrackball(); // Obs! overwrites the current view model matrix
 void    vdbCameraTurntable(); // Obs! overwrites the current view model matrix
+void    vdbMajorDivScale(float scale);
 
 // viewport and viewport conversions
 void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)

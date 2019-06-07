@@ -1,5 +1,14 @@
 enum camera_aspect_mode_t { VDB_STRETCH_TO_FIT, VDB_EQUAL_AXES };
 
+void vdbMajorDivScale(float scale)
+{
+    if (vdbIsFirstFrame() && vdbIsDifferentLabel())
+    {
+        GetFrameSettings()->grid.grid_scale = scale;
+        GetFrameSettings()->grid.dirty = true;
+    }
+}
+
 void vdbCamera2D()
 {
     const float dt = 1.0f/60.0f;

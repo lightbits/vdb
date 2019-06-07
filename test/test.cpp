@@ -71,6 +71,7 @@ int main(int, char **)
 
     VDBB("Hello OpenGL");
     {
+        vdbClearColor(0.22f,0.22f,0.22f,0.0f);
         vdbBeginTriangles();
         vdbColor(1.0f, 0.5f, 0.5f, 1.0f); vdbVertex(-0.5f, -0.5f);
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
@@ -244,7 +245,7 @@ int main(int, char **)
 
     VDBB("Mouse");
     {
-        vdbClearColor(0.3f,0.5f,0.7f);
+        vdbClearColor(0.3f,0.5f,0.7f,1.0f);
         vdbLineWidth(2.0f);
         vdbBeginLines();
         vdbColor(1.0f,1.0f,0.5f);
