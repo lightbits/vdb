@@ -65,19 +65,7 @@ void    vdbBeginPoints();
 void    vdbBeginTriangles();
 void    vdbEnd();
 void    vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
-void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
-void    vdbVertex3fv(float *v, float w=1.0f);
-void    vdbVertex4fv(float *v);
-void    vdbVertex(vdbVec3 xyz, float w=1.0f);
-void    vdbVertex(vdbVec4 xyzw);
-void    vdbColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-void    vdbColor4ubv(unsigned char *v);
-void    vdbColor3ubv(unsigned char *v, unsigned char a=255);
 void    vdbColor(float r, float g, float b, float a=1.0f);
-void    vdbColor4fv(float *v);
-void    vdbColor3fv(float *v, float a=1.0f);
-void    vdbColor(vdbVec3 rgb, float a=1.0f);
-void    vdbColor(vdbVec4 rgba);
 void    vdbTexel(float u, float v);
 void    vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
 void    vdbDrawList(int list);
@@ -94,6 +82,14 @@ void    vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
 void    vdbLineRect(float x, float y, float size_x, float size_y);
 void    vdbFillRect(float x, float y, float size_x, float size_y);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
+void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
+void    vdbVertex3fv(float *v, float w=1.0f);
+void    vdbVertex4fv(float *v);
+void    vdbColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void    vdbColor4ubv(unsigned char *v);
+void    vdbColor3ubv(unsigned char *v, unsigned char a=255);
+void    vdbColor4fv(float *v);
+void    vdbColor3fv(float *v, float a=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack

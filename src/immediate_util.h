@@ -157,7 +157,9 @@ void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
         float rq2 = r1 + (r2-r1)*t2;
         vdbVec3 q1 = vdbVecNormalize(p1 + (p2-p1)*t1)*rq1;
         vdbVec3 q2 = vdbVecNormalize(p1 + (p2-p1)*t2)*rq2;
-        vdbVertex(0,0,0); vdbVertex(q1); vdbVertex(q2);
+        vdbVertex(0,0,0);
+        vdbVertex(q1.x, q1.y, q1.z);
+        vdbVertex(q2.x, q2.y, q2.z);
     }
 }
 void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
