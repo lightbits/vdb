@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-vdbHintKey VDB_CAMERA_TYPE  = 0;
-vdbHintKey VDB_ORIENTATION  = 1;
-vdbHintKey VDB_VIEW_SCALE   = 2;
-vdbHintKey VDB_SHOW_GRID    = 3;
+vdbHintKey VDB_CAMERA_TYPE = 0;
+vdbHintKey VDB_ORIENTATION = 1;
+vdbHintKey VDB_VIEW_SCALE  = 2;
+vdbHintKey VDB_SHOW_GRID   = 3;
+vdbHintKey VDB_CAMERA_KEY  = 4;
 
 vdbCameraType VDB_CUSTOM    = 0;
 vdbCameraType VDB_PLANAR    = 1;
@@ -76,6 +77,7 @@ struct camera_settings_t
 {
     bool dirty;
     projection_settings_t projection;
+    vdbKey key;
     vdbCameraType type;
     camera_trackball_settings_t trackball;
     camera_turntable_settings_t turntable;
@@ -147,6 +149,7 @@ void DefaultFrameSettings(frame_settings_t *fs)
 {
     fs->camera.dirty = false;
     fs->camera.type = VDB_CUSTOM;
+    fs->camera.key = VDB_KEY_INVALID;
     fs->camera.trackball.dirty = false;
     fs->camera.trackball.R = vdbMatIdentity();
     fs->camera.trackball.T = vdbVec4(0.0f, 0.0f, 0.0f, 1.0f);

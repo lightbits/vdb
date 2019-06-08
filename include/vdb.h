@@ -21,10 +21,11 @@ struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float
 extern vdbTextureFormat VDB_RGBA32F, VDB_RGBA8;
 extern vdbTextureFilter VDB_LINEAR, VDB_LINEAR_MIPMAP, VDB_NEAREST;
 extern vdbTextureWrap   VDB_CLAMP, VDB_REPEAT;
-extern vdbHintKey       VDB_CAMERA_TYPE; // value=VDB_PLANAR, etc.
-extern vdbHintKey       VDB_ORIENTATION; // value=VDB_X_DOWN, etc.
-extern vdbHintKey       VDB_VIEW_SCALE;  // value=float
-extern vdbHintKey       VDB_SHOW_GRID;   // value=bool
+extern vdbHintKey       VDB_CAMERA_TYPE;    // value=VDB_PLANAR, etc.
+extern vdbHintKey       VDB_ORIENTATION;    // value=VDB_X_DOWN, etc.
+extern vdbHintKey       VDB_VIEW_SCALE;     // value=float
+extern vdbHintKey       VDB_SHOW_GRID;      // value=bool
+extern vdbHintKey       VDB_CAMERA_KEY;     // If set, this key must be pressed to move the camera. value=VDB_KEY_*
 extern vdbCameraType    VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
 extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;
 extern vdbOrientation   VDB_Y_DOWN,VDB_Y_UP;
@@ -36,8 +37,7 @@ extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
 // on the first rendered frame. E.g. camera orientation,
 // camera type, view scale.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbHint(vdbHintKey key, vdbCameraType value);
-void    vdbHint(vdbHintKey key, vdbOrientation value);
+void    vdbHint(vdbHintKey key, int value);
 void    vdbHint(vdbHintKey key, float value);
 void    vdbHint(vdbHintKey key, bool value);
 

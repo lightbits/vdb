@@ -36,8 +36,8 @@
 
 #include "vdb.h"
 #include "matrix.h"
-#include "settings.h"
 #include "keys.h"
+#include "settings.h"
 #include "mouse.h"
 #include "window.h"
 #include "matrix_stack.h"

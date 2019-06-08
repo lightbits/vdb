@@ -9,10 +9,11 @@ void vdbCamera2D()
     float &angle = GetFrameSettings()->camera.planar.angle;
     float &position_x = GetFrameSettings()->camera.planar.position.x;
     float &position_y = GetFrameSettings()->camera.planar.position.y;
+    bool can_move = GetFrameSettings()->camera.key == VDB_KEY_INVALID ||
+                    vdbIsKeyDown(GetFrameSettings()->camera.key);
 
     // zooming
-    #if 1
-    // this version keeps the point underneath the cursor fixed
+    // this keeps the point underneath the cursor fixed
     {
         float W = (float)vdbGetFramebufferWidth();
         float H = (float)vdbGetFramebufferHeight();
@@ -32,11 +33,9 @@ void vdbCamera2D()
             zoom = next_zoom;
         }
     }
-    #else
-    zoom -= scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
-    #endif
 
     // rotation
+    if (can_move)
     {
         const float pi = 3.14159265359f;
 
@@ -63,6 +62,7 @@ void vdbCamera2D()
     }
 
     // translation
+    if (can_move)
     {
         float aspect = vdbGetAspectRatio();
         static float last_mouse_x = 0.0f, last_mouse_y = 0.0f;
@@ -100,6 +100,8 @@ void vdbCameraTrackball()
     vdbMat4 &R0 = GetFrameSettings()->camera.trackball.R;
     vdbVec4 &T = GetFrameSettings()->camera.trackball.T;
     float &zoom = GetFrameSettings()->camera.trackball.zoom;
+    bool can_move = GetFrameSettings()->camera.key == VDB_KEY_INVALID ||
+                    vdbIsKeyDown(GetFrameSettings()->camera.key);
 
     vdbMat4 R = R0;
 
@@ -132,7 +134,7 @@ void vdbCameraTrackball()
     static float mouse_x_start = 0.0f, mouse_y_start = 0.0f;
     float mouse_x = vdbGetMousePosNDC().x*aspect;
     float mouse_y = vdbGetMousePosNDC().y;
-    if (!dragging && vdbIsMouseLeftDown())
+    if (!dragging && can_move && vdbIsMouseLeftDown())
     {
         mouse_x_start = mouse_x;
         mouse_y_start = mouse_y;
@@ -204,6 +206,8 @@ void vdbCameraTurntable()
     float &angle_x = GetFrameSettings()->camera.turntable.angle_x;
     float &angle_y = GetFrameSettings()->camera.turntable.angle_y;
     float &radius = GetFrameSettings()->camera.turntable.radius;
+    bool can_move = GetFrameSettings()->camera.key == VDB_KEY_INVALID ||
+                    vdbIsKeyDown(GetFrameSettings()->camera.key);
     const float dt = 1.0f/60.0f;
 
     // zooming
@@ -214,7 +218,7 @@ void vdbCameraTurntable()
     static float last_mouse_x = 0.0f, last_mouse_y = 0.0f;
     float mouse_x = vdbGetMousePosNDC().x*aspect;
     float mouse_y = vdbGetMousePosNDC().y;
-    if (!dragging && vdbIsMouseLeftDown())
+    if (!dragging && can_move && vdbIsMouseLeftDown())
     {
         last_mouse_x = mouse_x;
         last_mouse_y = mouse_y;

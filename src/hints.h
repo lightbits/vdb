@@ -4,6 +4,7 @@ namespace hints
     static bool show_grid;             static bool show_grid_pending;
     static vdbCameraType camera_type;  static bool camera_type_pending;
     static vdbOrientation orientation; static bool orientation_pending;
+    static vdbKey camera_key;          static bool camera_key_pending;
 }
 
 static void ApplyHints()
@@ -24,7 +25,7 @@ static void ApplyHints()
     if (camera_type_pending)
     {
         GetFrameSettings()->camera.type = camera_type;
-        *GetCameraDirty() = true;
+        GetFrameSettings()->camera.dirty = true;
         camera_type_pending = false;
     }
     if (orientation_pending)
@@ -32,6 +33,11 @@ static void ApplyHints()
         // obs! this must be applied after we apply the new camera type!
         *GetCameraUp() = orientation;
         orientation_pending = false;
+    }
+    if (camera_key_pending)
+    {
+        GetFrameSettings()->camera.key = camera_key;
+        camera_key_pending = false;
     }
 }
 
@@ -70,5 +76,11 @@ void vdbHint(vdbHintKey key, int value)
     {
         hints::orientation = value;
         hints::orientation_pending = true;
+    }
+    else if (key == VDB_CAMERA_KEY &&
+        (value >= 0 && value < VDB_NUM_KEYS))
+    {
+        hints::camera_key = value;
+        hints::camera_key_pending = true;
     }
 }
