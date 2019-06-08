@@ -117,6 +117,7 @@ vdbVec2 vdbNDCToWindow(float xn, float yn);
 vdbVec2 vdbWindowToNDC(float xw, float yw);
 vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
 vdbVec2 vdbModelToNDC(float x, float y, float z=0.0f, float w=1.0f);
+vdbVec2 vdbModelToWindow(float x, float y, float z=0.0f, float w=1.0f);
 float   vdbGetAspectRatio();
 int     vdbGetFramebufferWidth();
 int     vdbGetFramebufferHeight();

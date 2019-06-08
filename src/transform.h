@@ -221,3 +221,9 @@ vdbVec2 vdbModelToNDC(float x, float y, float z, float w)
     vdbVec2 ndc(clip.x/clip.w, clip.y/clip.w);
     return ndc;
 }
+
+vdbVec2 vdbModelToWindow(float x, float y, float z, float w)
+{
+    vdbVec2 ndc = vdbModelToNDC(x, y, z, w);
+    return vdbNDCToWindow(ndc.x, ndc.y);
+}
