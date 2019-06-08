@@ -24,6 +24,7 @@
 #include "imgui/imgui_widgets.cpp"
 #include "imgui/imgui_impl_sdl.cpp"
 #include "imgui/imgui_impl_opengl3.cpp"
+
 #if VDB_IMGUI_FREETYPE==1
 #include "freetype.h"
 #endif

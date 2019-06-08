@@ -235,22 +235,8 @@ namespace window
         glad_set_post_callback(PostGLCallback);
         #endif
 
-        // 0 for immediate updates, 1 for updates synchronized with the
-        // vertical retrace. If the system supports it, you may
-        // specify -1 to allow late swaps to happen immediately
-        // instead of waiting for the next retrace.
         SDL_GL_SetSwapInterval(1);
-
-        // Instead of using vsync, you can specify a desired framerate
-        // that the application will attempt to keep. If a frame rendered
-        // too fast, it will sleep the remaining time. Leave swap_interval
-        // at 0 when using this.
         vsynced = (SDL_GL_GetSwapInterval() == 1);
-
-        // printf("Vendor        : %s\n", glGetString(GL_VENDOR));
-        // printf("Renderer      : %s\n", glGetString(GL_RENDERER));
-        // printf("Version       : %s\n", glGetString(GL_VERSION));
-        // printf("Extensions    : %s\n", glGetString(GL_EXTENSIONS));
     }
 
     static void SwapBuffers(float dt)
