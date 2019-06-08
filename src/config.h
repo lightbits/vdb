@@ -60,10 +60,10 @@
 // where the information is stored.
 #define VDB_IMGUI_INI_FILENAME "./imgui.ini"
 
-#define VDB_HOTKEY_FRAMEGRAB   (keys::pressed[SDL_SCANCODE_S] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_WINDOW_SIZE (keys::pressed[SDL_SCANCODE_W] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_SKETCH_MODE (keys::pressed[SDL_SCANCODE_D] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_RULER_MODE  (keys::pressed[SDL_SCANCODE_R] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_TOGGLE_MENU (keys::pressed[SDL_SCANCODE_M] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_LOGS_WINDOW (keys::pressed[SDL_SCANCODE_L] && keys::down[SDL_SCANCODE_LALT])
-#define VDB_HOTKEY_AUTO_STEP   (keys::pressed[SDL_SCANCODE_F6])
+#define VDB_HOTKEY_FRAMEGRAB   (keys::pressed[VDB_KEY_S] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_WINDOW_SIZE (keys::pressed[VDB_KEY_W] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_SKETCH_MODE (keys::pressed[VDB_KEY_D] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_RULER_MODE  (keys::pressed[VDB_KEY_R] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_TOGGLE_MENU (keys::pressed[VDB_KEY_M] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_LOGS_WINDOW (keys::pressed[VDB_KEY_L] && keys::down[VDB_KEY_LALT])
+#define VDB_HOTKEY_AUTO_STEP   (keys::pressed[VDB_KEY_F6])

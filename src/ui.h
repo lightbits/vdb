@@ -58,7 +58,7 @@ static void ui::LogsWindow()
         show_logs = !show_logs;
     if (show_logs)
     {
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[VDB_KEY_ESCAPE])
         {
             escape_eaten = true;
             show_logs = false;
@@ -205,7 +205,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
 
 static void ui::ExitDialog()
 {
-    bool escape = keys::pressed[SDL_SCANCODE_ESCAPE];
+    bool escape = keys::pressed[VDB_KEY_ESCAPE];
     if (escape && !ui::escape_eaten && settings.never_ask_on_exit)
     {
         window::should_quit = true;
@@ -261,7 +261,7 @@ static void ui::WindowSizeDialog()
         ImGui::Separator();
         ImGui::Checkbox("Topmost", &topmost);
 
-        if (ImGui::Button("OK", ImVec2(120,0)) || keys::pressed[SDL_SCANCODE_RETURN])
+        if (ImGui::Button("OK", ImVec2(120,0)) || keys::pressed[VDB_KEY_RETURN])
         {
             window::SetSize(width, height, topmost);
             ImGui::CloseCurrentPopup();
@@ -271,7 +271,7 @@ static void ui::WindowSizeDialog()
         {
             ImGui::CloseCurrentPopup();
         }
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[VDB_KEY_ESCAPE])
         {
             ImGui::CloseCurrentPopup();
             ui::escape_eaten = true;
@@ -283,8 +283,8 @@ static void ui::WindowSizeDialog()
 static void ui::FramegrabDialog()
 {
     using namespace ImGui;
-    bool enter_button = keys::pressed[SDL_SCANCODE_RETURN];
-    bool escape_button = keys::pressed[SDL_SCANCODE_ESCAPE];
+    bool enter_button = keys::pressed[VDB_KEY_RETURN];
+    bool escape_button = keys::pressed[VDB_KEY_ESCAPE];
     if (take_screenshot_should_open ||
         record_video_should_open ||
         (VDB_HOTKEY_FRAMEGRAB))
@@ -445,7 +445,7 @@ static void ui::RulerNewFrame()
 
     if (ruler_mode_active)
     {
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[VDB_KEY_ESCAPE])
         {
             ruler_mode_active = false;
             escape_eaten = true;
@@ -525,7 +525,7 @@ static void ui::SketchNewFrame()
 
     if (sketch_mode_active)
     {
-        if (keys::pressed[SDL_SCANCODE_ESCAPE])
+        if (keys::pressed[VDB_KEY_ESCAPE])
         {
             ui::sketch_mode_active = false;
             ui::escape_eaten = true;
