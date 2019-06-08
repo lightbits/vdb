@@ -9,6 +9,10 @@ vdb is a C++ library that lets you easily create interactive 2D/3D visualization
 
 vdb runs on Windows, Linux and Mac OS, and requires only an OpenGL 3.1 compatible GPU (which even really old laptops have).
 
+<a href="https://lightbits.github.io/gallery/vdb-1.png"><img style="float:none;display:inline-block;width:30%;" src="https://lightbits.github.io/gallery/vdb-1.png"/></a>
+<a href="https://lightbits.github.io/gallery/vdb-2.png"><img style="float:none;display:inline-block;width:30%;" src="https://lightbits.github.io/gallery/vdb-2.png"/></a>
+<a href="https://lightbits.github.io/gallery/vdb-3.png"><img style="float:none;display:inline-block;width:30%;" src="https://lightbits.github.io/gallery/vdb-3.png"/></a>
+
 **Basic example**
 
 vdb works like a breakpoint debugger:
