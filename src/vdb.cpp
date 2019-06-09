@@ -341,10 +341,10 @@ void vdbEndBreak()
 {
     frame_settings_t *fs = vdb::frame_settings;
 
-    immediate::DefaultState();
-
     if (render_scaler::has_begun)
         render_scaler::End();
+
+    immediate::DefaultState();
 
     {
         bool background_is_bright = false;
