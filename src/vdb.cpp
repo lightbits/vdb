@@ -273,11 +273,13 @@ bool vdbBeginBreak(const char *label)
     ui::SketchNewFrame();
     ui::RulerNewFrame();
 
+    glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glClearDepth(1.0f);
     glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
+    glDisable(GL_DEPTH_TEST);
 
     if (vdb::frame_settings->render_scaler.down > 0)
     {
@@ -286,11 +288,13 @@ bool vdbBeginBreak(const char *label)
         int w = window::framebuffer_width >> n_down;
         int h = window::framebuffer_height >> n_down;
         render_scaler::Begin(w, h, n_up);
+        glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
         glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
+        glDisable(GL_DEPTH_TEST);
     }
 
     immediate::SetRenderOffsetNDC(vdbGetRenderOffset());
@@ -306,7 +310,6 @@ bool vdbBeginBreak(const char *label)
         {
             vdbDepthTest(true);
             vdbDepthWrite(true);
-            vdbClearDepth(1.0f);
             vdbPerspective(fs->camera.projection.y_fov,
                 fs->camera.projection.min_depth,
                 fs->camera.projection.max_depth);

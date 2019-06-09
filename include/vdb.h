@@ -93,6 +93,9 @@ void    vdbColor3fv(float *v, float a=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack
+// Note: by default vdb interprets matrix pointers as 4x4 column-major arrays.
+// You can change this behavior by #defining VDB_ROW_MAJOR before #including
+// <vdb.h>. See also section below for the difference between the two.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
 void    vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
@@ -171,8 +174,6 @@ void    vdbUniform3i(const char *name, int x, int y, int z);
 void    vdbUniform4i(const char *name, int x, int y, int z, int w);
 void    vdbUniformMatrix4fv(const char *name, float *x);
 void    vdbUniformMatrix3fv(const char *name, float *x);
-void    vdbUniformRowMajMatrix4fv(const char *name, float *x);
-void    vdbUniformRowMajMatrix3fv(const char *name, float *x);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render targets
@@ -225,6 +226,35 @@ void    vdbLogMatrixRow(const char *label, float *x, int columns); // append row
 void    vdbLogMatrixCol(const char *label, float *x, int rows); // append column to existing matrix (or create new)
 void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
 void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Row-major versions of matrix functions
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Row-major (#define VDB_ROW_MAJOR to enable)
+//   float m[] = {A,B,C,D}; -> |A B|
+//                             |C D|
+//
+// Column-major
+//   float m[] = {A,B,C,D}; -> |A C|
+//                             |B D|
+#ifdef VDB_ROW_MAJOR
+void    vdbProjection_RowMaj(float *m);
+void    vdbLoadMatrix_RowMaj(float *m);
+void    vdbMultMatrix_RowMaj(float *m);
+void    vdbGetMatrix_RowMaj(float *m);
+void    vdbGetProjection_RowMaj(float *m);
+void    vdbGetPVM_RowMaj(float *m);
+void    vdbUniformMatrix4fv_RowMaj(const char *name, float *x);
+void    vdbUniformMatrix3fv_RowMaj(const char *name, float *x);
+#define vdbProjection       vdbProjection_RowMaj
+#define vdbLoadMatrix       vdbLoadMatrix_RowMaj
+#define vdbMultMatrix       vdbMultMatrix_RowMaj
+#define vdbGetMatrix        vdbGetMatrix_RowMaj
+#define vdbGetProjection    vdbGetProjection_RowMaj
+#define vdbGetPVM           vdbGetPVM_RowMaj
+#define vdbUniformMatrix4fv vdbUniformRowMajMatrix4fv
+#define vdbUniformMatrix3fv vdbUniformRowMajMatrix3fv
+#endif
 
 #define VDBB(label) while (vdbBeginBreak(label)) {
 #define VDBE() vdbEndBreak(); }

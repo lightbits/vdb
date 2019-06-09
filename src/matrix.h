@@ -1,27 +1,20 @@
+// Matrices are stored in column-major order, e.g.
+// the 2x2 matrix m = | a b | in usual mathematical
+//                    | c d |
+// notation (i.e. vectors are columns and right-multiplied
+// with matrices) will be laid out in memory as
+//   float m[] = { a, c, b, d };
 struct vdbMat4
 {
     float data[4*4];
-    #if defined(VDB_MATRIX_ROW_MAJOR)
-    float &operator()(int row, int col) { return data[col + row*4]; }
-    #else
     float &operator()(int row, int col) { return data[row + col*4]; }
-    #endif
 };
 
-inline void UniformMat4fv(GLint u, int n, float *v)
-{
-    #if defined(VDB_MATRIX_ROW_MAJOR)
-    glUniformMatrix4fv(u, n, GL_TRUE, v);
-    #elif defined(VDB_MATRIX_COLUMN_MAJOR)
-    glUniformMatrix4fv(u, n, GL_FALSE, v);
-    #else
-    #error "You must #define VDB_MATRIX_ROW_MAJOR or VDB_MATRIX_COLUMN_MAJOR"
-    #endif
-}
+inline void UniformMat4fv(GLint u, int n, float *v) { glUniformMatrix4fv(u, n, GL_FALSE, v); }
 inline void UniformMat4(GLint u, int n, vdbMat4 &m) { UniformMat4fv(u, n, m.data); }
-inline void UniformVec4(GLuint u, vdbVec4 &v) { glUniform4f(u, v.x, v.y, v.z, v.w); }
-inline void UniformVec3(GLuint u, vdbVec3 &v) { glUniform3f(u, v.x, v.y, v.z); }
-inline void UniformVec2(GLuint u, vdbVec2 &v) { glUniform2f(u, v.x, v.y); }
+inline void UniformVec4(GLuint u, vdbVec4 &v)       { glUniform4f(u, v.x, v.y, v.z, v.w); }
+inline void UniformVec3(GLuint u, vdbVec3 &v)       { glUniform3f(u, v.x, v.y, v.z); }
+inline void UniformVec2(GLuint u, vdbVec2 &v)       { glUniform2f(u, v.x, v.y); }
 
 static vdbVec4 operator-(vdbVec4 a)              { return vdbVec4(-a.x, -a.y, -a.z, -a.w); }
 static vdbVec4 operator+(vdbVec4 a, vdbVec4 b)   { return vdbVec4(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w); }
@@ -52,6 +45,7 @@ static vdbVec3 operator/(vdbVec3 a, float b)     { return vdbVec3(a.x/b, a.y/b, 
 static vdbVec3 operator/(float b, vdbVec3 a)     { return vdbVec3(a.x/b, a.y/b, a.z/b); }
 static float vdbVecLength(vdbVec3 v)             { return sqrtf(v.x*v.x + v.y*v.y + v.z*v.z); }
 static float vdbVecDot(vdbVec3 a, vdbVec3 b)     { return a.x*b.x + a.y*b.y + a.z*b.z; }
+
 static vdbVec3 vdbVecNormalize(vdbVec3 v)
 {
     float length = vdbVecLength(v);
@@ -60,6 +54,7 @@ static vdbVec3 vdbVecNormalize(vdbVec3 v)
     else
         return v*(1.0f/length);
 }
+
 static vdbVec3 vdbVecCross(vdbVec3 a, vdbVec3 b)
 {
     return vdbVec3(a.y*b.z - a.z*b.y,
@@ -72,30 +67,22 @@ static vdbMat4 vdbInitMat4(float a00, float a01, float a02, float a03,
                            float a20, float a21, float a22, float a23,
                            float a30, float a31, float a32, float a33)
 {
-    #ifdef VDB_MATRIX_ROW_MAJOR
-    vdbMat4 a = {
-        a00, a01, a02, a03,
-        a10, a11, a12, a13,
-        a20, a21, a22, a23,
-        a30, a31, a32, a33
-    };
-    #else
-    vdbMat4 a = {
-        a00, a10, a20, a30,
-        a01, a11, a21, a31,
-        a02, a12, a22, a32,
-        a03, a13, a23, a33
-    };
-    #endif
+    vdbMat4 a;
+    a(0,0) = a00; a(0,1) = a01; a(0,2) = a02; a(0,3) = a03;
+    a(1,0) = a10; a(1,1) = a11; a(1,2) = a12; a(1,3) = a13;
+    a(2,0) = a20; a(2,1) = a21; a(2,2) = a22; a(2,3) = a23;
+    a(3,0) = a30; a(3,1) = a31; a(3,2) = a32; a(3,3) = a33;
     return a;
 }
 
 static vdbMat4 vdbMatTranspose(vdbMat4 m)
 {
-    return vdbInitMat4(m(0,0), m(1,0), m(2,0), m(3,0),
-                       m(0,1), m(1,1), m(2,1), m(3,1),
-                       m(0,2), m(1,2), m(2,2), m(3,2),
-                       m(0,3), m(1,3), m(2,3), m(3,3));
+    vdbMat4 t;
+    t(0,0) = m(0,0); t(0,1) = m(1,0); t(0,2) = m(2,0); t(0,3) = m(3,0);
+    t(1,0) = m(0,1); t(1,1) = m(1,1); t(1,2) = m(2,1); t(1,3) = m(3,1);
+    t(2,0) = m(0,2); t(2,1) = m(1,2); t(2,2) = m(2,2); t(2,3) = m(3,2);
+    t(3,0) = m(0,3); t(3,1) = m(1,3); t(3,2) = m(2,3); t(3,3) = m(3,3);
+    return t;
 }
 
 static vdbMat4 operator+(vdbMat4 a, vdbMat4 b)
@@ -253,12 +240,12 @@ static vdbMat4 vdbMatRotateZYX(float rz,float ry,float rx)
 
 static vdbMat4 vdbMatSkew(vdbVec3 v)
 {
-    return vdbInitMat4(
-      0 , -v.z,  v.y,  0,
-     v.z,   0 , -v.x,  0,
-    -v.y,  v.x,   0 ,  0,
-      0 ,   0 ,   0 ,  0
-    );
+    vdbMat4 S;
+    S(0,0) = 0.0f; S(0,1) = -v.z; S(0,2) = +v.y; S(0,3) = 0.0f;
+    S(1,0) = +v.z; S(1,1) = 0.0f; S(1,2) = -v.x; S(1,3) = 0.0f;
+    S(2,0) = -v.y; S(2,1) = +v.x; S(2,2) = 0.0f; S(2,3) = 0.0f;
+    S(3,0) = 0.0f; S(3,1) = 0.0f; S(3,2) = 0.0f; S(3,3) = 0.0f;
+    return S;
 }
 
 static vdbMat4 vdbMatOrthogonalize(vdbMat4 R)
@@ -270,13 +257,12 @@ static vdbMat4 vdbMatOrthogonalize(vdbMat4 R)
     vdbVec3 ny = vdbVecNormalize((y - 0.5f*e*x)/(1.0f-0.25f*e*e));
     vdbVec3 nx = vdbVecNormalize((x - 0.5f*e*ny));
     vdbVec3 nz = vdbVecCross(nx, ny);
-    vdbMat4 result = vdbInitMat4(
-        nx.x,       ny.x,      nz.x,      R(0,3),
-        nx.y,       ny.y,      nz.y,      R(1,3),
-        nx.z,       ny.z,      nz.z,      R(2,3),
-        R(3,0),  R(3,1), R(3,2), R(3,3)
-    );
-    return result;
+    vdbMat4 O;
+    O(0,0) = nx.x;   O(0,1) = ny.x;   O(0,2) = nz.x;   O(0,3) = R(0,3);
+    O(1,0) = nx.y;   O(1,1) = ny.y;   O(1,2) = nz.y;   O(1,3) = R(1,3);
+    O(2,0) = nx.z;   O(2,1) = ny.z;   O(2,2) = nz.z;   O(2,3) = R(2,3);
+    O(3,0) = R(3,0); O(3,1) = R(3,1); O(3,2) = R(3,2); O(3,3) = R(3,3);
+    return O;
 }
 
 #if 0

@@ -19,54 +19,24 @@ namespace transform
     }
 }
 
-void vdbProjection(float *m)
+void vdbProjection(vdbMat4 m)
 {
-    using namespace transform;
-    if (m)
-        projection = *(vdbMat4*)m;
-    else
-        projection = vdbMatIdentity();
-    pvm = vdbMul4x4(projection, view_model);
+    transform::projection = m;
+    transform::pvm = vdbMul4x4(m, transform::view_model);
 }
 
-void vdbGetProjection(float *m)
+void vdbMultMatrix(vdbMat4 m)
 {
-    assert(m);
-    *(vdbMat4*)m = transform::projection;
+    transform::matrix_stack.Multiply(m);
+    transform::view_model = transform::matrix_stack.Top();
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
-void vdbGetPVM(float *m)
+void vdbLoadMatrix(vdbMat4 m)
 {
-    assert(m);
-    *(vdbMat4*)m = transform::pvm;
-}
-
-void vdbGetMatrix(float *m)
-{
-    assert(m);
-    *(vdbMat4*)m = transform::view_model;
-}
-
-void vdbMultMatrix(float *m)
-{
-    using namespace transform;
-    if (m)
-    {
-        matrix_stack.Multiply(*(vdbMat4*)m);
-        view_model = matrix_stack.Top();
-        pvm = vdbMul4x4(projection, view_model);
-    }
-}
-
-void vdbLoadMatrix(float *m)
-{
-    using namespace transform;
-    if (m)
-        matrix_stack.Load(*(vdbMat4*)m);
-    else
-        matrix_stack.LoadIdentity();
-    view_model = matrix_stack.Top();
-    pvm = vdbMul4x4(projection, view_model);
+    transform::matrix_stack.Load(m);
+    transform::view_model = transform::matrix_stack.Top();
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
 void vdbPushMatrix()
@@ -227,3 +197,21 @@ vdbVec2 vdbModelToWindow(float x, float y, float z, float w)
     vdbVec2 ndc = vdbModelToNDC(x, y, z, w);
     return vdbNDCToWindow(ndc.x, ndc.y);
 }
+
+void vdbProjection(float *m)           { vdbProjection(m ? *(vdbMat4*)m : vdbMatIdentity()); }
+void vdbProjection_RowMaj(float *m)    { vdbProjection(m ? vdbMatTranspose(*(vdbMat4*)m) : vdbMatIdentity()); }
+
+void vdbGetProjection(float *m)        { assert(m); *(vdbMat4*)m = transform::projection; }
+void vdbGetProjection_RowMaj(float *m) { assert(m); *(vdbMat4*)m = vdbMatTranspose(transform::projection); }
+
+void vdbGetPVM(float *m)               { assert(m); *(vdbMat4*)m = transform::pvm; }
+void vdbGetPVM_RowMaj(float *m)        { assert(m); *(vdbMat4*)m = vdbMatTranspose(transform::pvm); }
+
+void vdbGetMatrix(float *m)            { assert(m); *(vdbMat4*)m = transform::view_model; }
+void vdbGetMatrix_RowMaj(float *m)     { assert(m); *(vdbMat4*)m = vdbMatTranspose(transform::view_model); }
+
+void vdbMultMatrix(float *m)           { if (m) vdbMultMatrix(*(vdbMat4*)m); }
+void vdbMultMatrix_RowMaj(float *m)    { if (m) vdbMultMatrix(vdbMatTranspose(*(vdbMat4*)m)); }
+
+void vdbLoadMatrix(float *m)           { if (m) vdbLoadMatrix(*(vdbMat4*)m); }
+void vdbLoadMatrix_RowMaj(float *m)    { if (m) vdbLoadMatrix(vdbMatTranspose(*(vdbMat4*)m)); }

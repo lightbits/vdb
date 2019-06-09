@@ -153,5 +153,5 @@ void vdbUniform3i(const char *name, int x, int y, int z)                { glUnif
 void vdbUniform4i(const char *name, int x, int y, int z, int w)         { glUniform4i(glGetUniformLocation(vdb_gl_current_program, name), x,y,z,w); }
 void vdbUniformMatrix4fv(const char *name, float *x)                    { glUniformMatrix4fv(glGetUniformLocation(vdb_gl_current_program, name), 1, false, x);}
 void vdbUniformMatrix3fv(const char *name, float *x)                    { glUniformMatrix3fv(glGetUniformLocation(vdb_gl_current_program, name), 1, false, x);}
-void vdbUniformRowMajMatrix4fv(const char *name, float *x)              { glUniformMatrix4fv(glGetUniformLocation(vdb_gl_current_program, name), 1, true, x);}
-void vdbUniformRowMajMatrix3fv(const char *name, float *x)              { glUniformMatrix3fv(glGetUniformLocation(vdb_gl_current_program, name), 1, true, x);}
+void vdbUniformMatrix4fv_RowMaj(const char *name, float *x)             { glUniformMatrix4fv(glGetUniformLocation(vdb_gl_current_program, name), 1, true, x);}
+void vdbUniformMatrix3fv_RowMaj(const char *name, float *x)             { glUniformMatrix3fv(glGetUniformLocation(vdb_gl_current_program, name), 1, true, x);}
