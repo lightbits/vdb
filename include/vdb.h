@@ -252,8 +252,8 @@ void    vdbUniformMatrix3fv_RowMaj(const char *name, float *x);
 #define vdbGetMatrix        vdbGetMatrix_RowMaj
 #define vdbGetProjection    vdbGetProjection_RowMaj
 #define vdbGetPVM           vdbGetPVM_RowMaj
-#define vdbUniformMatrix4fv vdbUniformRowMajMatrix4fv
-#define vdbUniformMatrix3fv vdbUniformRowMajMatrix3fv
+#define vdbUniformMatrix4fv vdbUniformMatrix4fv_RowMaj
+#define vdbUniformMatrix3fv vdbUniformMatrix3fv_RowMaj
 #endif
 
 #define VDBB(label) while (vdbBeginBreak(label)) {
