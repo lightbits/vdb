@@ -33,9 +33,8 @@ extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Hints:
-// These specify initial view settings that are applied
-// on the first rendered frame. E.g. camera orientation,
-// camera type, view scale.
+// These specify initial view settings that are applied on the first rendered
+// frame. See vdbHintKey declarations above for a list of available hints.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbHint(vdbHintKey key, int value);
 void    vdbHint(vdbHintKey key, float value);
@@ -67,7 +66,20 @@ void    vdbEnd();
 void    vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void    vdbColor(float r, float g, float b, float a=1.0f);
 void    vdbTexel(float u, float v);
-void    vdbBeginList(int list); // call before vdbBegin* to store the resulting geometry stream to a buffer (you can draw the buffer by calling vdbDrawList)
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Draw list:
+// If you have lots of geometry, you can use vdbBeginList to store the draw
+// calls to a static buffer that can be rendered quickly. Typical usage:
+//   if (vdbIsFirstFrame()) {
+//       vdbBeginList(0);
+//       vdbBeginTriangles();
+//       ...
+//       vdbEnd();
+//   }
+//   vdbDrawList(0);
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void    vdbBeginList(int list);
 void    vdbDrawList(int list);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,15 +111,15 @@ void    vdbColor3fv(float *v, float a=1.0f);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
 void    vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
-void    vdbProjection(float *m);                 // NULL -> Load 4x4 identity matrix
-void    vdbLoadMatrix(float *m);                 // NULL -> Load 4x4 identity matrix
-void    vdbMultMatrix(float *m);                 // Matrix <- Matrix mul m (right-multiply top of matrix stack)
-void    vdbGetMatrix(float *m);                  // You allocate m, e.g.: float matrix[4*4]; vdbGetMatrix(matrix);
-void    vdbGetProjection(float *m);              // You allocate m, e.g.: float projection[4*4]; vdbGetProjection(projection);
-void    vdbGetPVM(float *m);                     // You allocate m, e.g.: float pvm[4*4]; vdbGetPVM(pvm);
-void    vdbTranslate(float x, float y, float z); // Matrix <- Matrix mul Translate(x,y,z)
-void    vdbRotateXYZ(float x, float y, float z); // Matrix <- Matrix mul Rx(x) mul Ry(y) mul Rz(z)
-void    vdbRotateZYX(float z, float y, float x); // Matrix <- Matrix mul Rz(z) mul Ry(y) mul Rx(x)
+void    vdbProjection(float *m);                 // Pass NULL to load 4x4 identity matrix
+void    vdbLoadMatrix(float *m);                 // Pass NULL to load 4x4 identity matrix
+void    vdbMultMatrix(float *m);                 // Semantics: M = M mul m (right-multiply top of matrix stack)
+void    vdbGetMatrix(float *m);                  // Usage: float m[4*4]; vdbGetMatrix(m);
+void    vdbGetProjection(float *m);              // Usage: float m[4*4]; vdbGetProjection(m);
+void    vdbGetPVM(float *m);                     // Usage: float m[4*4]; vdbGetPVM(m);
+void    vdbTranslate(float x, float y, float z); // Semantics: M <- M mul Translate(x,y,z)
+void    vdbRotateXYZ(float x, float y, float z); // Semantics: M <- M mul Rx(x) mul Ry(y) mul Rz(z)
+void    vdbRotateZYX(float z, float y, float x); // Semantics: M <- M mul Rz(z) mul Ry(y) mul Rx(x)
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
 
@@ -186,6 +198,8 @@ void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTex
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Widgets
+// Note: vdb includes Dear ImGui (https://github.com/ocornut/imgui), which can
+// be accessed by #include <vdb/imgui.h> (see test/test.cpp).
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
 int     vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
@@ -228,15 +242,19 @@ void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns
 void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Row-major versions of matrix functions
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Row-major (#define VDB_ROW_MAJOR to enable)
+// § Row-major versions of matrix functions:
+//
+// Row-major (#define VDB_ROW_MAJOR to enable) assumes matrix elements are laid
+// out in memory one row at a time.
+//
+// Row-major:
 //   float m[] = {A,B,C,D}; -> |A B|
 //                             |C D|
 //
-// Column-major
+// Column-major:
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifdef VDB_ROW_MAJOR
 void    vdbProjection_RowMaj(float *m);
 void    vdbLoadMatrix_RowMaj(float *m);
@@ -337,25 +355,3 @@ extern vdbKey VDB_KEY_RALT; /**< alt gr, option */
 extern vdbKey VDB_KEY_RGUI; /**< windows, command (apple), meta */
 
 enum { VDB_NUM_KEYS = 512 };
-
-/*
-FREQUENTLY ASKED QUESTIONS
-==========================
-
-Q: What are the scaling factors 2/2, 2/4, 4/4, 8/8, etc. in the Settings menu tab?
-A:  The render scale lets you render at a lower resolution. Useful for increasing
-    framerate or saving battery life. vdbGetRenderScale() returns the active scale
-    factor (1/1 = 1.0, 1/2 = 0.5, etc.).
-
-    Scaling options a/b where a > 1 enables temporal multi-sampling, where multiple
-    frames are interleaved together over time to form a high resolution result. For
-    example: 2/2 means render frames at 1/2 resolution and upsample 2x. The result
-    is a original-resolution output that takes 4 frames to fully flush.
-
-    This is done by having each frame render a slightly different view of the scene
-    by translating incoming geometry by a subpixel offset, which is equivalent to
-    changing the pixel sampling center. To get this effect when using custom shaders
-    (i.e. NOT when using the immediate API), you should use vdbGetRenderOffset().
-
-    See test.cpp for example usage in a fragment shader-based ray-tracer.
-*/
