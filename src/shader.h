@@ -112,6 +112,7 @@ void vdbLoadShader(int slot, const char *user_fs_source)
         "uniform vec2 iResolution;\n"
         "uniform vec2 iFragCoordOffset;\n"
         "uniform mat4 iPVM;\n"
+        "uniform mat4 iModelToView;\n"
         "out vec4 vdb_color0;\n"
         "#line 0\n",
 
@@ -134,10 +135,12 @@ void vdbBeginShader(int slot)
     vdb_gl_current_program = vdb_gl_shaders[slot];
     glUseProgram(vdb_gl_shaders[slot]);
     float pvm[4*4]; vdbGetPVM(pvm);
+    float vm[4*4]; vdbGetMatrix(vm);
     vdbVec2 frag_offset = vdbGetRenderOffsetFramebuffer();
     vdbUniform2f("iResolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
     vdbUniform2f("iFragCoordOffset", frag_offset.x, frag_offset.y);
     vdbUniformMatrix4fv("iPVM", pvm);
+    vdbUniformMatrix4fv("iModelToView", vm);
 }
 
 void vdbEndShader()

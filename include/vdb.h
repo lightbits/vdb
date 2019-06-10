@@ -183,8 +183,9 @@ void    vdbUnbindImage();
 // Your fragment shader must define an entrypoint of the form:
 //   void mainImage(out vec4 fragColor, in vec2 fragCoord)
 // Your shader has access to these built-in uniform variables:
-//   uniform vec2  iResolution; // Resolution of render target
-//   uniform mat4  iPVM;        // Premultiplied projection-view-model matrix
+//   uniform vec2  iResolution;  // Resolution of render target
+//   uniform mat4  iPVM;         // Projection*ViewModel matrix
+//   uniform mat4  iModelToView; // ViewModel matrix
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void    vdbBeginShader(int slot);
