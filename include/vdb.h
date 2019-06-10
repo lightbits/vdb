@@ -55,10 +55,10 @@ void    vdbDepthWrite(bool enable);
 void    vdbDepthFuncLess();
 void    vdbDepthFuncLessOrEqual();
 void    vdbDepthFuncAlways();
-void    vdbLineWidth(float width);      // line diameter in framebuffer pixels
+void    vdbLineWidth(float width);      // line diameter in window units
 void    vdbPointSegments(int segments); // points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
-void    vdbPointSize(float size);       // point diameter in framebuffer pixels (size=1 and segments=4 gives pixel-perfect rendering)
-void    vdbPointSize3D(float size);     // point diameter in model-coordinates (is affected by projection)
+void    vdbPointSize(float size);       // point diameter in window units
+void    vdbPointSize3D(float size);     // point diameter in model coordinates (is affected by projection)
 void    vdbBeginLines();
 void    vdbBeginPoints();
 void    vdbBeginTriangles();
@@ -83,6 +83,18 @@ void    vdbBeginList(int list);
 void    vdbDrawList(int list);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Pointer- and array versions of drawing functions
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
+void    vdbVertex3fv(float *v, float w=1.0f);
+void    vdbVertex4fv(float *v);
+void    vdbColor4ub (unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
+void    vdbColor4ubv(unsigned char *v);
+void    vdbColor3ubv(unsigned char *v, unsigned char a=255);
+void    vdbColor4fv (float *v);
+void    vdbColor3fv (float *v, float a=1.0f);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Utility drawing functions
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
@@ -94,14 +106,6 @@ void    vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
 void    vdbLineRect(float x, float y, float size_x, float size_y);
 void    vdbFillRect(float x, float y, float size_x, float size_y);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
-void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
-void    vdbVertex3fv(float *v, float w=1.0f);
-void    vdbVertex4fv(float *v);
-void    vdbColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-void    vdbColor4ubv(unsigned char *v);
-void    vdbColor3ubv(unsigned char *v, unsigned char a=255);
-void    vdbColor4fv(float *v);
-void    vdbColor3fv(float *v, float a=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack
@@ -122,22 +126,26 @@ void    vdbRotateXYZ(float x, float y, float z); // Semantics: M <- M mul Rx(x) 
 void    vdbRotateZYX(float z, float y, float x); // Semantics: M <- M mul Rz(z) mul Ry(y) mul Rx(x)
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Window
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
 void    vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
-vdbVec2 vdbNDCToWindow(float xn, float yn);
-vdbVec2 vdbWindowToNDC(float xw, float yw);
-vdbVec3 vdbNDCToModel(float x_ndc, float y_ndc, float depth=-1.0f);
-vdbVec2 vdbModelToNDC(float x, float y, float z=0.0f, float w=1.0f);
-vdbVec2 vdbModelToWindow(float x, float y, float z=0.0f, float w=1.0f);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Window information
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float   vdbGetAspectRatio();
 int     vdbGetFramebufferWidth();
 int     vdbGetFramebufferHeight();
 int     vdbGetWindowWidth(); // Note: the window size may not be the same as the framebuffer resolution on retina displays.
 int     vdbGetWindowHeight();
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Coordinate system conversions
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vdbVec2 vdbModelToNDC   (float x, float y, float z=0.0f, float w=1.0f);
+vdbVec3 vdbNDCToModel   (float x, float y, float z=-1.0f);
+vdbVec2 vdbWindowToNDC  (float x, float y);
+vdbVec2 vdbNDCToWindow  (float x, float y);
+vdbVec2 vdbModelToWindow(float x, float y, float z=0.0f, float w=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Mouse & Keyboard
@@ -164,18 +172,17 @@ bool    vdbIsMouseMiddleDown();
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Images
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
-void    vdbUnbindImage();
-void    vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels);
+void    vdbLoadImageUint8  (int slot, const void *data, int width, int height, int channels);
 void    vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
+void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
+void    vdbUnbindImage();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Shaders
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void    vdbBeginShader(int slot);
-void    vdbEndShader();
 void    vdbUniform1f(const char *name, float x);
 void    vdbUniform2f(const char *name, float x, float y);
 void    vdbUniform3f(const char *name, float x, float y, float z);
@@ -186,15 +193,16 @@ void    vdbUniform3i(const char *name, int x, int y, int z);
 void    vdbUniform4i(const char *name, int x, int y, int z, int w);
 void    vdbUniformMatrix4fv(const char *name, float *x);
 void    vdbUniformMatrix3fv(const char *name, float *x);
+void    vdbEndShader();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render targets
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginRenderTarget(int slot, int width, int height, vdbTextureFormat format, int depth_bits=0, int stencil_bits=0);
 void    vdbEndRenderTarget(int slot);
-void    vdbUnbindRenderTarget();
 void    vdbBindRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbUnbindRenderTarget();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Widgets
@@ -202,10 +210,10 @@ void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTex
 // be accessed by #include <vdb/imgui.h> (see test/test.cpp).
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
-int     vdbSliderInt(const char *name, int vmin, int vmax, int v_init);
-bool    vdbCheckbox(const char *name, bool init);
+int     vdbSliderInt  (const char *name, int vmin, int vmax, int v_init);
+bool    vdbCheckbox   (const char *name, bool init);
 bool    vdbRadioButton(const char *name);
-bool    vdbButton(const char *name);
+bool    vdbButton     (const char *name);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render scaler
@@ -228,18 +236,12 @@ vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
 vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Logging
+// § Logging (WIP)
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbClearLog(const char *label=0);
+void    vdbClearLog (const char *label=0);
 void    vdbLogScalar(const char *label, float x, bool overwrite=false); // create new scalar
-void    vdbLogArray(const char *label, float x); // append one element to existing array (or create new)
-void    vdbLogArray(const char *label, float *x, int columns, bool append=false); // create new array or append to existing (append=true)
-void    vdbLogMatrix(const char *label, float *x, int rows, int columns); // create new matrix
-void    vdbLogMatrix(const char *label, float **x, int rows, int columns); // create new matrix
-void    vdbLogMatrixRow(const char *label, float *x, int columns); // append row to existing matrix (or create new)
-void    vdbLogMatrixCol(const char *label, float *x, int rows); // append column to existing matrix (or create new)
-void    vdbLogMatrixTranspose(const char *label, float *x, int rows, int columns); // create new matrix
-void    vdbLogMatrixTranspose(const char *label, float **x, int rows, int columns); // create new matrix
+void    vdbLogArray (const char *label, float x); // append one element to existing array (or create new)
+void    vdbLogArray (const char *label, float *x, int columns, bool append=false); // create new array or append to existing (append=true)
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Row-major versions of matrix functions:
