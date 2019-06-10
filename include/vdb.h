@@ -180,6 +180,11 @@ void    vdbUnbindImage();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Shaders
+// Your fragment shader must define an entrypoint of the form:
+//   void mainImage(out vec4 fragColor, in vec2 fragCoord)
+// Your shader has access to these built-in uniform variables:
+//   uniform vec2  iResolution; // Resolution of render target
+//   uniform mat4  iPVM;        // Premultiplied projection-view-model matrix
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void    vdbBeginShader(int slot);
@@ -221,6 +226,9 @@ bool    vdbButton     (const char *name);
 void    vdbBeginRenderScale(int down, int up);
 void    vdbBeginRenderScale(int width, int height, int up);
 void    vdbEndRenderScale();
+vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
+vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
+vdbVec2 vdbGetRenderOffsetFramebuffer();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Low-level functionality
@@ -232,8 +240,6 @@ bool    vdbBeginBreak(const char *label);
 void    vdbEndBreak();
 bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
-vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
-vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Logging (WIP)

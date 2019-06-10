@@ -33,6 +33,8 @@ namespace render_scaler
     static int scale_up;
     static int sample_pos_idx;
     static int sample_pos_idy;
+    static float frag_offset_x;
+    static float frag_offset_y;
     static float sample_pos_ndc_x;
     static float sample_pos_ndc_y;
 
@@ -105,11 +107,15 @@ namespace render_scaler
             }
             sample_pos_idx = i % (1<<scale_up);
             sample_pos_idy = i / (1<<scale_up);
+
+            int num_samples = 1<<scale_up;
+            frag_offset_x = (sample_pos_idx + 0.5f)/(float)num_samples - 0.5f;
+            frag_offset_y = (sample_pos_idy + 0.5f)/(float)num_samples - 0.5f;
+
             float pixel_width_ndc = 2.0f / (w<<scale_up);
             float pixel_height_ndc = 2.0f / (h<<scale_up);
-            int num_samples_x = 1<<scale_up;
-            sample_pos_ndc_x = (-0.5f*num_samples_x + 0.5f + sample_pos_idx)*pixel_width_ndc;
-            sample_pos_ndc_y = (-0.5f*num_samples_x + 0.5f + sample_pos_idy)*pixel_height_ndc;
+            sample_pos_ndc_x = (-0.5f*num_samples + 0.5f + sample_pos_idx)*pixel_width_ndc;
+            sample_pos_ndc_y = (-0.5f*num_samples + 0.5f + sample_pos_idy)*pixel_height_ndc;
         }
     }
     void End()
@@ -257,6 +263,15 @@ vdbVec2 vdbGetRenderOffset()
     using namespace render_scaler;
     if (has_begun)
         return vdbVec2(sample_pos_ndc_x, sample_pos_ndc_y);
+    else
+        return vdbVec2(0.0f, 0.0f);
+}
+
+vdbVec2 vdbGetRenderOffsetFramebuffer()
+{
+    using namespace render_scaler;
+    if (has_begun)
+        return vdbVec2(frag_offset_x, frag_offset_y);
     else
         return vdbVec2(0.0f, 0.0f);
 }

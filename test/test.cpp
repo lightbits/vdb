@@ -192,18 +192,12 @@ int main(int, char **)
 
     VDBB("shader");
     {
-        #define SHADER(S) "#version 150\n" #S
-        const char *fs = SHADER(
-        uniform vec2 Resolution;
-        out vec4 Color;
-
-        void main()
-        {
-            vec2 uv = gl_FragCoord.xy/Resolution;
-            Color = vec4(uv, 0.5, 1.0);
-        }
-        );
-        #undef SHADER
+        const char *fs =
+        "void mainImage(out vec4 fragColor, in vec2 fragCoord)\n"
+        "{\n"
+        "    vec2 uv = fragCoord.xy/iResolution.xy;\n"
+        "    fragColor = vec4(uv, 0.5, 1.0);\n"
+        "}\n";
 
         if (vdbIsFirstFrame())
             vdbLoadShader(0, fs);
@@ -281,21 +275,16 @@ int main(int, char **)
     {
         if (vdbIsFirstFrame())
         {
-            #define glsl(x) "#version 150\n" #x
+            #define glsl(x) #x
             const char *fs = glsl(
-            uniform vec2 resolution;
-            uniform vec2 ndc_offset;
-            uniform mat4 pvm;
-            out vec4 color;
             float scene(vec3 p) {
                 return length(p) - 0.5;
             }
-            void main() {
-                vec2 ndc = vec2(-1.0) + 2.0*gl_FragCoord.xy/resolution.xy;
-                ndc += ndc_offset;
+            void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+                vec2 ndc = vec2(-1.0) + 2.0*fragCoord.xy/iResolution.xy;
 
                 // compute the ray origin and direction for this pixel
-                mat4 inv_pvm = inverse(pvm);
+                mat4 inv_pvm = inverse(iPVM);
                 vec4 ro = inv_pvm*vec4(ndc, -1.0, 1.0);
                 ro.xyz /= ro.w;
                 vec4 rd = inv_pvm*vec4(ndc, +1.0, 1.0);
@@ -303,7 +292,7 @@ int main(int, char **)
                 rd = normalize(rd - ro);
 
                 // color and depth if we don't hit anything
-                color = vec4(0.0,0.0,0.0,0.0);
+                fragColor = vec4(0.0,0.0,0.0,0.0);
                 gl_FragDepth = 1.0;
 
                 // simple ray-marched scene
@@ -312,9 +301,9 @@ int main(int, char **)
                     vec3 p = ro.xyz + rd.xyz*t;
                     float d = scene(p);
                     if (d < 0.001) {
-                        color.rgb = 0.5*(vec3(0.5) + 0.5*normalize(p));
-                        color.a = 1.0;
-                        vec4 clip = pvm*vec4(p, 1.0);
+                        fragColor.rgb = 0.5*(vec3(0.5) + 0.5*normalize(p));
+                        fragColor.a = 1.0;
+                        vec4 clip = iPVM*vec4(p, 1.0);
                         float z_d = clip.z/clip.w;
                         gl_FragDepth = gl_DepthRange.near + (gl_DepthRange.diff)*(0.5 + 0.5*z_d);
                         break;
@@ -325,12 +314,7 @@ int main(int, char **)
             vdbLoadShader(0, fs);
         }
 
-        float pvm[4*4];
-        vdbGetPVM(pvm);
         vdbBeginShader(0);
-        vdbUniform2f("resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
-        vdbUniform2f("ndc_offset", vdbGetRenderOffset().x, vdbGetRenderOffset().y);
-        vdbUniformMatrix4fv("pvm", pvm);
         vdbEndShader();
 
         // demonstrate that we can mix immediate mode rendering with ray tracing

@@ -91,7 +91,7 @@ GLuint vdb_gl_current_program = 0;
 enum { vdb_max_shaders = 1000 };
 static GLuint vdb_gl_shaders[vdb_max_shaders];
 
-void vdbLoadShader(int slot, const char *fs_source)
+void vdbLoadShader(int slot, const char *user_fs_source)
 {
     assert(slot >= 0 && slot < vdb_max_shaders && "You are trying to set a pixel shader beyond the available number of slots.");
     if (vdb_gl_shaders[slot])
@@ -106,7 +106,26 @@ void vdbLoadShader(int slot, const char *fs_source)
         "}\n"
     ;
 
-    vdb_gl_shaders[slot] = LoadShaderFromMemory(&vs_source, 1, &fs_source, 1);
+    const char *fs_source[] =
+    {
+        "#version 150\n"
+        "uniform vec2 iResolution;\n"
+        "uniform vec2 iFragCoordOffset;\n"
+        "uniform mat4 iPVM;\n"
+        "out vec4 vdb_color0;\n"
+        "#line 0\n",
+
+        user_fs_source,
+
+        "void main()\n"
+        "{\n"
+        "    vec2 fragCoord = gl_FragCoord.xy + iFragCoordOffset;\n"
+        "    mainImage(vdb_color0, fragCoord);\n"
+        "}\n"
+    };
+    int num_fs_source = sizeof(fs_source)/sizeof(fs_source[0]);
+
+    vdb_gl_shaders[slot] = LoadShaderFromMemory(&vs_source, 1, fs_source, num_fs_source);
     assert(vdb_gl_shaders[slot] && "Failed to load shader.");
 }
 
@@ -114,6 +133,11 @@ void vdbBeginShader(int slot)
 {
     vdb_gl_current_program = vdb_gl_shaders[slot];
     glUseProgram(vdb_gl_shaders[slot]);
+    float pvm[4*4]; vdbGetPVM(pvm);
+    vdbVec2 frag_offset = vdbGetRenderOffsetFramebuffer();
+    vdbUniform2f("iResolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
+    vdbUniform2f("iFragCoordOffset", frag_offset.x, frag_offset.y);
+    vdbUniformMatrix4fv("iPVM", pvm);
 }
 
 void vdbEndShader()
