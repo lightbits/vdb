@@ -44,6 +44,7 @@
 #include "camera.h"
 #include "shader.h"
 #include "image.h"
+#include "framebuffer.h"
 #include "render_target.h"
 #include "framegrab.h"
 #include "transform.h"

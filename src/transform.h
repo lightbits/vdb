@@ -110,17 +110,15 @@ int vdbGetWindowHeight() { return window::window_height; }
 
 int vdbGetFramebufferWidth()
 {
-    using namespace render_texture;
-    if (current_render_texture)
-        return current_render_texture->width;
+    if (current_framebuffer)
+        return current_framebuffer->width;
     else return window::framebuffer_width;
 }
 
 int vdbGetFramebufferHeight()
 {
-    using namespace render_texture;
-    if (current_render_texture)
-        return current_render_texture->height;
+    if (current_framebuffer)
+        return current_framebuffer->height;
     else return window::framebuffer_height;
 }
 

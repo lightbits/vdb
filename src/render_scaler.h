@@ -26,8 +26,8 @@
 // assuming a static scene.
 namespace render_scaler
 {
-    static render_target_t output;
-    static render_target_t lowres;
+    static framebuffer_t output;
+    static framebuffer_t lowres;
     static int subpixel;
     static bool has_begun;
     static int scale_up;
@@ -41,23 +41,22 @@ namespace render_scaler
     void Begin(int w, int h, int n_up)
     {
         window::SetMinimumNumSettleFrames(3 + (1<<n_up)*(1<<n_up));
-        using namespace render_texture;
 
         scale_up = n_up;
         has_begun = true;
 
         if (lowres.width != w || lowres.height != h)
         {
-            FreeRenderTarget(&lowres);
-            lowres = MakeRenderTarget(w, h, GL_NEAREST, GL_NEAREST, true);
+            FreeFramebuffer(&lowres);
+            lowres = MakeFramebuffer(w, h, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
         }
         if (output.width != w<<n_up || output.height != h<<n_up)
         {
-            FreeRenderTarget(&output);
-            output = MakeRenderTarget(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
+            FreeFramebuffer(&output);
+            output = MakeFramebuffer(w<<n_up, h<<n_up, GL_NEAREST, GL_NEAREST, true);
             subpixel = 0;
-            EnableRenderTarget(&output);
+            EnableFramebuffer(&output);
             // Although we do _eventually_ overwrite all pixels in
             // the output RT, the user may see some garbage frames
             // after a new RT is created, unless it's cleared.
@@ -68,10 +67,10 @@ namespace render_scaler
             glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
             vdbDepthWrite(depth_mask);
             vdbDepthTest(depth_test);
-            DisableRenderTarget(&output);
+            DisableFramebuffer(&output);
         }
 
-        EnableRenderTarget(&lowres);
+        EnableFramebuffer(&lowres);
 
         // We don't assume the user will clear the RT after calling
         // BeginRenderScaler, as it's easy to forget it. So we clear
@@ -120,8 +119,6 @@ namespace render_scaler
     }
     void End()
     {
-        using namespace render_texture;
-
         static GLuint program = 0;
         static GLint attrib_position = 0;
         static GLint uniform_sampler0 = 0;
@@ -183,7 +180,7 @@ namespace render_scaler
         }
 
         has_begun = false;
-        DisableRenderTarget(&lowres);
+        DisableFramebuffer(&lowres);
 
         imm_state_t last_state = immediate::GetState();
         float last_projection[4*4];
@@ -213,7 +210,7 @@ namespace render_scaler
             assert(vao);
             assert(vbo);
 
-            EnableRenderTarget(&output);
+            EnableFramebuffer(&output);
             glBindVertexArray(vao);
             glBindBuffer(GL_ARRAY_BUFFER, vbo);
             glUseProgram(program);
@@ -233,7 +230,7 @@ namespace render_scaler
             glUseProgram(0);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glBindVertexArray(0);
-            DisableRenderTarget(&output);
+            DisableFramebuffer(&output);
         }
 
         // composite full resolution framebuffer onto window framebuffer

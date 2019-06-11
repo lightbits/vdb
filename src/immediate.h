@@ -736,7 +736,7 @@ void vdbInverseColor(bool enable)
 
 void vdbClearColor(float r, float g, float b, float a)
 {
-    if (!render_texture::current_render_texture)
+    if (!current_framebuffer)
     {
         immediate::clear_color_was_set = true;
         immediate::clear_color = vdbVec4(r,g,b,a);
