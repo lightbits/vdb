@@ -6,12 +6,14 @@ struct framebuffer_t
     int width, height; // usage: glViewport(0, 0, width, height)
     int num_color_attachments;
     GLint last_viewport[4];
+    framebuffer_t *last_framebuffer;
 };
 
 static framebuffer_t *current_framebuffer = NULL;
 
 static void EnableFramebuffer(framebuffer_t *fb)
 {
+    fb->last_framebuffer = current_framebuffer;
     glGetIntegerv(GL_VIEWPORT, fb->last_viewport);
     glBindFramebuffer(GL_FRAMEBUFFER, fb->fbo);
     vdbViewporti(0, 0, fb->width, fb->height);
@@ -20,9 +22,10 @@ static void EnableFramebuffer(framebuffer_t *fb)
 
 static void DisableFramebuffer(framebuffer_t *fb)
 {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    current_framebuffer = fb->last_framebuffer;
+    if (current_framebuffer) glBindFramebuffer(GL_FRAMEBUFFER, current_framebuffer->fbo);
+    else                     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     vdbViewporti(fb->last_viewport[0], fb->last_viewport[1], fb->last_viewport[2], fb->last_viewport[3]);
-    current_framebuffer = NULL;
 }
 
 static void FreeFramebuffer(framebuffer_t *fb)
