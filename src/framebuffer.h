@@ -51,8 +51,6 @@ static framebuffer_t MakeFramebuffer(
     GLenum mag_filter=GL_LINEAR,
     GLenum min_filter=GL_LINEAR,
     bool enable_depth=false,
-    GLenum data_format=GL_RGBA,
-    GLenum data_type=GL_UNSIGNED_BYTE,
     GLenum internal_color_format=GL_RGBA,
     int num_color_attachments = 1)
 {
@@ -72,6 +70,9 @@ static framebuffer_t MakeFramebuffer(
     result.color = new GLuint[num_color_attachments];
     for (int i = 0; i < num_color_attachments; i++)
     {
+        // we're not uploading any data, so these are unimportant
+        GLenum data_format = GL_RGBA;
+        GLenum data_type = GL_UNSIGNED_BYTE;
         GLuint color = TexImage2D(NULL, width, height, data_format, data_type, mag_filter, min_filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, internal_color_format);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color, 0);
         result.color[i] = color;

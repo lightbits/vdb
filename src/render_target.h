@@ -25,12 +25,10 @@ void vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFor
 
     if (should_create)
     {
-        GLenum data_format = GL_RGBA;
-        GLenum data_type = GL_UNSIGNED_BYTE;
         GLenum internal_format = TextureFormatToGL(format.format);
         bool enable_depth = (format.depth_bits > 0);
 
-        *rt = MakeFramebuffer(size.width, size.height, GL_LINEAR, GL_LINEAR, enable_depth, data_format, data_type, internal_format);
+        *rt = MakeFramebuffer(size.width, size.height, GL_LINEAR, GL_LINEAR, enable_depth, internal_format);
         EnableFramebuffer(rt);
         glClearColor(0,0,0,0);
         if (enable_depth) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

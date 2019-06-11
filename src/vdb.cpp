@@ -478,63 +478,6 @@ void vdbEndBreak()
         }
         else if (vdb::frame_settings->camera.type == VDB_PLANAR)
         {
-            #if 0
-            // draw major and minor grid lines
-            if (fs->grid.grid_visible)
-            {
-                vdbVec3 grid_color(1.0f,1.0f,1.0f);
-                float minor_alpha = 0.3f;
-                float major_alpha = 0.5f;
-                if (background_is_bright)
-                {
-                    grid_color = vdbVec3(0.0f,0.0f,0.0f);
-                    minor_alpha = 0.4f;
-                    major_alpha = 0.5f;
-                }
-
-                vdbLineWidth(1.0f);
-                // todo: this should be a draw-list
-                vdbPushMatrix();
-                vdbMultMatrix(vdbMatScale(10.0f, 10.0f, 10.0f).data);
-                vdbBeginLines();
-                for (int major = -9; major <= +9; major++)
-                {
-                    for (int minor = 1; minor <= 9; minor++)
-                    {
-                        float t = major/10.0f + minor/100.0f;
-                        float alpha = minor_alpha*(1.0f - fabsf(t));
-                        alpha *= alpha;
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, -1.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, +1.0f);
-
-                        vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, 0.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                        vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, 0.0f, t);
-                    }
-
-                    if (major == 0)
-                        continue;
-                    float t = major/10.0f;
-                    float alpha = major_alpha*(1.0f - fabsf(t));
-                    alpha *= alpha;
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, -1.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, +1.0f);
-
-                    vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, 0.0f, t);
-                    vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                    vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                    vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, 0.0f, t);
-                }
-                vdbEnd();
-                vdbPopMatrix();
-            }
-            #endif
-
             vdbPopMatrix(); // pre-scaling
 
             // draw colored XYZ axes
