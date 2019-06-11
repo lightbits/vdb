@@ -95,17 +95,17 @@ namespace render_texture
     }
 }
 
-void vdbBeginRenderTarget(int slot, int width, int height, vdbTextureFormat format, int depth_bits, int stencil_bits)
+void vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFormat format)
 {
     using namespace render_texture;
-    assert(stencil_bits == 0 && "Stencil in RenderTarget is not implemented yet.");
     assert(slot >= 0 && slot < max_render_textures && "You are trying to use a render texture beyond the available slots.");
+    assert(format.stencil_bits == 0 && "Stencil in RenderTarget is not implemented yet.");
 
     render_target_t *rt = render_textures + slot;
     bool should_create = false;
     if (rt->fbo)
     {
-        if (rt->width != width || rt->height != height)
+        if (rt->width != size.width || rt->height != size.height)
         {
             FreeRenderTarget(rt);
             should_create = true;
@@ -120,10 +120,10 @@ void vdbBeginRenderTarget(int slot, int width, int height, vdbTextureFormat form
     {
         GLenum data_format = GL_RGBA;
         GLenum data_type = GL_UNSIGNED_BYTE;
-        GLenum internal_format = TextureFormatToGL(format);
-        bool enable_depth = (depth_bits > 0);
+        GLenum internal_format = TextureFormatToGL(format.format);
+        bool enable_depth = (format.depth_bits > 0);
 
-        *rt = MakeRenderTarget(width, height, GL_LINEAR, GL_LINEAR, enable_depth, data_format, data_type, internal_format);
+        *rt = MakeRenderTarget(size.width, size.height, GL_LINEAR, GL_LINEAR, enable_depth, data_format, data_type, internal_format);
         EnableRenderTarget(rt);
         glClearColor(0,0,0,0);
         if (enable_depth) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
