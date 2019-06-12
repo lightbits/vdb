@@ -234,12 +234,16 @@ bool    vdbButton     (const char *name);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render scaler
+// This lets you render at a lower resolution. You can also generate a high-
+// resolution frame by interleaving several low-resolution frames. This is
+// done using an 'up' factor greater than 0. An up factor of 1 increases the
+// resolution by 4x (2x in each dimension) by interleaving four frames.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginRenderScale(int down, int up);
 void    vdbBeginRenderScale(int width, int height, int up);
 void    vdbEndRenderScale();
-vdbVec2 vdbGetRenderScale(); // See FAQ:RenderScale below
-vdbVec2 vdbGetRenderOffset(); // See FAQ:RenderOffset below
+vdbVec2 vdbGetRenderScale();
+vdbVec2 vdbGetRenderOffset();
 vdbVec2 vdbGetRenderOffsetFramebuffer();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
