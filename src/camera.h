@@ -103,29 +103,11 @@ void vdbCameraTrackball()
     bool can_move = GetFrameSettings()->camera.key == VDB_KEY_INVALID ||
                     vdbIsKeyDown(GetFrameSettings()->camera.key);
 
-    vdbMat4 R = R0;
-
     float move_speed = cs.move_speed_normal;
     if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
 
     // zooming
     zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
-
-    // translation
-    {
-        float x = 0.0f;
-        float y = 0.0f;
-        float z = 0.0f;
-        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*zoom;
-        vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
-        vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
-        T = T + in_world_vel*dt;
-    }
 
     float radius = 1.0f;
     float aspect = vdbGetAspectRatio();
@@ -140,6 +122,8 @@ void vdbCameraTrackball()
         mouse_y_start = mouse_y;
         dragging = true;
     }
+
+    vdbMat4 R = R0;
     if (dragging)
     {
         float mouse_x_end = mouse_x;
@@ -191,6 +175,23 @@ void vdbCameraTrackball()
             dragging = false;
         }
     }
+
+    // translation
+    {
+        float x = 0.0f;
+        float y = 0.0f;
+        float z = 0.0f;
+        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*zoom;
+        vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
+        vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
+        T = T + in_world_vel*dt;
+    }
+
     {
         vdbVec4 Tc = -(R*T);
         vdbMat4 M = vdbMatTranslate(Tc.x,Tc.y,Tc.z - zoom)*R;
