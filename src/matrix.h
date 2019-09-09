@@ -258,10 +258,10 @@ static vdbMat4 vdbMatOrthogonalize(vdbMat4 R)
     vdbVec3 nx = vdbVecNormalize((x - 0.5f*e*ny));
     vdbVec3 nz = vdbVecCross(nx, ny);
     vdbMat4 O;
-    O(0,0) = nx.x;   O(0,1) = ny.x;   O(0,2) = nz.x;   O(0,3) = R(0,3);
-    O(1,0) = nx.y;   O(1,1) = ny.y;   O(1,2) = nz.y;   O(1,3) = R(1,3);
-    O(2,0) = nx.z;   O(2,1) = ny.z;   O(2,2) = nz.z;   O(2,3) = R(2,3);
-    O(3,0) = R(3,0); O(3,1) = R(3,1); O(3,2) = R(3,2); O(3,3) = R(3,3);
+    O(0,0) = nx.x; O(0,1) = ny.x; O(0,2) = nz.x; O(0,3) = 0.0f;
+    O(1,0) = nx.y; O(1,1) = ny.y; O(1,2) = nz.y; O(1,3) = 0.0f;
+    O(2,0) = nx.z; O(2,1) = ny.z; O(2,2) = nz.z; O(2,3) = 0.0f;
+    O(3,0) = 0.0f; O(3,1) = 0.0f; O(3,2) = 0.0f; O(3,3) = 1.0f;
     return O;
 }
 

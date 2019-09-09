@@ -333,6 +333,18 @@ namespace settings_parser
         return true;
     }
 
+    static bool ParseMatR(const char **c, vdbMat4 *x)
+    {
+        ParseBlank(c);
+        for (int i = 0; i < 16; i++)
+        {
+            if (i > 0 && !ParseComma(c)) return false;
+            if (!ParseFloat(c, &x->data[i])) return false;
+        }
+        (*x) = vdbMatOrthogonalize(*x);
+        return true;
+    }
+
     static bool ParseVec2(const char **c, vdbVec2 *x)
     {
         ParseBlank(c);
@@ -426,7 +438,7 @@ void settings_t::LoadOrDefault(const char *filename)
             else if (ParseKey(c, "planar_zoom"))        { ParseFloat(c,      &frame->camera.planar.zoom);          frame->camera.planar.dirty = true; }
             else if (ParseKey(c, "planar_angle"))       { ParseFloat(c,      &frame->camera.planar.angle);         frame->camera.planar.dirty = true; }
             else if (ParseKey(c, "planar_up"))          { ParseCameraUp(c,   &frame->camera.planar.up);            frame->camera.planar.dirty = true; }
-            else if (ParseKey(c, "trackball_R"))        { ParseMat4(c,       &frame->camera.trackball.R);          frame->camera.trackball.dirty = true; }
+            else if (ParseKey(c, "trackball_R"))        { ParseMatR(c,       &frame->camera.trackball.R);          frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "trackball_T"))        { ParseVec4(c,       &frame->camera.trackball.T);          frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "trackball_zoom"))     { ParseFloat(c,      &frame->camera.trackball.zoom);       frame->camera.trackball.dirty = true; }
             else if (ParseKey(c, "trackball_up"))       { ParseCameraUp(c,   &frame->camera.trackball.up);         frame->camera.trackball.dirty = true; }
