@@ -480,11 +480,11 @@ namespace settings_writer
 {
     static void WriteCameraType(FILE *f, const char *key, vdbCameraType type)
     {
-             if (type == VDB_CUSTOM)  fprintf(f, "%s=disabled\n", key);
+             if (type == VDB_CUSTOM)    fprintf(f, "%s=disabled\n", key);
         else if (type == VDB_PLANAR)    fprintf(f, "%s=planar\n", key);
         else if (type == VDB_TRACKBALL) fprintf(f, "%s=trackball\n", key);
         else if (type == VDB_TURNTABLE) fprintf(f, "%s=turntable\n", key);
-        else                                   fprintf(f, "%s=disabled\n", key);
+        else                            fprintf(f, "%s=disabled\n", key);
     }
 
     static void WriteCameraUp(FILE *f, const char *key, vdbOrientation mode)
@@ -502,10 +502,10 @@ namespace settings_writer
     {
         fprintf(f, "%s=%g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g, %g\n",
             key,
-            m.data[ 0], m.data[ 1], m.data[ 2], m.data[ 3],
-            m.data[ 4], m.data[ 5], m.data[ 6], m.data[ 7],
-            m.data[ 8], m.data[ 9], m.data[10], m.data[11],
-            m.data[12], m.data[13], m.data[14], m.data[15]);
+            m(0,0), m(1,0), m(2,0), m(3,0),  // 1st column
+            m(0,1), m(1,1), m(2,1), m(3,1),  // 2nd column
+            m(0,2), m(1,2), m(2,2), m(3,2),  // 3rd column
+            m(0,3), m(1,3), m(2,3), m(3,3)); // 4th column
     }
 
     static void WriteVec4(FILE *f, const char *key, vdbVec4 v)
