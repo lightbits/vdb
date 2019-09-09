@@ -267,9 +267,8 @@ void    vdbLogArray (const char *label, float *x, int columns, bool append=false
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Row-major versions of matrix functions:
-//
-// Row-major (#define VDB_ROW_MAJOR to enable) assumes matrix elements are laid
-// out in memory one row at a time.
+// Row-major assumes matrix elements are laid out in memory one row at a time.
+// By default, vdb functions accepting matrices assume column-major.
 //
 // Row-major:
 //   float m[] = {A,B,C,D}; -> |A B|
@@ -279,7 +278,6 @@ void    vdbLogArray (const char *label, float *x, int columns, bool append=false
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#ifdef VDB_ROW_MAJOR
 void    vdbProjection_RowMaj(float *m);
 void    vdbLoadMatrix_RowMaj(float *m);
 void    vdbMultMatrix_RowMaj(float *m);
@@ -288,6 +286,13 @@ void    vdbGetProjection_RowMaj(float *m);
 void    vdbGetPVM_RowMaj(float *m);
 void    vdbUniformMatrix4fv_RowMaj(const char *name, float *x);
 void    vdbUniformMatrix3fv_RowMaj(const char *name, float *x);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Redefine row-major matrix as default
+// This simply redefines the some vdb functions to use the row-major version.
+// To enable: #define VDB_ROW_MAJOR before including vdb.h
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#ifdef VDB_ROW_MAJOR
 #define vdbProjection       vdbProjection_RowMaj
 #define vdbLoadMatrix       vdbLoadMatrix_RowMaj
 #define vdbMultMatrix       vdbMultMatrix_RowMaj
