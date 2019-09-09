@@ -282,8 +282,8 @@ namespace settings_parser
     static bool ParseBool(const char **c, bool *x)
     {
         ParseBlank(c);
-             if (**c == '0')           { *x = false; *c = *c + 1; return true; }
-        else if (**c == '1')           { *x = true; *c = *c + 1; return true; }
+             if (**c == '0')              { *x = false; *c = *c + 1; return true; }
+        else if (**c == '1')              { *x = true; *c = *c + 1; return true; }
         else if (ParseString(c, "False")) { *x = false; return true; }
         else if (ParseString(c, "True"))  { *x = true; return true; }
         else if (ParseString(c, "false")) { *x = false; return true; }
@@ -315,55 +315,61 @@ namespace settings_parser
 
     static bool ParseInt2(const char **c, int *x, int *y)
     {
+        int tempx,tempy;
         ParseBlank(c);
-        if (!ParseInt(c, x)) return false;
-        if (!ParseComma(c)) return false;
-        if (!ParseInt(c, y)) return false;
+        if (!ParseInt(c, &tempx)) return false;
+        if (!ParseComma(c))       return false;
+        if (!ParseInt(c, &tempy)) return false;
+        *x = tempx;
+        *y = tempy;
         return true;
     }
 
     static bool ParseMat4(const char **c, vdbMat4 *x)
     {
+        vdbMat4 temp;
         ParseBlank(c);
-        for (int i = 0; i < 16; i++)
+        for (int col = 0; col < 4; col++)
+        for (int row = 0; row < 4; row++)
         {
-            if (i > 0 && !ParseComma(c)) return false;
-            if (!ParseFloat(c, &x->data[i])) return false;
+            if ((col > 0 || row > 0) && !ParseComma(c)) return false;
+            if (!ParseFloat(c, &temp(row,col))) return false;
         }
+        *x = temp;
         return true;
     }
 
     static bool ParseMatR(const char **c, vdbMat4 *x)
     {
-        ParseBlank(c);
-        for (int i = 0; i < 16; i++)
-        {
-            if (i > 0 && !ParseComma(c)) return false;
-            if (!ParseFloat(c, &x->data[i])) return false;
-        }
+        if (!ParseMat4(c, x))
+            return false;
         (*x) = vdbMatOrthogonalize(*x);
         return true;
     }
 
     static bool ParseVec2(const char **c, vdbVec2 *x)
     {
+        vdbVec2 temp;
         ParseBlank(c);
-        if (!ParseFloat(c, &x->x)) return false;
-        if (!ParseComma(c))        return false;
-        if (!ParseFloat(c, &x->y)) return false;
+        if (!ParseFloat(c, &temp.x)) return false;
+        if (!ParseComma(c))          return false;
+        if (!ParseFloat(c, &temp.y)) return false;
+        *x = temp;
         return true;
     }
 
     static bool ParseVec4(const char **c, vdbVec4 *x)
     {
+        vdbVec4 temp;
         ParseBlank(c);
-        if (!ParseFloat(c, &x->x)) return false;
+        if (!ParseFloat(c, &temp.x)) return false;
         if (!ParseComma(c))        return false;
-        if (!ParseFloat(c, &x->y)) return false;
+        if (!ParseFloat(c, &temp.y)) return false;
         if (!ParseComma(c))        return false;
-        if (!ParseFloat(c, &x->z)) return false;
+        if (!ParseFloat(c, &temp.z)) return false;
         if (!ParseComma(c))        return false;
-        if (!ParseFloat(c, &x->w)) return false;
+        if (!ParseFloat(c, &temp.w)) return false;
+        *x = temp;
         return true;
     }
 }
