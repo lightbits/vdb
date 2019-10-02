@@ -258,12 +258,15 @@ bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Logging (WIP)
+// § Logging
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbClearLog (const char *label=0);
-void    vdbLogScalar(const char *label, float x, bool overwrite=false); // create new scalar
-void    vdbLogArray (const char *label, float x); // append one element to existing array (or create new)
-void    vdbLogArray (const char *label, float *x, int columns, bool append=false); // create new array or append to existing (append=true)
+void    vdbLogPush(const char *label);
+void    vdbLogPush();
+void    vdbLogPop();
+void    vdbLogScalar(const char *label, float x);
+void    vdbLogMatrix(const char *label, float *x, int rows, int columns);
+void    vdbLogVector(const char *label, float *x, int elements);
+void    vdbLogDump(const char *filename);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Row-major versions of matrix functions:

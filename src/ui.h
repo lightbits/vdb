@@ -8,7 +8,7 @@ namespace ui
     static bool window_size_dialog_should_open;
     static bool take_screenshot_should_open;
     static bool record_video_should_open;
-    static bool show_logs;
+    static bool hide_logs;
 
     // note: this is in window coordinates (ImGui coordinates)
     // note: this may change from frame to frame!
@@ -23,6 +23,23 @@ namespace ui
         static vdbVec2 a,b;
     }
 
+    enum { query_buffer_size = 1024 };
+    struct log_window_t
+    {
+        int counter;
+        bool open;
+        char label[query_buffer_size];
+        char query_buffer[query_buffer_size];
+        bool plot_as_histogram;
+        log_window_t *next;
+    };
+
+    namespace log_windows
+    {
+        static int counter;
+        static log_window_t *first;
+    }
+
     static void MainMenuBar(frame_settings_t *fs);
     static void ExitDialog();
     static void WindowSizeDialog();
@@ -31,7 +48,9 @@ namespace ui
     static void RulerEndFrame();
     static void SketchNewFrame();
     static void SketchEndFrame();
-    static void LogsWindow();
+    static void NewLogWindow();
+    static void ShowLogWindow(log_window_t *window);
+    static void ShowLogWindows();
 }
 
 namespace ImGui
@@ -52,18 +71,104 @@ namespace ImGui
     }
 }
 
-static void ui::LogsWindow()
+static void ui::NewLogWindow()
 {
-    if (VDB_HOTKEY_LOGS_WINDOW)
-        show_logs = !show_logs;
-    if (show_logs)
+    log_window_t *new_window = (log_window_t*)calloc(1, sizeof(log_window_t));
+    new_window->counter = log_windows::counter++;
+    new_window->open = true;
+    sprintf(new_window->label, "Log %d", new_window->counter);
+
+    if (!log_windows::first)
     {
-        if (keys::pressed[VDB_KEY_ESCAPE])
+        log_windows::first = new_window;
+    }
+    else
+    {
+        log_window_t *window = log_windows::first;
+        log_window_t *prev = NULL;
+        while (window)
         {
-            escape_eaten = true;
-            show_logs = false;
+            prev = window;
+            window = window->next;
         }
-        logs::DrawImGui();
+        prev->next = new_window;
+    }
+}
+
+static void ui::ShowLogWindow(log_window_t *window)
+{
+    ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
+    if (!ImGui::Begin(window->label, &window->open, ImGuiWindowFlags_NoSavedSettings))
+    {
+        ImGui::End();
+        return;
+    }
+
+    ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+    ImGui::InputText("##query", window->query_buffer, query_buffer_size);
+    log_t *l = logs.Find(window->query_buffer);
+    ImGui::PopItemWidth();
+
+    if (l && l->type == log_type_scalar)
+    {
+        float scale_min = FLT_MAX;
+        float scale_max = FLT_MAX;
+        const char *label = "##plot";
+        ImVec2 size = ImGui::GetContentRegionAvail();
+        const float *values = &l->data[0];
+        int values_count = (int)l->data.size();
+        int values_offset = 0;
+        const char *overlay = NULL;
+
+        if (window->plot_as_histogram)
+            ImGui::PlotHistogram(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+        else
+            ImGui::PlotLines(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+
+        if (ImGui::IsItemClicked())
+            window->plot_as_histogram = !window->plot_as_histogram;
+    }
+    else if (l && l->type == log_type_matrix)
+    {
+        int rows = l->rows;
+        int cols = l->columns;
+        float *data = &l->data[0];
+        ImVec2 size = ImGui::GetContentRegionAvail();
+        for (int row = 0; row < rows; row++)
+        for (int col = 0; col < cols; col++)
+        {
+            ImGui::Text("%08.4f", data[col + 4*row]);
+            if (col < cols-1)
+                ImGui::SameLine();
+        }
+    }
+
+    ImGui::End();
+}
+
+static void ui::ShowLogWindows()
+{
+    if (!hide_logs)
+    {
+        log_window_t *window = log_windows::first;
+        log_window_t *prev = NULL;
+        while (window)
+        {
+            ShowLogWindow(window);
+            if (!window->open)
+            {
+                log_window_t *next = window->next;
+                free(window);
+                if (!prev) log_windows::first = next;
+                else prev->next = next;
+                window = next;
+            }
+            else
+            {
+                prev = window;
+                window = window->next;
+            }
+        }
     }
 }
 
@@ -79,6 +184,9 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         main_menu_bar_height = 0.0f;
         return;
     }
+
+    if (VDB_HOTKEY_LOGS_WINDOW)
+        NewLogWindow();
 
     if (VDB_HOTKEY_AUTO_STEP)
         auto_step = !auto_step;
@@ -122,7 +230,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Settings"))
     {
-        ImGui::MenuItem("Show logs", "Alt+L", &show_logs);
+        ImGui::MenuItem("Hide logs", NULL, &hide_logs);
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
@@ -182,6 +290,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Tools"))
     {
+        if (ImGui::MenuItem("New log window", "Alt+L")) NewLogWindow();
         if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
         if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);

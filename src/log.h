@@ -1,392 +1,284 @@
-/*
-TODO
-====
-* Pre-compute ranges of log variables with same name
-* Copy array to clipboard
-*/
-
 #pragma once
+#include <vector>
 typedef int log_type_t;
-typedef int plot_type_t;
-enum log_type_ { VDB_LOG_UNKNOWN=0, VDB_LOG_SCALAR, VDB_LOG_ARRAY, VDB_LOG_MATRIX };
-enum plot_type_ { VDB_PLOT_LINES=0, VDB_PLOT_HISTOGRAM };
-struct log_t
+enum log_type_
 {
-    log_type_t type;
-    char *label;
-    union
-    {
-        float *data;
-        float scalar;
-    };
-    int count;
-    int capacity;
-
-    log_t *prev;
-    log_t *next;
-
-    // gui
-    bool selected;
-    plot_type_t plot_type;
+    log_type_group = 0,
+    log_type_scalar,
+    log_type_matrix
 };
 
-namespace logs
+struct log_t
 {
-    static log_t *first;
-    static log_t *last;
+    const char *label;
+    log_t *parent;
+    log_type_t type;
+    std::vector<log_t*> children;
+    std::vector<float> data;
+    int rows, columns; // for matrix types
+};
 
-    static log_t *FindLog(const char *label, log_type_t type)
+struct logs_t
+{
+    log_t root;
+    log_t *curr;
+    logs_t()
     {
-        log_t *l = last;
-        while (l)
-        {
-            if (l->type == type && strcmp(label, l->label) == 0)
-                return l;
-            l = l->prev;
-        }
-        return NULL;
+        root.type = log_type_group;
+        root.label = NULL;
+        root.parent = NULL;
+        curr = &root;
     }
 
-    static log_t *NewLog(const char *label, log_type_t type, log_t *insert_after=NULL)
+    void Push(const char *label)
     {
-        log_t *l = new log_t;
-        assert(l);
-        l->type = type;
-        l->label = strdup(label);
-        l->count = 0;
-        l->capacity = 0;
-        l->data = NULL;
-        l->selected = false;
-        l->prev = NULL;
-        l->next = NULL;
-        l->selected = false;
-        l->plot_type = VDB_PLOT_LINES;
+        assert(curr);
 
-        if (insert_after)
+        for (size_t i = 0; i < curr->children.size(); i++)
         {
-            assert(first && last);
-            if (last == insert_after)
+            if (curr->children[i]->label &&
+                strcmp(curr->children[i]->label, label) == 0)
             {
-                insert_after->next = l;
-                l->prev = insert_after;
-                last = l;
-            }
-            else
-            {
-                l->next = insert_after->next;
-                l->prev = insert_after;
-                insert_after->next->prev = l;
-                insert_after->next = l;
-            }
-        }
-        else
-        {
-            if (last)
-            {
-                assert(first);
-                l->prev = last;
-                last->next = l;
-                last = l;
-            }
-            else
-            {
-                first = l;
-                last = l;
+                curr = curr->children[i];
+                return;
             }
         }
 
+        log_t *child = new log_t;
+        assert(child);
+        child->label = label;
+        child->type = log_type_group;
+        child->parent = curr;
+
+        curr->children.push_back(child);
+        curr = child;
+    }
+
+    void Push()
+    {
+        assert(curr);
+
+        log_t *child = new log_t;
+        assert(child);
+        child->label = NULL;
+        child->type = log_type_group;
+        child->parent = curr;
+
+        curr->children.push_back(child);
+        curr = child;
+    }
+
+    void Pop()
+    {
+        assert(curr);
+        assert(curr->parent && "Mismatched vdbLogPush/vdbLogPop pair");
+        curr = curr->parent;
+    }
+
+    bool CompareUnterminatedString(const char *s1_begin, const char *s1_end, const char *s2)
+    {
+        const char *c1 = s1_begin;
+        const char *c2 = s2;
+        while (c1 < s1_end && *c2)
+        {
+            if (*c1 != *c2)
+                return false;
+            c1++;
+            c2++;
+        }
+        if (c1 == s1_end && *c2 == '\0')
+            return true;
+        return false;
+    }
+
+    log_t *Find(const char *str)
+    {
+        if (!str)
+            return NULL;
+        log_t *l = &root;
+        const char *c = str;
+        while (*c)
+        {
+            if (*c != '/')
+                return NULL;
+
+            c++;
+
+            // term is an index
+            if ((*c >= '0' && *c <= '9') || *c == '-')
+            {
+                char *end;
+                int i = strtol(c, &end, 0);
+                if (i < 0)
+                    i += l->children.size();
+                if (i < 0 || i >= (int)l->children.size())
+                    return NULL;
+                l = l->children[i];
+                c = end - 1;
+            }
+            // term is a label
+            else
+            {
+                const char *end = c;
+                while (*end && *end != '/')
+                    end++;
+
+                if (end == c)
+                    return NULL;
+
+                int match = -1;
+                for (int i = 0; i < (int)l->children.size(); i++)
+                {
+                    if (!l->children[i]->label)
+                        continue;
+                    if (CompareUnterminatedString(c, end, l->children[i]->label))
+                    {
+                        match = i;
+                        break;
+                    }
+                }
+                if (match < 0)
+                    return NULL;
+                l = l->children[match];
+                c = end - 1;
+            }
+            c++;
+        }
         return l;
     }
 
-    static void DrawImGui();
-}
-
-void vdbClearLog(const char *label)
-{
-    using namespace logs;
-    log_t *l = first;
-    while (l)
+    log_t *GetLog(const char *label, log_type_t type)
     {
-        assert(l->label);
-        if (!label || strcmp(l->label, label) == 0)
+        for (size_t i = 0; i < curr->children.size(); i++)
         {
-            free(l->label);
-            if (l->capacity > 0)
+            if (curr->children[i]->type == type &&
+                strcmp(curr->children[i]->label, label) == 0)
+                return curr->children[i];
+        }
+
+        log_t *l = new log_t;
+        assert(l);
+        l->label = label;
+        l->type = type;
+        l->parent = curr;
+        curr->children.push_back(l);
+        return l;
+    }
+
+    void Scalar(const char *label, float x)
+    {
+        log_t *l = GetLog(label, log_type_scalar);
+        l->data.push_back(x);
+    }
+
+    void Matrix(const char *label, float *x, int rows, int columns)
+    {
+        log_t *l = GetLog(label, log_type_matrix);
+        l->rows = rows;
+        l->columns = columns;
+        for (int i = 0; i < rows*columns; i++)
+            l->data.push_back(x[i]);
+    }
+
+    void Vector(const char *label, float *x, int elements)
+    {
+        Matrix(label, x, elements, 1);
+    }
+
+    void _Dump(FILE *f, log_t *l, int indent_level)
+    {
+        #define indent for (int i = 0; i < indent_level; i++) fprintf(f, "\t");
+        if (l->type == log_type_group)
+        {
+            if (l->label)
             {
-                assert(l->data);
-                free(l->data);
+                indent
+                fprintf(f, "\"%s\":\n", l->label);
             }
-            if (l == first && l == last)
+            const char *open = "{\n";
+            const char *close = "}";
+            if (l->children.size() >= 1 && l->children[0]->label == NULL)
             {
-                first = NULL;
-                last = NULL;
-                free(l);
-                l = NULL;
+                open = "[\n";
+                close = "]";
             }
-            else if (l == first)
+            indent
+            fprintf(f, open);
+            _Dump(f, l->children[0], indent_level + 1);
+            for (size_t i = 1; i < l->children.size(); i++)
             {
-                l->next->prev = NULL;
-                first = l->next;
-                free(l);
-                l = first;
+                fprintf(f, ",\n");
+                _Dump(f, l->children[i], indent_level + 1);
             }
-            else if (l == last)
-            {
-                l->prev->next = NULL;
-                last = l->prev;
-                free(l);
-                l = NULL;
-            }
-            else
-            {
-                l->prev->next = l->next;
-                l->next->prev = l->prev;
-                log_t *next = l->next;
-                free(l);
-                l = next;
-            }
+            fprintf(f, "\n");
+            indent
+            fprintf(f, close);
         }
         else
         {
-            l = l->next;
-        }
-    }
-    assert(first->prev == NULL);
-    assert(last->next == NULL);
-}
-
-void vdbLogScalar(const char *label, float x, bool overwrite)
-{
-    using namespace logs;
-    log_t *l = FindLog(label, VDB_LOG_SCALAR);
-    if (overwrite && l)
-    {
-        assert(l->capacity == 0);
-        assert(l->count == 1);
-        l->scalar = x;
-    }
-    else if ((l = NewLog(label, VDB_LOG_SCALAR, l)))
-    {
-        l->scalar = x;
-        l->count = 1;
-        l->capacity = 0;
-    }
-}
-
-void vdbLogArray(const char *label, float x)
-{
-    using namespace logs;
-    log_t *l = NULL;
-    if ((l = FindLog(label, VDB_LOG_ARRAY)))
-    {
-        //
-        // append one element
-        //
-        assert(l->data);
-        assert(l->capacity > 0);
-        assert(l->count >= 0);
-        if (l->count + 1 > l->capacity)
-        {
-            int new_capacity = (l->capacity*3)/2;
-            float *new_data = new float[new_capacity];
-            // todo: memcpy, realloc
-            for (int i = 0; i < l->count; i++)
-                new_data[i] = l->data[i];
-            free(l->data);
-            l->data = new_data;
-            l->capacity = new_capacity;
-        }
-
-        assert(l->count + 1 <= l->capacity);
-        l->data[l->count++] = x;
-    }
-    else if ((l = NewLog(label, VDB_LOG_ARRAY)))
-    {
-        //
-        // create new log
-        //
-        l->capacity = 16;
-        l->data = new float[16];
-        assert(l->data);
-        l->data[l->count++] = x;
-    }
-}
-
-void vdbLogArray(const char *label, float *x, int columns, bool append)
-{
-    using namespace logs;
-    log_t *l = FindLog(label, VDB_LOG_ARRAY);
-    if (append && l)
-    {
-        //
-        // append 'columns' elements to existing log
-        //
-        assert(l->data);
-        assert(l->capacity > 0);
-        assert(l->count >= 0);
-        if (l->count + columns > l->capacity)
-        {
-            int min_capacity = l->capacity + (int)columns;
-            int new_capacity = (min_capacity*3)/2;
-            float *new_data = new float[new_capacity];
-            // todo: memcpy, realloc
-            for (int i = 0; i < l->count; i++)
-                new_data[i] = l->data[i];
-            free(l->data);
-            l->data = new_data;
-            l->capacity = new_capacity;
-        }
-
-        // todo: memcpy
-        assert(l->count + columns <= l->capacity);
-        for (int i = 0; i < columns; i++)
-            l->data[l->count++] = x[i];
-    }
-    else if ((l = NewLog(label, VDB_LOG_ARRAY, l)))
-    {
-        //
-        // create new log (insert after any found log)
-        //
-        l->capacity = (int)columns;
-        l->data = new float[columns];
-        assert(l->data);
-        // todo: memcpy
-        for (int i = 0; i < columns; i++)
-            l->data[l->count++] = x[i];
-    }
-}
-
-static void logs::DrawImGui()
-{
-    #if 0
-    float h_menu = uistuff::main_menu_bar_height;
-    float w_window = ImGui::GetIO().DisplaySize.x;
-    float h_window = ImGui::GetIO().DisplaySize.y;
-    ImGui::SetNextWindowPos(ImVec2(0.0f, h_menu));
-    ImGui::SetNextWindowSize(ImVec2(w_window, h_window));
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar |
-                             ImGuiWindowFlags_NoResize |
-                             ImGuiWindowFlags_NoMove;
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f,0.1f,0.1f,1.0f));
-    ImGui::Begin("##hiasd", NULL, flags);
-    #else
-    ImGui::Begin("Logs##vdb_logs");
-    #endif
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2,2));
-    ImGui::Columns(2);
-
-    log_t *first = logs::first;
-    while (first)
-    {
-        // todo: don't do this search for similar variables each frame
-        // only need to do it when adding/deleting logs
-        int num_same = 1;
-        log_t *last_plus_one = first->next;
-        while (last_plus_one && strcmp(last_plus_one->label, first->label) == 0)
-        {
-            last_plus_one = last_plus_one->next;
-            num_same++;
-        }
-
-        ImGui::PushID(first);
-        // ImGui::AlignTextToFramePadding();
-        const char *fmt = NULL;
-        if (first->type == VDB_LOG_SCALAR) fmt = "%s : scalar (%d)";
-        else if (first->type == VDB_LOG_ARRAY) fmt = "%s : array (%d)";
-        else fmt = "%s : unknown (%d)";
-        bool node_open = ImGui::TreeNode("Object", fmt, first->label, num_same);
-        // ImGui::AlignTextToFramePadding();
-        if (node_open)
-        {
-            for (log_t *log = first; log != last_plus_one; log = log->next)
+            if (l->type == log_type_scalar)
             {
-                static char buffer[1024];
-                char *stream = buffer;
-
-                if (log->type == VDB_LOG_SCALAR)
+                indent
+                fprintf(f, "\"%s\": ", l->label);
+                if (l->data.size() == 1)
                 {
-                    stream += sprintf(stream, "%g", log->scalar);
+                    fprintf(f, "%g", l->data[0]);
                 }
-                else if (log->type == VDB_LOG_ARRAY)
+                else
                 {
-                    // todo: safe sprintf
-                    stream += sprintf(stream, "{ ");
-                    for (int v = 0; v < log->count; v++)
+                    fprintf(f, "[%g", l->data[0]);
+                    for (size_t i = 1; i < l->data.size(); i++)
+                        fprintf(f, ", %g", l->data[i]);
+                    fprintf(f, "]");
+                }
+            }
+            else if (l->type == log_type_matrix)
+            {
+                int n = l->rows*l->columns;
+                size_t count = l->data.size() / n;
+                indent
+                fprintf(f, "\"%s\": ", l->label);
+                if (count == 1)
+                {
+                    fprintf(f, "[%g", l->data[0]);
+                    for (int i = 1; i < n; i++)
+                        fprintf(f, ", %g", l->data[i]);
+                    fprintf(f, "]");
+                }
+                else
+                {
+                    size_t j = 0;
+                    fprintf(f, "[[%g", l->data[j++]);
+                    for (int i = 1; i < n; i++)
+                        fprintf(f, ", %g", l->data[j++]);
+                    fprintf(f, "]");
+                    for (size_t i = 1; i < count; i++)
                     {
-                        const char *fmt = (v == 0) ? "%g"  : ", %g";
-                        stream += sprintf(stream, fmt, log->data[v]);
+                        fprintf(f, ", [%g", l->data[j++]);
+                        for (int i = 1; i < n; i++)
+                            fprintf(f, ", %g", l->data[j++]);
+                        fprintf(f, "]");
                     }
-                    stream += sprintf(stream, " }");
+                    fprintf(f, "]");
                 }
-
-                ImGui::PushID(log);
-                ImGui::Selectable(buffer, &log->selected);
-                ImGui::PopID();
             }
-            ImGui::TreePop();
         }
-        ImGui::PopID();
-
-        first = last_plus_one;
+        #undef indent
     }
 
-    ImGui::NextColumn();
-
-    static log_t *plot_to_configure = NULL;
-    for (auto log = logs::first; log; log = log->next)
+    void Dump(const char *filename)
     {
-        if (!log->selected)
-            continue;
-        auto log_type = log->type;
-        auto plot_type = log->plot_type;
-
-        if (log_type == VDB_LOG_SCALAR)
-        {
-
-        }
-        else if (log_type == VDB_LOG_ARRAY)
-        {
-            if (plot_type == VDB_PLOT_LINES)
-            {
-                ImVec2 graph_size = ImVec2(0.0f, 64.0f);
-                ImGui::PlotLines(log->label, log->data, log->count, 0, NULL, FLT_MAX, FLT_MAX, graph_size);
-            }
-            else if (plot_type == VDB_PLOT_HISTOGRAM)
-            {
-                ImVec2 graph_size = ImVec2(0.0f, 64.0f);
-                ImGui::PlotHistogram(log->label, log->data, log->count, 0, NULL, FLT_MAX, FLT_MAX, graph_size);
-            }
-            else
-            {
-                assert(false && "Unhandled plot type");
-            }
-        }
-
-        if (ImGui::IsItemClicked(1))
-        {
-            ImGui::OpenPopup("Plot");
-            plot_to_configure = log;
-        }
+        FILE *f = fopen(filename, "w+");
+        _Dump(f, &root, 0);
     }
+};
 
-    if (ImGui::BeginPopup("Plot"))
-    {
-        assert(plot_to_configure);
-        ImGui::RadioButton("Lines", &plot_to_configure->plot_type, VDB_PLOT_LINES);
-        ImGui::RadioButton("Histogram", &plot_to_configure->plot_type, VDB_PLOT_HISTOGRAM);
-        ImGui::EndPopup();
-    }
-    else
-    {
-        plot_to_configure = NULL;
-    }
+static logs_t logs;
 
-    ImGui::Columns(1);
-    ImGui::Separator();
-    ImGui::PopStyleVar();
-    #if 0
-    ImGui::PopStyleColor();
-    #endif
-    ImGui::End();
-}
+void vdbLogPush(const char *label) { logs.Push(label); }
+void vdbLogPush() { logs.Push(); }
+void vdbLogPop() { logs.Pop(); }
+void vdbLogScalar(const char *label, float x) { logs.Scalar(label, x); }
+void vdbLogMatrix(const char *label, float *x, int rows, int columns) { logs.Matrix(label, x, rows, columns); }
+void vdbLogVector(const char *label, float *x, int elements) { logs.Vector(label, x, elements); }
+void vdbLogDump(const char *filename) { logs.Dump(filename); }

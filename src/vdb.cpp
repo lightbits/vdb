@@ -609,7 +609,7 @@ void vdbEndBreak()
     else
     {
         ui::MainMenuBar(vdb::frame_settings);
-        ui::LogsWindow();
+        ui::ShowLogWindows();
         ui::WindowSizeDialog();
         ui::FramegrabDialog();
         ui::ExitDialog();
