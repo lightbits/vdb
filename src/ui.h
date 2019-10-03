@@ -137,7 +137,7 @@ static void ui::ShowLogWindow(log_window_t *window)
         for (int row = 0; row < rows; row++)
         for (int col = 0; col < cols; col++)
         {
-            ImGui::Text("%08.4f", data[col + 4*row]);
+            ImGui::Text("%8.4f", data[row + col*rows]);
             if (col < cols-1)
                 ImGui::SameLine();
         }

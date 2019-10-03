@@ -289,6 +289,7 @@ void    vdbGetProjection_RowMaj(float *m);
 void    vdbGetPVM_RowMaj(float *m);
 void    vdbUniformMatrix4fv_RowMaj(const char *name, float *x);
 void    vdbUniformMatrix3fv_RowMaj(const char *name, float *x);
+void    vdbLogMatrix_RowMaj(const char *label, float *x, int rows, int columns);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Redefine row-major matrix as default
@@ -304,6 +305,7 @@ void    vdbUniformMatrix3fv_RowMaj(const char *name, float *x);
 #define vdbGetPVM           vdbGetPVM_RowMaj
 #define vdbUniformMatrix4fv vdbUniformMatrix4fv_RowMaj
 #define vdbUniformMatrix3fv vdbUniformMatrix3fv_RowMaj
+#define vdbLogMatrix        vdbLogMatrix_RowMaj
 #endif
 
 #define VDBB(label) while (vdbBeginBreak(label)) {

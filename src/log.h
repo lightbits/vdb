@@ -16,6 +16,7 @@ struct log_t
     std::vector<log_t*> children;
     std::vector<float> data;
     int rows, columns; // for matrix types
+                       // note: matrix data is always column-major
 };
 
 struct logs_t
@@ -176,8 +177,19 @@ struct logs_t
         log_t *l = GetLog(label, log_type_matrix);
         l->rows = rows;
         l->columns = columns;
-        for (int i = 0; i < rows*columns; i++)
-            l->data.push_back(x[i]);
+        for (int col = 0; col < columns; col++)
+        for (int row = 0; row < rows; row++)
+            l->data.push_back(x[row + col*rows]);
+    }
+
+    void Matrix_RowMaj(const char *label, float *x, int rows, int columns)
+    {
+        log_t *l = GetLog(label, log_type_matrix);
+        l->rows = rows;
+        l->columns = columns;
+        for (int col = 0; col < columns; col++)
+        for (int row = 0; row < rows; row++)
+            l->data.push_back(x[col + row*columns]);
     }
 
     void Vector(const char *label, float *x, int elements)
@@ -280,5 +292,6 @@ void vdbLogPush() { logs.Push(); }
 void vdbLogPop() { logs.Pop(); }
 void vdbLogScalar(const char *label, float x) { logs.Scalar(label, x); }
 void vdbLogMatrix(const char *label, float *x, int rows, int columns) { logs.Matrix(label, x, rows, columns); }
+void vdbLogMatrix_RowMaj(const char *label, float *x, int rows, int columns) { logs.Matrix_RowMaj(label, x, rows, columns); }
 void vdbLogVector(const char *label, float *x, int elements) { logs.Vector(label, x, elements); }
 void vdbLogDump(const char *filename) { logs.Dump(filename); }
