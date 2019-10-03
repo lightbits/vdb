@@ -198,6 +198,12 @@ static void ui::MainMenuBar(frame_settings_t *fs)
 {
     using namespace ui;
 
+    if (VDB_HOTKEY_LOGS_WINDOW)
+        NewLogWindow();
+
+    if (VDB_HOTKEY_AUTO_STEP)
+        auto_step = !auto_step;
+
     // hide/show menu
     if (VDB_HOTKEY_TOGGLE_MENU)
         settings.show_main_menu = !settings.show_main_menu;
@@ -206,12 +212,6 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         main_menu_bar_height = 0.0f;
         return;
     }
-
-    if (VDB_HOTKEY_LOGS_WINDOW)
-        NewLogWindow();
-
-    if (VDB_HOTKEY_AUTO_STEP)
-        auto_step = !auto_step;
 
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
     ImGui::BeginMainMenuBar();
