@@ -120,13 +120,20 @@ static void ui::ShowLogWindow(log_window_t *window)
         int values_offset = 0;
         const char *overlay = NULL;
 
-        if (window->plot_as_histogram)
-            ImGui::PlotHistogram(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+        if (values_count == 1)
+        {
+            ImGui::Text("%g", values[0]);
+        }
         else
-            ImGui::PlotLines(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+        {
+            if (window->plot_as_histogram)
+                ImGui::PlotHistogram(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+            else
+                ImGui::PlotLines(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+            if (ImGui::IsItemClicked())
+                window->plot_as_histogram = !window->plot_as_histogram;
+        }
 
-        if (ImGui::IsItemClicked())
-            window->plot_as_histogram = !window->plot_as_histogram;
     }
     else if (l && l->type == log_type_matrix)
     {
