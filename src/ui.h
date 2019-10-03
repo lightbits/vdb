@@ -101,9 +101,7 @@ static void ui::NewLogWindow()
 static void ui::ShowLogWindow(log_window_t *window)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
-    static char full_label[1024];
-    sprintf(full_label, "%s###%s", window->query_buffer, window->label);
-    if (!ImGui::Begin(full_label, &window->open))
+    if (!ImGui::Begin(window->label, &window->open, ImGuiWindowFlags_NoTitleBar))
     {
         ImGui::End();
         return;
