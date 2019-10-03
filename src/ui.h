@@ -98,7 +98,7 @@ static void ui::NewLogWindow()
 static void ui::ShowLogWindow(log_window_t *window)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(window->label, &window->open, ImGuiWindowFlags_NoSavedSettings))
+    if (!ImGui::Begin(window->label, &window->open))
     {
         ImGui::End();
         return;
