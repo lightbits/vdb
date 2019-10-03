@@ -107,12 +107,21 @@ static void ui::ShowLogWindow(log_window_t *window)
         return;
     }
 
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+    {
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::InputText("##query", window->query_buffer, query_buffer_size);
+        ImGui::PopItemWidth();
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f,1.0f,1.0f,0.35f), window->query_buffer);
+    }
+
     log_t *l = logs.Find(window->query_buffer);
 
     ImVec2 plot_area_size = ImGui::GetContentRegionAvail();
-    plot_area_size.y -= ImGui::GetFrameHeightWithSpacing();
 
-    ImGui::BeginChild("plot", plot_area_size);
     if (l && l->type == log_type_scalar)
     {
         float scale_min = FLT_MAX;
@@ -155,18 +164,6 @@ static void ui::ShowLogWindow(log_window_t *window)
             if (col < cols-1)
                 ImGui::SameLine();
         }
-    }
-    ImGui::EndChild();
-
-    if (ImGui::IsWindowFocused())
-    {
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-        ImGui::InputText("##query", window->query_buffer, query_buffer_size);
-        ImGui::PopItemWidth();
-    }
-    else
-    {
-        ImGui::TextColored(ImVec4(1.0f,1.0f,1.0f,0.35f), window->query_buffer);
     }
 
     ImGui::End();
