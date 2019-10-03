@@ -10,6 +10,9 @@ namespace ui
     static bool record_video_should_open;
     static bool hide_logs;
 
+    static ImFont *regular_font;
+    static ImFont *big_font;
+
     // note: this is in window coordinates (ImGui coordinates)
     // note: this may change from frame to frame!
     static float main_menu_bar_height = 0.0f;
@@ -122,7 +125,13 @@ static void ui::ShowLogWindow(log_window_t *window)
 
         if (values_count == 1)
         {
-            ImGui::Text("%g", values[0]);
+            static char buffer[1024];
+            sprintf(buffer, "%g", values[0]);
+            ImGui::PushFont(ui::big_font);
+            ImVec2 text_size = ImGui::CalcTextSize(buffer);
+            ImGui::SetCursorPosX(size.x*0.5f - text_size.x*0.5f);
+            ImGui::Text(buffer);
+            ImGui::PopFont();
         }
         else
         {

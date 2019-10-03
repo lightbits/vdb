@@ -149,12 +149,22 @@ bool vdbBeginBreak(const char *label)
     int new_font_size = (int)(settings.font_size*settings.dpi_scale/100.0f);
     if (vdb::loaded_font_size != new_font_size)
     {
+        const char *data = (const char*)open_sans_regular_compressed_data;
+        const unsigned int sizeof_data = open_sans_regular_compressed_size;
+
         vdb::loaded_font_size = new_font_size;
         ImGui_ImplOpenGL3_DestroyDeviceObjects();
         ImGui::GetIO().Fonts->Clear();
-        const char *data = (const char*)open_sans_regular_compressed_data;
-        const unsigned int size = open_sans_regular_compressed_size;
-        ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, size, (float)new_font_size);
+        ui::regular_font = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, sizeof_data, (float)new_font_size);
+
+        int big_font_size = 2*new_font_size;
+        ImFontConfig config;
+        config.MergeMode = false;
+        ImFontGlyphRangesBuilder builder;
+        builder.AddText("0123456789,.-+");
+        static ImVector<ImWchar> glyph_ranges; // this must persist until call to GetTexData
+        builder.BuildRanges(&glyph_ranges);
+        ui::big_font = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, sizeof_data, (float)big_font_size, &config, glyph_ranges.Data);
 
         // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
         #if VDB_IMGUI_FREETYPE==1
