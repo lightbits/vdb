@@ -107,21 +107,17 @@ static void ui::ShowLogWindow(log_window_t *window)
         return;
     }
 
-    if (ImGui::IsWindowFocused())
-    {
-        ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-        ImGui::InputText("##query", window->query_buffer, query_buffer_size);
-        ImGui::PopItemWidth();
-    }
-
     log_t *l = logs.Find(window->query_buffer);
 
+    ImVec2 plot_area_size = ImGui::GetContentRegionAvail();
+    plot_area_size.y -= ImGui::GetFrameHeightWithSpacing();
+
+    ImGui::BeginChild("plot", plot_area_size);
     if (l && l->type == log_type_scalar)
     {
         float scale_min = FLT_MAX;
         float scale_max = FLT_MAX;
         const char *label = "##plot";
-        ImVec2 size = ImGui::GetContentRegionAvail();
         const float *values = &l->data[0];
         int values_count = (int)l->data.size();
         int values_offset = 0;
@@ -133,27 +129,25 @@ static void ui::ShowLogWindow(log_window_t *window)
             sprintf(buffer, "%g", values[0]);
             ImGui::PushFont(ui::big_font);
             ImVec2 text_size = ImGui::CalcTextSize(buffer);
-            ImGui::SetCursorPosX(size.x*0.5f - text_size.x*0.5f);
+            ImGui::SetCursorPosX(plot_area_size.x*0.5f - text_size.x*0.5f);
             ImGui::Text(buffer);
             ImGui::PopFont();
         }
         else
         {
             if (window->plot_as_histogram)
-                ImGui::PlotHistogram(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+                ImGui::PlotHistogram(label, values, values_count, values_offset, overlay, scale_min, scale_max, plot_area_size);
             else
-                ImGui::PlotLines(label, values, values_count, values_offset, overlay, scale_min, scale_max, size);
+                ImGui::PlotLines(label, values, values_count, values_offset, overlay, scale_min, scale_max, plot_area_size);
             if (ImGui::IsItemClicked())
                 window->plot_as_histogram = !window->plot_as_histogram;
         }
-
     }
     else if (l && l->type == log_type_matrix)
     {
         int rows = l->rows;
         int cols = l->columns;
         float *data = &l->data[0];
-        ImVec2 size = ImGui::GetContentRegionAvail();
         for (int row = 0; row < rows; row++)
         for (int col = 0; col < cols; col++)
         {
@@ -161,6 +155,18 @@ static void ui::ShowLogWindow(log_window_t *window)
             if (col < cols-1)
                 ImGui::SameLine();
         }
+    }
+    ImGui::EndChild();
+
+    if (ImGui::IsWindowFocused())
+    {
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::InputText("##query", window->query_buffer, query_buffer_size);
+        ImGui::PopItemWidth();
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f,1.0f,1.0f,0.35f), window->query_buffer);
     }
 
     ImGui::End();
