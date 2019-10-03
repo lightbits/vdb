@@ -101,16 +101,22 @@ static void ui::NewLogWindow()
 static void ui::ShowLogWindow(log_window_t *window)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(window->label, &window->open))
+    static char full_label[1024];
+    sprintf(full_label, "%s###%s", window->query_buffer, window->label);
+    if (!ImGui::Begin(full_label, &window->open))
     {
         ImGui::End();
         return;
     }
 
-    ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
-    ImGui::InputText("##query", window->query_buffer, query_buffer_size);
+    if (ImGui::IsWindowFocused())
+    {
+        ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
+        ImGui::InputText("##query", window->query_buffer, query_buffer_size);
+        ImGui::PopItemWidth();
+    }
+
     log_t *l = logs.Find(window->query_buffer);
-    ImGui::PopItemWidth();
 
     if (l && l->type == log_type_scalar)
     {
