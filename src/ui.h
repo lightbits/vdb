@@ -101,7 +101,9 @@ static void ui::NewLogWindow()
 static void ui::ShowLogWindow(log_window_t *window)
 {
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
-    if (!ImGui::Begin(window->label, &window->open, ImGuiWindowFlags_NoTitleBar))
+    static char window_title[1024];
+    sprintf(window_title, "%s###%s", window->query_buffer, window->label);
+    if (!ImGui::Begin(window_title, &window->open))
     {
         ImGui::End();
         return;
@@ -112,10 +114,6 @@ static void ui::ShowLogWindow(log_window_t *window)
         ImGui::PushItemWidth(ImGui::GetContentRegionAvailWidth());
         ImGui::InputText("##query", window->query_buffer, query_buffer_size);
         ImGui::PopItemWidth();
-    }
-    else
-    {
-        ImGui::TextColored(ImVec4(1.0f,1.0f,1.0f,0.35f), window->query_buffer);
     }
 
     log_t *l = logs.Find(window->query_buffer);
