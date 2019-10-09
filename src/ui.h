@@ -8,6 +8,7 @@ namespace ui
     static bool window_size_dialog_should_open;
     static bool take_screenshot_should_open;
     static bool record_video_should_open;
+    static bool save_logs_should_open;
     static bool hide_logs;
 
     static ImFont *regular_font;
@@ -191,6 +192,41 @@ static void ui::ShowLogWindows()
             }
         }
     }
+
+    using namespace ImGui;
+    bool enter_button = keys::pressed[VDB_KEY_RETURN];
+    bool escape_button = keys::pressed[VDB_KEY_ESCAPE];
+    if (save_logs_should_open)
+    {
+        save_logs_should_open = false;
+        OpenPopup("Save logs##popup");
+        CaptureKeyboardFromApp(true);
+    }
+    if (BeginPopupModal("Save logs##popup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        static char filename[1024];
+        if (IsWindowAppearing())
+            SetKeyboardFocusHere();
+        InputText("Filename", filename, sizeof(filename));
+
+        if (Button("OK [Enter]", ImVec2(120,0)) || enter_button)
+        {
+            logs.Dump(filename);
+            CloseCurrentPopup();
+        }
+        SameLine();
+        if (Button("Cancel", ImVec2(120,0)))
+        {
+            CloseCurrentPopup();
+        }
+
+        if (escape_button)
+        {
+            CloseCurrentPopup();
+            ui::escape_eaten = true;
+        }
+        EndPopup();
+    }
 }
 
 static void ui::MainMenuBar(frame_settings_t *fs)
@@ -312,6 +348,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     if (ImGui::BeginMenu("Tools"))
     {
         if (ImGui::MenuItem("New log window", "Alt+L")) NewLogWindow();
+        if (ImGui::MenuItem("Save logs", NULL)) save_logs_should_open = true;
         if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
         if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);

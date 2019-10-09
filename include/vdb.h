@@ -256,6 +256,7 @@ bool    vdbBeginBreak(const char *label);
 void    vdbEndBreak();
 bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
+void    vdbAutoStep(bool enabled);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Logging

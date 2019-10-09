@@ -112,6 +112,11 @@ void vdbStepOver()
     vdb::want_step_over = true;
 }
 
+void vdbAutoStep(bool enabled)
+{
+    ui::auto_step = enabled;
+}
+
 static frame_settings_t *GetFrameSettings()
 {
     return vdb::frame_settings;
