@@ -103,11 +103,11 @@ void vdbLoadImage(int slot,
                   int height,
                   GLenum data_format,
                   GLenum data_type,
+                  GLenum internal_format,
                   GLenum mag_filter = GL_LINEAR,
                   GLenum min_filter = GL_LINEAR,
                   GLenum wrap_s = GL_CLAMP_TO_EDGE,
-                  GLenum wrap_t = GL_CLAMP_TO_EDGE,
-                  GLenum internal_format = GL_RGBA)
+                  GLenum wrap_t = GL_CLAMP_TO_EDGE)
 {
     image_t *image = GetImage(slot);
     image->width = width;
@@ -135,20 +135,20 @@ void vdbLoadImage(int slot,
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels)
 {
     assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
-    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_UNSIGNED_BYTE);
-    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE);
-    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE);
-    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_UNSIGNED_BYTE);
+    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA);
     GetImage(slot)->channels = channels;
 }
 
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels)
 {
     assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
-    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_FLOAT);
-    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_FLOAT);
-    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_FLOAT);
-    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_FLOAT);
+    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_FLOAT, GL_RGBA32F);
     GetImage(slot)->channels = channels;
 }
 

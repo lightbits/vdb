@@ -117,6 +117,28 @@ void vdbAutoStep(bool enabled)
     ui::auto_step = enabled;
 }
 
+// void    vdbScreenshot(float crop_x, float crop_y, float crop_w, float crop_h,
+//                       const char *filename);
+// void vdbScreenshot()
+// {
+//     GLenum format = opt.alpha_channel ? GL_RGBA : GL_RGB;
+//     int channels = opt.alpha_channel ? 4 : 3;
+//     int width = window::framebuffer_width;
+//     int height = window::framebuffer_height;
+//     unsigned char *data = (unsigned char*)malloc(width*height*channels);
+//     glPixelStorei(GL_PACK_ALIGNMENT, 1);
+//     glReadBuffer(GL_BACK);
+//     glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
+
+//     if (!opt.draw_imgui)
+//     {
+//         ImGui::Render();
+//         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+//     }
+
+//     framegrab::SaveFrame(data, width, height, channels, format);
+// }
+
 static frame_settings_t *GetFrameSettings()
 {
     return vdb::frame_settings;
