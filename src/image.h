@@ -17,7 +17,9 @@ struct image_t
     GLuint handle;
     int width;
     int height;
+    int depth;
     int channels;
+    bool volume;
     vdbVec4 v_min;
     vdbVec4 v_max;
 };
@@ -97,21 +99,22 @@ GLuint TexImage2D(
     return result;
 }
 
-void vdbLoadImage(int slot,
-                  const void *data,
-                  int width,
-                  int height,
-                  GLenum data_format,
-                  GLenum data_type,
-                  GLenum internal_format,
-                  GLenum mag_filter = GL_LINEAR,
-                  GLenum min_filter = GL_LINEAR,
-                  GLenum wrap_s = GL_CLAMP_TO_EDGE,
-                  GLenum wrap_t = GL_CLAMP_TO_EDGE)
+void LoadImage(int slot,
+               const void *data,
+               int width,
+               int height,
+               GLenum data_format,
+               GLenum data_type,
+               GLenum internal_format,
+               GLenum mag_filter = GL_LINEAR,
+               GLenum min_filter = GL_LINEAR,
+               GLenum wrap_s = GL_CLAMP_TO_EDGE,
+               GLenum wrap_t = GL_CLAMP_TO_EDGE)
 {
     image_t *image = GetImage(slot);
     image->width = width;
     image->height = height;
+    image->volume = false;
     if (!image->handle)
         glGenTextures(1, &image->handle);
     glBindTexture(GL_TEXTURE_2D, image->handle);
@@ -132,23 +135,74 @@ void vdbLoadImage(int slot,
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+void LoadVolume(int slot,
+                const void *data,
+                int width,
+                int height,
+                int depth,
+                GLenum data_format,
+                GLenum data_type,
+                GLenum internal_format,
+                GLenum mag_filter = GL_LINEAR,
+                GLenum min_filter = GL_LINEAR,
+                GLenum wrap_s = GL_CLAMP_TO_EDGE,
+                GLenum wrap_t = GL_CLAMP_TO_EDGE,
+                GLenum wrap_r = GL_CLAMP_TO_EDGE)
+{
+    image_t *image = GetImage(slot);
+    image->width = width;
+    image->height = height;
+    image->depth = depth;
+    image->volume = true;
+    if (!image->handle)
+        glGenTextures(1, &image->handle);
+    glBindTexture(GL_TEXTURE_3D, image->handle);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, mag_filter);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, min_filter);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, wrap_s);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, wrap_t);
+    glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, wrap_r);
+    if (min_filter == GL_LINEAR_MIPMAP_LINEAR)
+        glGenerateMipmap(GL_TEXTURE_3D);
+    glTexImage3D(GL_TEXTURE_3D, 0,
+                 internal_format,
+                 width,
+                 height,
+                 depth,
+                 0,
+                 data_format,
+                 data_type,
+                 data);
+    glBindTexture(GL_TEXTURE_3D, 0);
+}
+
 void vdbLoadImageUint8(int slot, const void *data, int width, int height, int channels)
 {
     assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
-    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_UNSIGNED_BYTE, GL_RGBA);
-    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE, GL_RGBA);
-    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_RGBA);
-    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA);
+    if      (channels == 1) LoadImage(slot, data, width, height, GL_RED, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 2) LoadImage(slot, data, width, height, GL_RG, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 3) LoadImage(slot, data, width, height, GL_RGB, GL_UNSIGNED_BYTE, GL_RGBA);
+    else if (channels == 4) LoadImage(slot, data, width, height, GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA);
     GetImage(slot)->channels = channels;
 }
 
 void vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels)
 {
     assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
-    if      (channels == 1) vdbLoadImage(slot, data, width, height, GL_RED, GL_FLOAT, GL_RGBA32F);
-    else if (channels == 2) vdbLoadImage(slot, data, width, height, GL_RG, GL_FLOAT, GL_RGBA32F);
-    else if (channels == 3) vdbLoadImage(slot, data, width, height, GL_RGB, GL_FLOAT, GL_RGBA32F);
-    else if (channels == 4) vdbLoadImage(slot, data, width, height, GL_RGBA, GL_FLOAT, GL_RGBA32F);
+    if      (channels == 1) LoadImage(slot, data, width, height, GL_RED, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 2) LoadImage(slot, data, width, height, GL_RG, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 3) LoadImage(slot, data, width, height, GL_RGB, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 4) LoadImage(slot, data, width, height, GL_RGBA, GL_FLOAT, GL_RGBA32F);
+    GetImage(slot)->channels = channels;
+}
+
+void vdbLoadVolumeFloat32(int slot, const void *data, int width, int height, int depth, int channels)
+{
+    assert(channels >= 1 && channels <= 4 && "'channels' must be 1,2,3 or 4");
+    if      (channels == 1) LoadVolume(slot, data, width, height, depth, GL_RED, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 2) LoadVolume(slot, data, width, height, depth, GL_RG, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 3) LoadVolume(slot, data, width, height, depth, GL_RGB, GL_FLOAT, GL_RGBA32F);
+    else if (channels == 4) LoadVolume(slot, data, width, height, depth, GL_RGBA, GL_FLOAT, GL_RGBA32F);
     GetImage(slot)->channels = channels;
 }
 
@@ -240,7 +294,10 @@ void vdbDrawImage(int slot,
 void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec4 v_min, vdbVec4 v_max)
 {
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
+    if (GetImage(slot)->volume)
+        glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
+    else
+        glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
     vdbSetTextureParameters(filter, wrap);
     GetImage(slot)->v_min = v_min;
     GetImage(slot)->v_max = v_max;
