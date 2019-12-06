@@ -57,8 +57,8 @@ void vdbMultMatrix(vdbMat4 m)
 void vdbProjection(float *m)           { vdbProjection(m ? *(vdbMat4*)m : vdbMatIdentity()); }
 void vdbProjection_RowMaj(float *m)    { vdbProjection(m ? vdbMatTranspose(*(vdbMat4*)m) : vdbMatIdentity()); }
 
-void vdbLoadMatrix(float *m)           { if (m) vdbLoadMatrix(*(vdbMat4*)m); }
-void vdbLoadMatrix_RowMaj(float *m)    { if (m) vdbLoadMatrix(vdbMatTranspose(*(vdbMat4*)m)); }
+void vdbLoadMatrix(float *m)           { if (m) vdbLoadMatrix(*(vdbMat4*)m); else vdbLoadMatrix(vdbMatIdentity()); }
+void vdbLoadMatrix_RowMaj(float *m)    { if (m) vdbLoadMatrix(vdbMatTranspose(*(vdbMat4*)m)); else vdbLoadMatrix(vdbMatIdentity()); }
 
 void vdbMultMatrix(float *m)           { if (m) vdbMultMatrix(*(vdbMat4*)m); }
 void vdbMultMatrix_RowMaj(float *m)    { if (m) vdbMultMatrix(vdbMatTranspose(*(vdbMat4*)m)); }
