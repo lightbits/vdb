@@ -111,7 +111,7 @@ struct logs_t
                 char *end;
                 int i = strtol(c, &end, 0);
                 if (i < 0)
-                    i += l->children.size();
+                    i += (int)l->children.size();
                 if (i < 0 || i >= (int)l->children.size())
                     return NULL;
                 l = l->children[i];
