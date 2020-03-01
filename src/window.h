@@ -41,7 +41,7 @@ namespace window
 
     static bool dont_wait_next_frame_events;
 
-    static void DetachGLContext()
+    static void DetachContext()
     {
         assert(sdl_window);
         SDL_GL_MakeCurrent(sdl_window, NULL);

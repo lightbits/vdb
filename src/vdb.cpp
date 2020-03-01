@@ -97,9 +97,14 @@ bool vdbIsDifferentLabel()
     return vdb::is_different_label;
 }
 
-void vdbDetachGLContext()
+void vdbDetachContext()
 {
-    window::DetachGLContext();
+    window::DetachContext();
+}
+
+void vdbMakeContextCurrent()
+{
+    window::EnsureGLContextIsCurrent();
 }
 
 void vdbStepOnce()

@@ -250,7 +250,8 @@ vdbVec2 vdbGetRenderOffsetFramebuffer();
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Low-level functionality
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbDetachGLContext();
+void    vdbMakeContextCurrent();
+void    vdbDetachContext();
 void    vdbStepOnce();
 void    vdbStepOver();
 bool    vdbBeginBreak(const char *label);
