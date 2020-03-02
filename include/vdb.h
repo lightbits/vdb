@@ -211,6 +211,7 @@ void    vdbUniform3i(const char *name, int x, int y, int z);
 void    vdbUniform4i(const char *name, int x, int y, int z, int w);
 void    vdbUniformMatrix4fv(const char *name, float *x);
 void    vdbUniformMatrix3fv(const char *name, float *x);
+void    vdbUniformSampler(const char *name, int slot, int sampler_offset=0, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbEndShader();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
