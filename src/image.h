@@ -308,12 +308,18 @@ void vdbUnbindImage()
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void vdbUniformSampler(const char *name, int slot, int sampler_offset, vdbTextureFilter filter, vdbTextureWrap wrap)
+void vdbBindImageToTextureUnit(int slot, int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
-    glActiveTexture(GL_TEXTURE0 + sampler_offset);
+    glActiveTexture(GL_TEXTURE0 + unit);
     if (GetImage(slot)->volume)
         glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
     else
         glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
     vdbSetTextureParameters(filter, wrap);
+}
+
+void vdbUnbindImageFromTextureUnit(int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
+{
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
