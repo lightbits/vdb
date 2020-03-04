@@ -120,7 +120,8 @@ namespace window
 
     static void DetachContext()
     {
-        assert(sdl_window);
+        if (!sdl_window)
+            return;
         SDL_GL_MakeCurrent(sdl_window, NULL);
     }
 
@@ -133,6 +134,8 @@ namespace window
 
     static void Close()
     {
+        if (!sdl_window)
+            return;
         SDL_GL_DeleteContext(sdl_gl_context);
         SDL_DestroyWindow(sdl_window);
         SDL_Quit();

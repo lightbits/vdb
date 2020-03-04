@@ -97,7 +97,7 @@ bool vdbIsDifferentLabel()
     return vdb::is_different_label;
 }
 
-void vdbCreateContext()
+static void InitializeIfNotAlready()
 {
     if (!vdb::initialized)
     {
@@ -123,6 +123,7 @@ void vdbDetachContext()
 
 void vdbMakeContextCurrent()
 {
+    InitializeIfNotAlready();
     window::EnsureContextIsCurrent();
 }
 
@@ -182,7 +183,7 @@ bool vdbBeginBreak(const char *label)
                             // consider e.g. a for loop with single-stepping
 
     if (!vdb::initialized)
-        vdbCreateContext();
+        InitializeIfNotAlready();
 
     assert(vdb::initialized);
 
