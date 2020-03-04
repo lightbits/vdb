@@ -23,6 +23,7 @@ void PostGLCallback(const char *name, void *funcptr, int len_args, ...) {
 namespace window
 {
     static bool vsynced;
+    static bool visible;
     static SDL_Window *sdl_window;
     static SDL_GLContext sdl_gl_context;
 
@@ -41,61 +42,11 @@ namespace window
 
     static bool dont_wait_next_frame_events;
 
-    static void DetachContext()
+    static void CreateContext(int x, int y, int width, int height)
     {
-        assert(sdl_window);
-        SDL_GL_MakeCurrent(sdl_window, NULL);
-    }
+        if (sdl_window)
+            return;
 
-    static void EnsureGLContextIsCurrent()
-    {
-        if (SDL_GL_GetCurrentContext() != sdl_gl_context)
-            SDL_GL_MakeCurrent(sdl_window, sdl_gl_context);
-    }
-
-    static void Close()
-    {
-        SDL_GL_DeleteContext(sdl_gl_context);
-        SDL_DestroyWindow(sdl_window);
-        SDL_Quit();
-    }
-
-    static void SetSize(int width, int height, bool topmost)
-    {
-        #ifdef _WIN32
-        SDL_SysWMinfo info;
-        SDL_VERSION(&info.version);
-        if (SDL_GetWindowWMInfo(sdl_window, &info))
-        {
-            HWND hwnd = info.info.win.window;
-            RECT rect;
-            rect.left = 0;
-            rect.top = 0;
-            rect.right = width;
-            rect.bottom = height;
-            AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
-            int aw = rect.right-rect.left;
-            int ah = rect.bottom-rect.top;
-            if (topmost)
-            {
-                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, aw, ah, SWP_NOMOVE);
-            }
-            else
-            {
-                SetWindowPos(hwnd, HWND_TOP, 0, 0, aw, ah, SWP_NOMOVE);
-            }
-        }
-        else
-        {
-            SDL_SetWindowSize(sdl_window, width, height);
-        }
-        #else
-        SDL_SetWindowSize(sdl_window, width, height);
-        #endif
-    }
-
-    static void Open(int x, int y, int width, int height)
-    {
         #ifdef _WIN32
         SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
         #endif
@@ -151,8 +102,6 @@ namespace window
                 SDL_SetWindowIcon(sdl_window, icon);
         }
 
-        SDL_ShowWindow(sdl_window);
-
         SDL_GL_LoadLibrary(NULL); // GLAD will do the loading for us after creating context
         sdl_gl_context = SDL_GL_CreateContext(sdl_window);
         assert(sdl_gl_context != 0);
@@ -165,10 +114,75 @@ namespace window
 
         SDL_GL_SetSwapInterval(1);
         vsynced = (SDL_GL_GetSwapInterval() == 1);
+
+        visible = false;
+    }
+
+    static void DetachContext()
+    {
+        assert(sdl_window);
+        SDL_GL_MakeCurrent(sdl_window, NULL);
+    }
+
+    static void EnsureContextIsCurrent()
+    {
+        assert(sdl_window);
+        if (SDL_GL_GetCurrentContext() != sdl_gl_context)
+            SDL_GL_MakeCurrent(sdl_window, sdl_gl_context);
+    }
+
+    static void Close()
+    {
+        SDL_GL_DeleteContext(sdl_gl_context);
+        SDL_DestroyWindow(sdl_window);
+        SDL_Quit();
+    }
+
+    static void SetSize(int width, int height, bool topmost)
+    {
+        assert(sdl_window);
+        #ifdef _WIN32
+        SDL_SysWMinfo info;
+        SDL_VERSION(&info.version);
+        if (SDL_GetWindowWMInfo(sdl_window, &info))
+        {
+            HWND hwnd = info.info.win.window;
+            RECT rect;
+            rect.left = 0;
+            rect.top = 0;
+            rect.right = width;
+            rect.bottom = height;
+            AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);
+            int aw = rect.right-rect.left;
+            int ah = rect.bottom-rect.top;
+            if (topmost)
+            {
+                SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, aw, ah, SWP_NOMOVE);
+            }
+            else
+            {
+                SetWindowPos(hwnd, HWND_TOP, 0, 0, aw, ah, SWP_NOMOVE);
+            }
+        }
+        else
+        {
+            SDL_SetWindowSize(sdl_window, width, height);
+        }
+        #else
+        SDL_SetWindowSize(sdl_window, width, height);
+        #endif
+    }
+
+    static void ShowWindow()
+    {
+        assert(sdl_window);
+        SDL_ShowWindow(sdl_window);
+        visible = true;
     }
 
     static void SwapBuffers(float dt)
     {
+        assert(sdl_window);
         SDL_GL_SwapWindow(sdl_window);
         if (!vsynced && dt < 1.0f/60.0f)
         {

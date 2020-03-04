@@ -97,6 +97,25 @@ bool vdbIsDifferentLabel()
     return vdb::is_different_label;
 }
 
+void vdbCreateContext()
+{
+    if (!vdb::initialized)
+    {
+        vdb::initialized = true;
+
+        settings.LoadOrDefault(VDB_SETTINGS_FILENAME);
+        window_settings_t ws = settings.window;
+        window::CreateContext(ws.x, ws.y, ws.width, ws.height);
+        CheckGLError();
+
+        ImGui::CreateContext();
+        ImGui_ImplSDL2_InitForOpenGL(window::sdl_window, window::sdl_gl_context);
+        ImGui_ImplOpenGL3_Init("#version 150");
+        ImGui::StyleColorsDark();
+        ImGui::GetStyle().WindowBorderSize = 0.0f;
+    }
+}
+
 void vdbDetachContext()
 {
     window::DetachContext();
@@ -104,7 +123,7 @@ void vdbDetachContext()
 
 void vdbMakeContextCurrent()
 {
-    window::EnsureGLContextIsCurrent();
+    window::EnsureContextIsCurrent();
 }
 
 void vdbStepOnce()
@@ -163,20 +182,12 @@ bool vdbBeginBreak(const char *label)
                             // consider e.g. a for loop with single-stepping
 
     if (!vdb::initialized)
-    {
-        vdb::initialized = true;
+        vdbCreateContext();
 
-        settings.LoadOrDefault(VDB_SETTINGS_FILENAME);
-        window_settings_t ws = settings.window;
-        window::Open(ws.x, ws.y, ws.width, ws.height);
-        CheckGLError();
+    assert(vdb::initialized);
 
-        ImGui::CreateContext();
-        ImGui_ImplSDL2_InitForOpenGL(window::sdl_window, window::sdl_gl_context);
-        ImGui_ImplOpenGL3_Init("#version 150");
-        ImGui::StyleColorsDark();
-        ImGui::GetStyle().WindowBorderSize = 0.0f;
-    }
+    if (!window::visible)
+        window::ShowWindow();
 
     int new_font_size = (int)(settings.font_size*settings.dpi_scale/100.0f);
     if (vdb::loaded_font_size != new_font_size)
@@ -240,7 +251,7 @@ bool vdbBeginBreak(const char *label)
 
     ApplyHints();
 
-    window::EnsureGLContextIsCurrent();
+    window::EnsureContextIsCurrent();
 
     if (settings.can_idle && !ui::auto_step)
         window::WaitEvents();

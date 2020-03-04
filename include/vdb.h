@@ -252,6 +252,7 @@ vdbVec2 vdbGetRenderOffsetFramebuffer();
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Low-level functionality
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void    vdbCreateContext();
 void    vdbMakeContextCurrent();
 void    vdbDetachContext();
 void    vdbStepOnce();
