@@ -499,20 +499,21 @@ void vdbRunKernel(vdbGPUArray *out)
 
 void vdbKernelParamArray(const char *name, vdbGPUArray *v, int texture_unit)
 {
+    assert(vdb_active_kernel != 0);
     glActiveTexture(GL_TEXTURE0 + texture_unit);
     glBindTexture(v->target, v->color0);
     glUniform1i(glGetUniformLocation(vdb_active_kernel, name), texture_unit);
 }
 
-void vdbKernelParam1f(const char *name, float x)                            { glUniform1f(glGetUniformLocation(vdb_active_kernel, name), x); }
-void vdbKernelParam2f(const char *name, float x, float y)                   { glUniform2f(glGetUniformLocation(vdb_active_kernel, name), x,y); }
-void vdbKernelParam3f(const char *name, float x, float y, float z)          { glUniform3f(glGetUniformLocation(vdb_active_kernel, name), x,y,z); }
-void vdbKernelParam4f(const char *name, float x, float y, float z, float w) { glUniform4f(glGetUniformLocation(vdb_active_kernel, name), x,y,z,w); }
-void vdbKernelParam1i(const char *name, int x)                              { glUniform1i(glGetUniformLocation(vdb_active_kernel, name), x); }
-void vdbKernelParam2i(const char *name, int x, int y)                       { glUniform2i(glGetUniformLocation(vdb_active_kernel, name), x,y); }
-void vdbKernelParam3i(const char *name, int x, int y, int z)                { glUniform3i(glGetUniformLocation(vdb_active_kernel, name), x,y,z); }
-void vdbKernelParam4i(const char *name, int x, int y, int z, int w)         { glUniform4i(glGetUniformLocation(vdb_active_kernel, name), x,y,z,w); }
-void vdbKernelParamMatrix4fv(const char *name, float *x)                    { glUniformMatrix4fv(glGetUniformLocation(vdb_active_kernel, name), 1, false, x);}
-void vdbKernelParamMatrix3fv(const char *name, float *x)                    { glUniformMatrix3fv(glGetUniformLocation(vdb_active_kernel, name), 1, false, x);}
-void vdbKernelParamMatrix4fv_RowMaj(const char *name, float *x)             { glUniformMatrix4fv(glGetUniformLocation(vdb_active_kernel, name), 1, true, x);}
-void vdbKernelParamMatrix3fv_RowMaj(const char *name, float *x)             { glUniformMatrix3fv(glGetUniformLocation(vdb_active_kernel, name), 1, true, x);}
+void vdbKernelParam1f(const char *name, float x)                            { assert(vdb_active_kernel != 0); glUniform1f(glGetUniformLocation(vdb_active_kernel, name), x); }
+void vdbKernelParam2f(const char *name, float x, float y)                   { assert(vdb_active_kernel != 0); glUniform2f(glGetUniformLocation(vdb_active_kernel, name), x,y); }
+void vdbKernelParam3f(const char *name, float x, float y, float z)          { assert(vdb_active_kernel != 0); glUniform3f(glGetUniformLocation(vdb_active_kernel, name), x,y,z); }
+void vdbKernelParam4f(const char *name, float x, float y, float z, float w) { assert(vdb_active_kernel != 0); glUniform4f(glGetUniformLocation(vdb_active_kernel, name), x,y,z,w); }
+void vdbKernelParam1i(const char *name, int x)                              { assert(vdb_active_kernel != 0); glUniform1i(glGetUniformLocation(vdb_active_kernel, name), x); }
+void vdbKernelParam2i(const char *name, int x, int y)                       { assert(vdb_active_kernel != 0); glUniform2i(glGetUniformLocation(vdb_active_kernel, name), x,y); }
+void vdbKernelParam3i(const char *name, int x, int y, int z)                { assert(vdb_active_kernel != 0); glUniform3i(glGetUniformLocation(vdb_active_kernel, name), x,y,z); }
+void vdbKernelParam4i(const char *name, int x, int y, int z, int w)         { assert(vdb_active_kernel != 0); glUniform4i(glGetUniformLocation(vdb_active_kernel, name), x,y,z,w); }
+void vdbKernelParamMatrix4fv(const char *name, float *x)                    { assert(vdb_active_kernel != 0); glUniformMatrix4fv(glGetUniformLocation(vdb_active_kernel, name), 1, false, x);}
+void vdbKernelParamMatrix3fv(const char *name, float *x)                    { assert(vdb_active_kernel != 0); glUniformMatrix3fv(glGetUniformLocation(vdb_active_kernel, name), 1, false, x);}
+void vdbKernelParamMatrix4fv_RowMaj(const char *name, float *x)             { assert(vdb_active_kernel != 0); glUniformMatrix4fv(glGetUniformLocation(vdb_active_kernel, name), 1, true, x);}
+void vdbKernelParamMatrix3fv_RowMaj(const char *name, float *x)             { assert(vdb_active_kernel != 0); glUniformMatrix3fv(glGetUniformLocation(vdb_active_kernel, name), 1, true, x);}
