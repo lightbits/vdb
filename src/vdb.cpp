@@ -673,6 +673,16 @@ void vdbEndBreak()
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
+    // If any key is down, do not allow window to go idle
+    for (int i = 0; i < VDB_NUM_KEYS; i++)
+    {
+        if (keys::down[i])
+        {
+            window::DontWaitNextFrameEvents();
+            break;
+        }
+    }
+
     window::SwapBuffers(1.0f/60.0f);
     CheckGLError();
 }
