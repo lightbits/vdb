@@ -132,6 +132,8 @@ void vdbLoadShader(int slot, const char *user_fs_source)
 
 void vdbBeginShader(int slot)
 {
+    assert(slot >= 0 && slot < vdb_max_shaders && "Attempted to use a shader slot outside the valid range.");
+    assert(glIsProgram(vdb_gl_shaders[slot]) && "Shader at specified slot is invalid.");
     vdb_gl_current_program = vdb_gl_shaders[slot];
     glUseProgram(vdb_gl_shaders[slot]);
     float pvm[4*4]; vdbGetPVM(pvm);
