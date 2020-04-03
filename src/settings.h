@@ -19,6 +19,9 @@ vdbOrientation VDB_Z_DOWN   = 3;
 vdbOrientation VDB_Y_DOWN   = 4;
 vdbOrientation VDB_X_DOWN   = 5;
 
+vdbTheme VDB_DARK_THEME     = 0;
+vdbTheme VDB_BRIGHT_THEME   = 1;
+
 enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
 enum { VDB_MAX_RENDER_SCALE_UP = 3 };
@@ -117,6 +120,7 @@ struct settings_t
     bool can_idle;
     int auto_step_delay_ms;
     int dpi_scale;
+    vdbTheme global_theme;
 
     void LoadOrDefault(const char *filename);
     void Save(const char *filename);
@@ -313,6 +317,14 @@ namespace settings_parser
         return false;
     }
 
+    static bool ParseTheme(const char **c, vdbTheme *theme)
+    {
+        ParseBlank(c);
+        if      (ParseString(c, "dark"))    { *theme = VDB_DARK_THEME; return true; }
+        else if (ParseString(c, "bright"))  { *theme = VDB_BRIGHT_THEME; return true; }
+        return false;
+    }
+
     static bool ParseInt2(const char **c, int *x, int *y)
     {
         int tempx,tempy;
@@ -391,6 +403,7 @@ void settings_t::LoadOrDefault(const char *filename)
     num_frames = 0;
     auto_step_delay_ms = 250;
     font_size = (int)(VDB_DEFAULT_FONT_SIZE);
+    global_theme = VDB_DARK_THEME;
 
     char *data = NULL;
     {
@@ -470,6 +483,7 @@ void settings_t::LoadOrDefault(const char *filename)
         else if (ParseKey(c, "dpi_scale"))          ParseFloatToInt(c, &dpi_scale, 100, 200);
         else if (ParseKey(c, "can_idle"))           ParseBool(c,       &can_idle);
         else if (ParseKey(c, "auto_step_delay_ms")) ParseInt(c,        &auto_step_delay_ms);
+        else if (ParseKey(c, "global_theme"))       ParseTheme(c,      &global_theme);
         else *c = *c + 1;
     }
 
@@ -496,6 +510,13 @@ namespace settings_writer
         else if (mode == VDB_Y_DOWN) fprintf(f, "%s=y_down\n", key);
         else if (mode == VDB_X_DOWN) fprintf(f, "%s=x_down\n", key);
         else                         fprintf(f, "%s=z_up\n", key);
+    }
+
+    static void WriteTheme(FILE *f, const char *key, vdbTheme theme)
+    {
+        if      (theme == VDB_DARK_THEME)   fprintf(f, "%s=dark\n", key);
+        else if (theme == VDB_BRIGHT_THEME)  fprintf(f, "%s=bright\n", key);
+        else                                fprintf(f, "%s=dark\n", key);
     }
 
     static void WriteMat4(FILE *f, const char *key, vdbMat4 m)
@@ -536,6 +557,7 @@ void settings_t::Save(const char *filename)
     fprintf(f, "dpi_scale=%d\n", dpi_scale);
     fprintf(f, "can_idle=%d\n", can_idle);
     fprintf(f, "auto_step_delay_ms=%d\n", auto_step_delay_ms);
+    WriteTheme(f, "global_theme", global_theme);
     for (int i = 0; i < num_frames; i++)
     {
         frame_settings_t *frame = frames + i;

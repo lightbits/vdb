@@ -53,3 +53,15 @@
 #define VDB_HOTKEY_TOGGLE_MENU (keys::pressed[VDB_KEY_M] && keys::down[VDB_KEY_LALT])
 #define VDB_HOTKEY_LOGS_WINDOW (keys::pressed[VDB_KEY_L] && keys::down[VDB_KEY_LALT])
 #define VDB_HOTKEY_AUTO_STEP   (keys::pressed[VDB_KEY_F6])
+
+// Colors for standard themes
+#define VDB_DARK_THEME_BACKGROUND   0.22f, 0.22f, 0.22f
+#define VDB_DARK_THEME_X_AXIS       0.89f, 0.38f, 0.45f
+#define VDB_DARK_THEME_Y_AXIS       0.54f, 0.85f, 0.00f
+#define VDB_DARK_THEME_Z_AXIS       0.16f, 0.56f, 1.00f
+#define VDB_DARK_THEME_GRID_LINES   1.00f, 1.00f, 1.00f
+#define VDB_BRIGHT_THEME_BACKGROUND  1.00f, 1.00f, 1.00f
+#define VDB_BRIGHT_THEME_X_AXIS      0.71f, 0.05f, 0.10f
+#define VDB_BRIGHT_THEME_Y_AXIS      0.06f, 0.50f, 0.04f
+#define VDB_BRIGHT_THEME_Z_AXIS      0.20f, 0.40f, 0.84f
+#define VDB_BRIGHT_THEME_GRID_LINES  0.00f, 0.00f, 0.00f

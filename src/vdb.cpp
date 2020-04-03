@@ -328,10 +328,14 @@ bool vdbBeginBreak(const char *label)
     ui::SketchNewFrame();
     ui::RulerNewFrame();
 
+    vdbVec3 clear_color = vdbVec3(VDB_DARK_THEME_BACKGROUND);
+    if      (settings.global_theme == VDB_BRIGHT_THEME) clear_color = vdbVec3(VDB_BRIGHT_THEME_BACKGROUND);
+    else if (settings.global_theme == VDB_DARK_THEME)   clear_color = vdbVec3(VDB_DARK_THEME_BACKGROUND);
+
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glClearDepth(1.0f);
-    glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
+    glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
@@ -346,7 +350,7 @@ bool vdbBeginBreak(const char *label)
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
-        glClearColor(0.22f, 0.22f, 0.22f, 1.0f);
+        glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
@@ -410,27 +414,31 @@ void vdbEndBreak()
             if (brightness > 0.5f)
                 background_is_bright = true;
         }
+        else if (settings.global_theme == VDB_DARK_THEME)
+            background_is_bright = false;
+        else if (settings.global_theme == VDB_BRIGHT_THEME)
+            background_is_bright = true;
 
-        vdbVec3 color_x_axis(0.89f, 0.38f, 0.45f);
-        vdbVec3 color_y_axis(0.54f, 0.85f, 0.0f);
-        vdbVec3 color_z_axis(0.16f, 0.56f, 1.0f);
+        vdbVec3 color_x_axis(VDB_DARK_THEME_X_AXIS);
+        vdbVec3 color_y_axis(VDB_DARK_THEME_Y_AXIS);
+        vdbVec3 color_z_axis(VDB_DARK_THEME_Z_AXIS);
         float neg_alpha = 0.3f;
         float pos_alpha = 0.7f;
         if (background_is_bright)
         {
-            color_x_axis = vdbVec3(0.71f, 0.05f, 0.10f);
-            color_y_axis = vdbVec3(0.06f, 0.50f, 0.04f);
-            color_z_axis = vdbVec3(0.20f, 0.40f, 0.84f);
+            color_x_axis = vdbVec3(VDB_BRIGHT_THEME_X_AXIS);
+            color_y_axis = vdbVec3(VDB_BRIGHT_THEME_Y_AXIS);
+            color_z_axis = vdbVec3(VDB_BRIGHT_THEME_Z_AXIS);
             neg_alpha = 0.4f;
             pos_alpha = 0.6f;
         }
 
-        vdbVec3 grid_color(1.0f,1.0f,1.0f);
+        vdbVec3 grid_color(VDB_DARK_THEME_GRID_LINES);
         float minor_alpha = 0.3f;
         float major_alpha = 0.5f;
         if (background_is_bright)
         {
-            grid_color = vdbVec3(0.0f,0.0f,0.0f);
+            grid_color = vdbVec3(VDB_BRIGHT_THEME_GRID_LINES);
             minor_alpha = 0.4f;
             major_alpha = 0.5f;
         }
