@@ -107,15 +107,22 @@ void    vdbColor3fv (float *v, float a=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Utility drawing functions
+// Functions ending with _ don't create their own Begin*/End blocks.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
 void    vdbNote(float x, float y, const char *fmt, ...);
 void    vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments=8);
+void    vdbLineCube_(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
 void    vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
+void    vdbLineCube_(vdbVec3 p_min, vdbVec3 p_max);
 void    vdbLineCube(vdbVec3 p_min, vdbVec3 p_max);
+void    vdbLineGrid_(float x_min, float x_max, float y_min, float y_max, int n);
 void    vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
+void    vdbLineRect_(float x, float y, float size_x, float size_y);
 void    vdbLineRect(float x, float y, float size_x, float size_y);
+void    vdbFillRect_(float x, float y, float size_x, float size_y);
 void    vdbFillRect(float x, float y, float size_x, float size_y);
+void    vdbLineCircle_(float x, float y, float radius, int segments=16);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
