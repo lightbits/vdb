@@ -6,6 +6,7 @@ vdbHintKey VDB_ORIENTATION = 1;
 vdbHintKey VDB_VIEW_SCALE  = 2;
 vdbHintKey VDB_SHOW_GRID   = 3;
 vdbHintKey VDB_CAMERA_KEY  = 4;
+vdbHintKey VDB_THEME       = 5;
 
 vdbCameraType VDB_CUSTOM    = 0;
 vdbCameraType VDB_PLANAR    = 1;
