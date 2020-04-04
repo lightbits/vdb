@@ -330,5 +330,61 @@ int main(int, char **)
     }
     VDBE();
 
+    vdbHint(VDB_CAMERA_TYPE, VDB_PLANAR);
+    VDBB("colormaps");
+    {
+        // VDB supports most of the colormaps provided by Matplotlib,
+        // accessed using a string which follows Matplotlib's naming:
+        // https://matplotlib.org/tutorials/colors/colormaps.html
+        ImGui::Text("VDB supports Matplotlib colormaps.");
+        int n = vdbSetColormap("tab10");
+        vdbPointSegments(4);
+        vdbPointSize3D(8.0f/n);
+        vdbBeginPoints();
+        for (int i = 0; i < n; i++)
+        {
+            float x = -4.0f + 8.0f*i/n + 0.5f*8.0f/n;
+            vdbNextColor();
+            vdbVertex(x, 0.0f);
+        }
+        vdbEnd();
+
+        vdbTranslate(0.0f,2.0f,0.0f);
+        vdbSetColormap("viridis");
+        vdbBeginTriangles();
+        for (int i = 0; i < 256; i++)
+        {
+            float t1 = i/256.0f;
+            float t2 = (i+1)/256.0f;
+            float x1 = -4.0f + 8.0f*t1;
+            float x2 = -4.0f + 8.0f*t2;
+            vdbColor(t1); vdbVertex(x1, -0.5f);
+            vdbColor(t2); vdbVertex(x2, -0.5f);
+            vdbColor(t2); vdbVertex(x2, +0.5f);
+            vdbColor(t2); vdbVertex(x2, +0.5f);
+            vdbColor(t1); vdbVertex(x1, +0.5f);
+            vdbColor(t1); vdbVertex(x1, -0.5f);
+        }
+        vdbEnd();
+
+        vdbTranslate(0.0f,2.0f,0.0f);
+        vdbSetColormap("twilight");
+        vdbBeginTriangles();
+        const float two_pi = 2.0f*3.1415926535897932384626433832795f;
+        for (int i = 0; i < 256; i++)
+        {
+            float t1 = i/256.0f;
+            float t2 = (i+1)/256.0f;
+            vdbColor(t1); vdbVertex(0.5f*cosf(two_pi*t1), 0.5f*sinf(two_pi*t1));
+            vdbColor(t1); vdbVertex(1.0f*cosf(two_pi*t1), 1.0f*sinf(two_pi*t1));
+            vdbColor(t2); vdbVertex(1.0f*cosf(two_pi*t2), 1.0f*sinf(two_pi*t2));
+            vdbColor(t2); vdbVertex(1.0f*cosf(two_pi*t2), 1.0f*sinf(two_pi*t2));
+            vdbColor(t2); vdbVertex(0.5f*cosf(two_pi*t2), 0.5f*sinf(two_pi*t2));
+            vdbColor(t1); vdbVertex(0.5f*cosf(two_pi*t1), 0.5f*sinf(two_pi*t1));
+        }
+        vdbEnd();
+    }
+    VDBE();
+
     return 0;
 }

@@ -131,7 +131,10 @@ void    vdbFillCircle_(float x, float y, float radius);
 void    vdbFillCircle(float x, float y, float radius);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Colormap
+// § Colormaps
+// VDB supports most colormaps provided in Matplotlib [*]. To be consistent,
+// the colormap is set using a string which matches the names in Matplotlib.
+// [*] https://matplotlib.org/tutorials/colors/colormaps.html
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 vdbVec3 vdbGetForegroundColor();                // Get a color appropriate for foreground elements with the selected theme ([1,1,1] if dark theme, [0,0,0] if bright theme)
 vdbVec3 vdbGetBackgroundColor();                // Get default background (clearing color) for theme
