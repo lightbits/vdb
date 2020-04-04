@@ -94,7 +94,7 @@ namespace immediate
     {
         vdbLineWidth(1.0f);
         vdbPointSize(1.0f);
-        vdbPointSegments(4);
+        vdbPointSegments(16);
         vdbBlendAlpha();
         vdbDepthWrite(false);
         vdbDepthTest(false);

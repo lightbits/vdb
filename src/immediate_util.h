@@ -61,6 +61,8 @@ void vdbLineRect(float x, float y, float w, float h)
 
 void vdbLineCircle_(float x, float y, float radius, int segments)
 {
+    if (segments < 0)
+        segments = 32;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -81,6 +83,8 @@ void vdbLineCircle(float x, float y, float radius, int segments)
 
 void vdbFillCircle_(float x, float y, float radius, int segments)
 {
+    if (segments < 0)
+        segments = 32;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -168,14 +172,16 @@ void vdbLineCube(vdbVec3 p_min, vdbVec3 p_max)
     vdbEnd();
 }
 
-void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
+void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments)
 {
+    if (segments < 0)
+        segments = 32;
     float r1 = vdbVecLength(p1);
     float r2 = vdbVecLength(p2);
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < segments; i++)
     {
-        float t1 = (float)(i+0)/n;
-        float t2 = (float)(i+1)/n;
+        float t1 = (float)(i+0)/segments;
+        float t2 = (float)(i+1)/segments;
         float rq1 = r1 + (r2-r1)*t1;
         float rq2 = r1 + (r2-r1)*t2;
         vdbVec3 q1 = vdbVecNormalize(p1 + (p2-p1)*t1)*rq1;
@@ -185,10 +191,10 @@ void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
         vdbVertex(q2.x, q2.y, q2.z);
     }
 }
-void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int n)
+void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments)
 {
     vdbBeginTriangles();
-    vdbFillArc_(base, p1, p2, n);
+    vdbFillArc_(base, p1, p2, segments);
     vdbEnd();
 }
 
