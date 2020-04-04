@@ -6,6 +6,7 @@ struct vdb_style_t
     vdbVec3 grid;
     vdbVec3 cube;
     vdbVec3 clear;
+    vdbVec3 text;
     float neg_alpha;
     float pos_alpha;
     float major_alpha;
@@ -23,6 +24,7 @@ static vdb_style_t GetStyle()
         style.grid = vdbVec3(VDB_DARK_THEME_GRID_LINES);
         style.clear = vdbVec3(VDB_DARK_THEME_BACKGROUND);
         style.cube = vdbVec3(1.0f, 1.0f, 1.0f);
+        style.text = vdbVec3(1.0f, 1.0f, 1.0f);
         style.neg_alpha = 0.3f;
         style.pos_alpha = 0.7f;
         style.minor_alpha = 0.3f;
@@ -36,6 +38,7 @@ static vdb_style_t GetStyle()
         style.grid = vdbVec3(VDB_BRIGHT_THEME_GRID_LINES);
         style.cube = vdbVec3(0.0f, 0.0f, 0.0f);
         style.clear = vdbVec3(VDB_BRIGHT_THEME_BACKGROUND);
+        style.text = vdbVec3(0.0f, 0.0f, 0.0f);
         style.neg_alpha = 0.4f;
         style.pos_alpha = 0.6f;
         style.minor_alpha = 0.4f;

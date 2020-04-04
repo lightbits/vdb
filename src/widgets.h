@@ -37,11 +37,12 @@ namespace widgets
     {
         if (var_index == 0)
             return;
+        vdb_style_t style = GetStyle();
         static bool is_hovered = false;
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,1.0f,1.0f,1.0f));
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(style.text.x, style.text.y, style.text.z, 1.0f));
         ImGui::SetNextWindowBgAlpha(0.0f);
         ImGui::SetNextWindowPos(ImVec2(-8.0f, 5.0f + ui::main_menu_bar_height));
         ImGui::SetNextWindowSize(ImVec2(200.0f, -1));
