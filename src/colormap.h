@@ -41,17 +41,23 @@ int vdbSetColormap(const char *name)
 vdbVec4 vdbNextColor()
 {
     int n = vdb_colormap_data[colormap::current_colormap].num_colors;
+    int i = colormap::current_color;
+    unsigned char *rgb = vdb_colormap_data[colormap::current_colormap].colors + 3*i;
     colormap::current_color = (colormap::current_color + 1) % n;
-    vdbColor(0);
-    return vdbGetColor(0);
+    unsigned char a8 = 255;
+    vdbColor3ubv(rgb, a8);
+    return vdbVec4(rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f, a8/255.0f);
 }
 
 vdbVec4 vdbResetColor(int offset)
 {
+    colormap::current_color = 0;
     int n = vdb_colormap_data[colormap::current_colormap].num_colors;
-    colormap::current_color = offset % n;
-    vdbColor(0);
-    return vdbGetColor(0);
+    int i = colormap::current_color;
+    unsigned char *rgb = vdb_colormap_data[colormap::current_colormap].colors + 3*i;
+    unsigned char a8 = 255;
+    vdbColor3ubv(rgb, 255);
+    return vdbVec4(rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f, a8/255.0f);
 }
 
 vdbVec4 vdbGetColor(float t, float alpha)
