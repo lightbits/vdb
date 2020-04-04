@@ -127,6 +127,8 @@ void    vdbFillRect_(float x, float y, float size_x, float size_y);
 void    vdbFillRect(float x, float y, float size_x, float size_y);
 void    vdbLineCircle_(float x, float y, float radius, int segments=16);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
+void    vdbFillCircle_(float x, float y, float radius, int segments=16);
+void    vdbFillCircle(float x, float y, float radius, int segments=16);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Colormap (WIP)
