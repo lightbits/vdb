@@ -316,6 +316,7 @@ bool vdbBeginBreak(const char *label)
     mouse::NewFrame();
     immediate_util::NewFrame();
     immediate::NewFrame();
+    colormap::NewFrame();
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window::sdl_window);

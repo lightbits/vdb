@@ -131,10 +131,17 @@ void    vdbFillCircle_(float x, float y, float radius);
 void    vdbFillCircle(float x, float y, float radius);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Colormap (WIP)
+// § Colormap
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-vdbVec3 vdbGetForegroundColor(); // Get a color appropriate for foreground elements with the selected theme ([1,1,1] if dark theme, [0,0,0] if bright theme)
-vdbVec3 vdbGetBackgroundColor(); // Get default background (clearing color) for theme
+vdbVec3 vdbGetForegroundColor();                // Get a color appropriate for foreground elements with the selected theme ([1,1,1] if dark theme, [0,0,0] if bright theme)
+vdbVec3 vdbGetBackgroundColor();                // Get default background (clearing color) for theme
+int     vdbSetColormap(const char *name);       // Implements colormaps as in Matplotlib (https://matplotlib.org/tutorials/colors/colormaps.html). Returns number of colors in colormap.
+vdbVec4 vdbNextColor();                         // Advance color in color map (typically only used with qualitative colormaps). Also applies the color to the immediate vertex stream.
+vdbVec4 vdbResetColor(int offset=0);            // Color is reset automatically at beginning of frame but can be done manually. Also applies the colors to the immediate vertex stream.
+vdbVec4 vdbGetColor(float t, float alpha=1.0f); // Get current color using t in range [0.0, 1.0]
+vdbVec4 vdbGetColor(int i, float alpha=1.0f);   // Get current color using i in range [0, n-1] where n is the number of colors in the colormap
+void    vdbColor(float t, float alpha=1.0f);    // Short-hand for vdbColor(vdbGetColor(*))
+void    vdbColor(int i, float alpha=1.0f);      // Short-hand for vdbColor(vdbGetColor(*))
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack
