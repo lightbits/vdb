@@ -38,6 +38,8 @@
 #include "matrix.h"
 #include "keys.h"
 #include "settings.h"
+#include "style.h"
+#include "colormap.h"
 #include "mouse.h"
 #include "window.h"
 #include "matrix_stack.h"
@@ -328,14 +330,12 @@ bool vdbBeginBreak(const char *label)
     ui::SketchNewFrame();
     ui::RulerNewFrame();
 
-    vdbVec3 clear_color = vdbVec3(VDB_DARK_THEME_BACKGROUND);
-    if      (settings.global_theme == VDB_BRIGHT_THEME) clear_color = vdbVec3(VDB_BRIGHT_THEME_BACKGROUND);
-    else if (settings.global_theme == VDB_DARK_THEME)   clear_color = vdbVec3(VDB_DARK_THEME_BACKGROUND);
+    vdb_style_t style = GetStyle();
 
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glClearDepth(1.0f);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
+    glClearColor(style.clear.x, style.clear.y, style.clear.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glDepthMask(GL_FALSE);
     glDisable(GL_DEPTH_TEST);
@@ -350,7 +350,7 @@ bool vdbBeginBreak(const char *label)
         glEnable(GL_DEPTH_TEST);
         glDepthMask(GL_TRUE);
         glClearDepth(1.0f);
-        glClearColor(clear_color.x, clear_color.y, clear_color.z, 1.0f);
+        glClearColor(style.clear.x, style.clear.y, style.clear.z, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         glDepthMask(GL_FALSE);
         glDisable(GL_DEPTH_TEST);
@@ -406,42 +406,7 @@ void vdbEndBreak()
     immediate::DefaultState();
 
     {
-        bool background_is_bright = false;
-        if (immediate::clear_color_was_set)
-        {
-            vdbVec4 c = immediate::clear_color;
-            float brightness = (2.0f*c.x + 3.0f*c.y + c.z)/6.0f;
-            if (brightness > 0.5f)
-                background_is_bright = true;
-        }
-        else if (settings.global_theme == VDB_DARK_THEME)
-            background_is_bright = false;
-        else if (settings.global_theme == VDB_BRIGHT_THEME)
-            background_is_bright = true;
-
-        vdbVec3 color_x_axis(VDB_DARK_THEME_X_AXIS);
-        vdbVec3 color_y_axis(VDB_DARK_THEME_Y_AXIS);
-        vdbVec3 color_z_axis(VDB_DARK_THEME_Z_AXIS);
-        float neg_alpha = 0.3f;
-        float pos_alpha = 0.7f;
-        if (background_is_bright)
-        {
-            color_x_axis = vdbVec3(VDB_BRIGHT_THEME_X_AXIS);
-            color_y_axis = vdbVec3(VDB_BRIGHT_THEME_Y_AXIS);
-            color_z_axis = vdbVec3(VDB_BRIGHT_THEME_Z_AXIS);
-            neg_alpha = 0.4f;
-            pos_alpha = 0.6f;
-        }
-
-        vdbVec3 grid_color(VDB_DARK_THEME_GRID_LINES);
-        float minor_alpha = 0.3f;
-        float major_alpha = 0.5f;
-        if (background_is_bright)
-        {
-            grid_color = vdbVec3(VDB_BRIGHT_THEME_GRID_LINES);
-            minor_alpha = 0.4f;
-            major_alpha = 0.5f;
-        }
+        vdb_style_t style = GetStyle();
 
         if (fs->camera.type == VDB_TRACKBALL ||
             fs->camera.type == VDB_TURNTABLE)
@@ -458,26 +423,26 @@ void vdbEndBreak()
                 vdbOrientation up = *GetCameraUp();
                 if (up != VDB_X_UP && up != VDB_X_DOWN)
                 {
-                    vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, 0.0f);      vdbVertex(+t, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, 0.0f);            vdbVertex(-t, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, style.pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, 0.0f);            vdbVertex(+t, 0.0f, 0.0f);
                 }
 
                 if (up != VDB_Y_UP && up != VDB_Y_DOWN)
                 {
-                    vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, -t, 0.0f);
-                    vdbColor(color_y_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_y_axis, pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, +t, 0.0f);
+                    vdbColor(style.y_axis, 0.0f);            vdbVertex(0.0f, -t, 0.0f);
+                    vdbColor(style.y_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.y_axis, style.pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.y_axis, 0.0f);            vdbVertex(0.0f, +t, 0.0f);
                 }
 
                 if (up != VDB_Z_UP && up != VDB_Z_DOWN)
                 {
-                    vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, -t);
-                    vdbColor(color_z_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_z_axis, pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, +t);
+                    vdbColor(style.z_axis, 0.0f);            vdbVertex(0.0f, 0.0f, -t);
+                    vdbColor(style.z_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.z_axis, style.pos_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.z_axis, 0.0f);            vdbVertex(0.0f, 0.0f, +t);
                 }
                 vdbEnd();
             }
@@ -487,8 +452,7 @@ void vdbEndBreak()
             if (fs->grid.cube_visible)
             {
                 vdbLineWidth(1.0f);
-                if (background_is_bright) vdbColor(0.0f, 0.0f, 0.0f, 0.3f);
-                else vdbColor(1.0f, 1.0f, 1.0f, 0.3f);
+                vdbColor(style.cube, 0.3f);
                 vdbLineCube(1.0f, 1.0f, 1.0f);
             }
 
@@ -505,33 +469,33 @@ void vdbEndBreak()
                     for (int minor = 1; minor <= 9; minor++)
                     {
                         float t = major/10.0f + minor/100.0f;
-                        float alpha = minor_alpha*(1.0f - fabsf(t));
+                        float alpha = style.minor_alpha*(1.0f - fabsf(t));
                         alpha *= alpha;
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, -1.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, +1.0f);
+                        vdbColor(style.grid, 0.00f); vdbVertex(t, 0.0f, -1.0f);
+                        vdbColor(style.grid, alpha); vdbVertex(t, 0.0f, 0.0f);
+                        vdbColor(style.grid, alpha); vdbVertex(t, 0.0f, 0.0f);
+                        vdbColor(style.grid, 0.00f); vdbVertex(t, 0.0f, +1.0f);
 
-                        vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, 0.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                        vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, 0.0f, t);
+                        vdbColor(style.grid, 0.00f); vdbVertex(-1.0f, 0.0f, t);
+                        vdbColor(style.grid, alpha); vdbVertex(0.0f, 0.0f, t);
+                        vdbColor(style.grid, alpha); vdbVertex(0.0f, 0.0f, t);
+                        vdbColor(style.grid, 0.00f); vdbVertex(+1.0f, 0.0f, t);
                     }
 
                     if (major == 0)
                         continue;
                     float t = major/10.0f;
-                    float alpha = major_alpha*(1.0f - fabsf(t));
+                    float alpha = style.major_alpha*(1.0f - fabsf(t));
                     alpha *= alpha;
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, -1.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, 0.0f, 0.0f);
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, 0.0f, +1.0f);
+                    vdbColor(style.grid, 0.00f); vdbVertex(t, 0.0f, -1.0f);
+                    vdbColor(style.grid, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(style.grid, alpha); vdbVertex(t, 0.0f, 0.0f);
+                    vdbColor(style.grid, 0.00f); vdbVertex(t, 0.0f, +1.0f);
 
-                    vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, 0.0f, t);
-                    vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                    vdbColor(grid_color, alpha); vdbVertex(0.0f, 0.0f, t);
-                    vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, 0.0f, t);
+                    vdbColor(style.grid, 0.00f); vdbVertex(-1.0f, 0.0f, t);
+                    vdbColor(style.grid, alpha); vdbVertex(0.0f, 0.0f, t);
+                    vdbColor(style.grid, alpha); vdbVertex(0.0f, 0.0f, t);
+                    vdbColor(style.grid, 0.00f); vdbVertex(+1.0f, 0.0f, t);
                 }
                 vdbEnd();
                 vdbPopMatrix();
@@ -551,24 +515,24 @@ void vdbEndBreak()
                 vdbOrientation up = *GetCameraUp();
                 if (up != VDB_Z_UP && up != VDB_Z_DOWN)
                 {
-                    vdbColor(color_x_axis, 0.0f);      vdbVertex(-t, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_x_axis, 0.0f);      vdbVertex(+t, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, 0.0f);            vdbVertex(-t, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, 1.0f);            vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.x_axis, 0.0f);            vdbVertex(+t, 0.0f, 0.0f);
                 }
                 if (up != VDB_X_UP && up != VDB_X_DOWN)
                 {
-                    vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, -t, 0.0f);
-                    vdbColor(color_y_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_y_axis, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_y_axis, 0.0f);      vdbVertex(0.0f, +t, 0.0f);
+                    vdbColor(style.y_axis, 0.0f);            vdbVertex(0.0f, -t, 0.0f);
+                    vdbColor(style.y_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.y_axis, 1.0f);            vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.y_axis, 0.0f);            vdbVertex(0.0f, +t, 0.0f);
                 }
                 if (up != VDB_Y_UP && up != VDB_Y_DOWN)
                 {
-                    vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, -t);
-                    vdbColor(color_z_axis, neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_z_axis, 1.0f); vdbVertex(0.0f, 0.0f, 0.0f);
-                    vdbColor(color_z_axis, 0.0f);      vdbVertex(0.0f, 0.0f, +t);
+                    vdbColor(style.z_axis, 0.0f);            vdbVertex(0.0f, 0.0f, -t);
+                    vdbColor(style.z_axis, style.neg_alpha); vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.z_axis, 1.0f);            vdbVertex(0.0f, 0.0f, 0.0f);
+                    vdbColor(style.z_axis, 0.0f);            vdbVertex(0.0f, 0.0f, +t);
                 }
                 vdbEnd();
             }
@@ -588,33 +552,33 @@ void vdbEndBreak()
                     for (int minor = 1; minor <= 9; minor++)
                     {
                         float t = major/10.0f + minor/100.0f;
-                        float alpha = minor_alpha*(1.0f - fabsf(t));
+                        float alpha = style.minor_alpha*(1.0f - fabsf(t));
                         alpha *= alpha;
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, -1.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, +0.0f);
-                        vdbColor(grid_color, alpha); vdbVertex(t, +0.0f);
-                        vdbColor(grid_color, 0.00f); vdbVertex(t, +1.0f);
+                        vdbColor(style.grid, 0.00f); vdbVertex(t, -1.0f);
+                        vdbColor(style.grid, alpha); vdbVertex(t, +0.0f);
+                        vdbColor(style.grid, alpha); vdbVertex(t, +0.0f);
+                        vdbColor(style.grid, 0.00f); vdbVertex(t, +1.0f);
 
-                        vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(+0.0f, t);
-                        vdbColor(grid_color, alpha); vdbVertex(+0.0f, t);
-                        vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, t);
+                        vdbColor(style.grid, 0.00f); vdbVertex(-1.0f, t);
+                        vdbColor(style.grid, alpha); vdbVertex(+0.0f, t);
+                        vdbColor(style.grid, alpha); vdbVertex(+0.0f, t);
+                        vdbColor(style.grid, 0.00f); vdbVertex(+1.0f, t);
                     }
 
                     if (major == 0)
                         continue;
                     float t = major/10.0f;
-                    float alpha = major_alpha*(1.0f - fabsf(t));
+                    float alpha = style.major_alpha*(1.0f - fabsf(t));
                     alpha *= alpha;
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, -1.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, +0.0f);
-                    vdbColor(grid_color, alpha); vdbVertex(t, +0.0f);
-                    vdbColor(grid_color, 0.00f); vdbVertex(t, +1.0f);
+                    vdbColor(style.grid, 0.00f); vdbVertex(t, -1.0f);
+                    vdbColor(style.grid, alpha); vdbVertex(t, +0.0f);
+                    vdbColor(style.grid, alpha); vdbVertex(t, +0.0f);
+                    vdbColor(style.grid, 0.00f); vdbVertex(t, +1.0f);
 
-                    vdbColor(grid_color, 0.00f); vdbVertex(-1.0f, t);
-                    vdbColor(grid_color, alpha); vdbVertex(+0.0f,  t);
-                    vdbColor(grid_color, alpha); vdbVertex(+0.0f,  t);
-                    vdbColor(grid_color, 0.00f); vdbVertex(+1.0f, t);
+                    vdbColor(style.grid, 0.00f); vdbVertex(-1.0f, t);
+                    vdbColor(style.grid, alpha); vdbVertex(+0.0f, t);
+                    vdbColor(style.grid, alpha); vdbVertex(+0.0f, t);
+                    vdbColor(style.grid, 0.00f); vdbVertex(+1.0f, t);
                 }
                 vdbEnd();
                 vdbPopMatrix();

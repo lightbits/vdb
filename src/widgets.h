@@ -41,7 +41,8 @@ namespace widgets
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
-        ImGui::SetNextWindowBgAlpha(0.5f);
+        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f,1.0f,1.0f,1.0f));
+        ImGui::SetNextWindowBgAlpha(0.0f);
         ImGui::SetNextWindowPos(ImVec2(-8.0f, 5.0f + ui::main_menu_bar_height));
         ImGui::SetNextWindowSize(ImVec2(200.0f, -1));
         ImGuiWindowFlags flags =
@@ -71,6 +72,7 @@ namespace widgets
         }
         ImGui::PopItemWidth();
         ImGui::End();
+        ImGui::PopStyleColor();
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();

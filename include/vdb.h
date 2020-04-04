@@ -127,6 +127,12 @@ void    vdbLineCircle_(float x, float y, float radius, int segments=16);
 void    vdbLineCircle(float x, float y, float radius, int segments=16);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Colormap (WIP)
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+vdbVec3 vdbGetForegroundColor(); // Get a color appropriate for foreground elements with the selected theme ([1,1,1] if dark theme, [0,0,0] if bright theme)
+vdbVec3 vdbGetBackgroundColor(); // Get default background (clearing color) for theme
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack
 // Note: by default vdb interprets matrix pointers as 4x4 column-major arrays.
 // You can change this behavior by #defining VDB_ROW_MAJOR before #including
