@@ -83,4 +83,8 @@ void vdbHint(vdbHintKey key, int value)
         hints::camera_key = value;
         hints::camera_key_pending = true;
     }
+    else if (key == VDB_THEME && (value == VDB_DARK_THEME || value == VDB_BRIGHT_THEME))
+    {
+        settings.global_theme = value;
+    }
 }

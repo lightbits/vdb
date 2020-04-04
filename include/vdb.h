@@ -38,10 +38,12 @@ extern vdbHintKey       VDB_ORIENTATION;    // value=VDB_X_DOWN, etc.
 extern vdbHintKey       VDB_VIEW_SCALE;     // value=float
 extern vdbHintKey       VDB_SHOW_GRID;      // value=bool
 extern vdbHintKey       VDB_CAMERA_KEY;     // If set, this key must be pressed to move the camera. value=VDB_KEY_*
+extern vdbHintKey       VDB_THEME;          // value=VDB_DARK_THEME,VDB_BRIGHT_THEME
 extern vdbCameraType    VDB_PLANAR,VDB_TRACKBALL,VDB_TURNTABLE;
 extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;
 extern vdbOrientation   VDB_Y_DOWN,VDB_Y_UP;
 extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
+extern vdbTheme         VDB_DARK_THEME,VDB_BRIGHT_THEME;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Hints:
