@@ -59,10 +59,9 @@ void vdbLineRect(float x, float y, float w, float h)
     vdbEnd();
 }
 
-void vdbLineCircle_(float x, float y, float radius, int segments)
+void vdbLineCircle_(float x, float y, float radius)
 {
-    if (segments < 0)
-        segments = 32;
+    int segments = imm.state.point_segments;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -74,17 +73,16 @@ void vdbLineCircle_(float x, float y, float radius, int segments)
         vdbVertex(x + radius*cosf(t1),y + radius*sinf(t1));
     }
 }
-void vdbLineCircle(float x, float y, float radius, int segments)
+void vdbLineCircle(float x, float y, float radius)
 {
     vdbBeginLines();
-    vdbLineCircle_(x, y, radius, segments);
+    vdbLineCircle_(x, y, radius);
     vdbEnd();
 }
 
-void vdbFillCircle_(float x, float y, float radius, int segments)
+void vdbFillCircle_(float x, float y, float radius)
 {
-    if (segments < 0)
-        segments = 32;
+    int segments = imm.state.point_segments;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -97,10 +95,10 @@ void vdbFillCircle_(float x, float y, float radius, int segments)
         vdbVertex(x + radius*cosf(t1),y + radius*sinf(t1));
     }
 }
-void vdbFillCircle(float x, float y, float radius, int segments)
+void vdbFillCircle(float x, float y, float radius)
 {
     vdbBeginTriangles();
-    vdbFillCircle_(x, y, radius, segments);
+    vdbFillCircle_(x, y, radius);
     vdbEnd();
 }
 
@@ -172,10 +170,9 @@ void vdbLineCube(vdbVec3 p_min, vdbVec3 p_max)
     vdbEnd();
 }
 
-void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments)
+void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2)
 {
-    if (segments < 0)
-        segments = 32;
+    int segments = imm.state.point_segments;
     float r1 = vdbVecLength(p1);
     float r2 = vdbVecLength(p2);
     for (int i = 0; i < segments; i++)
@@ -191,10 +188,10 @@ void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments)
         vdbVertex(q2.x, q2.y, q2.z);
     }
 }
-void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2, int segments)
+void vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2)
 {
     vdbBeginTriangles();
-    vdbFillArc_(base, p1, p2, segments);
+    vdbFillArc_(base, p1, p2);
     vdbEnd();
 }
 
