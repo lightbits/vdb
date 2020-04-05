@@ -127,7 +127,6 @@ int main(int, char **)
         vdbPerspective(3.14f/4.0f, 0.1f, 10.0f);
         vdbLineWidth(1.0f);
         vdbColor(0.4f,0.4f,0.4f,1);
-        vdbLineGrid(-1,+1,-1,+1, 16);
         vdbPointSize3D(0.05f);
         vdbPointSegments(16);
         vdbBeginPoints();
