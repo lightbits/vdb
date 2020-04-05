@@ -19,7 +19,7 @@ namespace mouse
         bool pressed,released,down;
     } left,right,middle;
 
-    static void NewFrame()
+    static void BeginFrame()
     {
         // Note: this must be called after viewport is set up
         ndc = vdbWindowToNDC((float)x, (float)y);

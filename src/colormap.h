@@ -5,7 +5,7 @@ namespace colormap
     static int current_colormap = 0;
     static int current_color = 0;
 
-    static void NewFrame()
+    static void BeginFrame()
     {
         current_color = 0;
     }

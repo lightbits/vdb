@@ -27,7 +27,7 @@ namespace widgets
     static int active_radiobutton_index = 0;
     static widget_t vars[MAX_VARS];
 
-    static void NewFrame()
+    static void BeginFrame()
     {
         var_index = 0;
         radiobutton_index = 0;

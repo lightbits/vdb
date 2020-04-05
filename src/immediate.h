@@ -152,7 +152,7 @@ namespace immediate
         imm.ndc_offset = ndc_offset;
     }
 
-    static void NewFrame()
+    static void BeginFrame()
     {
         immediate::DefaultState();
         immediate::clear_color_was_set = false;

@@ -48,9 +48,9 @@ namespace ui
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
-    static void RulerNewFrame();
+    static void RulerBeginFrame();
     static void RulerEndFrame();
-    static void SketchNewFrame();
+    static void SketchBeginFrame();
     static void SketchEndFrame();
     static void NewLogWindow();
     static void ShowLogWindow(log_window_t *window);
@@ -618,7 +618,7 @@ static void ui::FramegrabDialog()
     }
 }
 
-static void ui::RulerNewFrame()
+static void ui::RulerBeginFrame()
 {
     if (VDB_HOTKEY_RULER_MODE)
         ruler_mode_active = !ruler_mode_active;
@@ -698,7 +698,7 @@ static void ui::RulerEndFrame()
     ImGui::EndMainMenuBar();
 }
 
-static void ui::SketchNewFrame()
+static void ui::SketchBeginFrame()
 {
     if (VDB_HOTKEY_SKETCH_MODE)
         sketch_mode_active = !sketch_mode_active;

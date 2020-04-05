@@ -312,24 +312,24 @@ bool vdbBeginBreak(const char *label)
         exit(0);
     }
 
-    transform::NewFrame();
-    mouse::NewFrame();
-    immediate_util::NewFrame();
-    immediate::NewFrame();
-    colormap::NewFrame();
+    transform::BeginFrame();
+    mouse::BeginFrame();
+    immediate_util::BeginFrame();
+    immediate::BeginFrame();
+    colormap::BeginFrame();
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(window::sdl_window);
     ImGui::NewFrame();
 
-    widgets::NewFrame();
+    widgets::BeginFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
 
     // Note: ui is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
     ui::escape_eaten = false;
-    ui::SketchNewFrame();
-    ui::RulerNewFrame();
+    ui::SketchBeginFrame();
+    ui::RulerBeginFrame();
 
     vdb_style_t style = GetStyle();
 

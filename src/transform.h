@@ -9,7 +9,7 @@ namespace transform
     int viewport_width;
     int viewport_height;
 
-    static void NewFrame()
+    static void BeginFrame()
     {
         projection = vdbMatIdentity();
         view_model = vdbMatIdentity();

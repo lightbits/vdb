@@ -1,7 +1,7 @@
 namespace immediate_util
 {
     static int note_index;
-    static void NewFrame()
+    static void BeginFrame()
     {
         note_index = 0;
     }
