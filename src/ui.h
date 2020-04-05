@@ -287,7 +287,6 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Settings"))
     {
-        ImGui::MenuItem("Hide logs", NULL, &hide_logs);
         ImGui::MenuItem("Show menu", "Alt+M", &settings.show_main_menu);
         ImGui::MenuItem("Window size", "Alt+W", &window_size_dialog_should_open);
         ImGui::MenuItem("Never ask on exit", NULL, &settings.never_ask_on_exit);
@@ -356,12 +355,17 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     }
     if (ImGui::BeginMenu("Tools"))
     {
-        if (ImGui::MenuItem("New log window", "Alt+L")) NewLogWindow();
-        if (ImGui::MenuItem("Save logs", NULL)) save_logs_should_open = true;
         if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
         if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
         ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
+        ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Logs"))
+    {
+        if (ImGui::MenuItem("New log window", "Alt+L")) NewLogWindow();
+        if (ImGui::MenuItem("Save logs", NULL)) save_logs_should_open = true;
+        ImGui::MenuItem("Hide logs", NULL, &hide_logs);
         ImGui::EndMenu();
     }
     ImGui::Separator();
