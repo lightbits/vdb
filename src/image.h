@@ -1,4 +1,3 @@
-#include "cmap/inferno.h"
 #include "shaders/image.h"
 
 vdbTextureFormat
@@ -227,6 +226,7 @@ void vdbDrawImage(int slot,
     static GLint uniform_im_pos   = glGetUniformLocation(program, "im_pos");
     static GLint uniform_im_size  = glGetUniformLocation(program, "im_size");
 
+    #if 0
     // upload 1D colormap as 2D texture of height 1
     static GLuint color_map_tex = TexImage2D(
         cmap_inferno,
@@ -237,6 +237,7 @@ void vdbDrawImage(int slot,
         GL_LINEAR, GL_LINEAR,
         GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
         GL_RGBA);
+    #endif
 
     glUseProgram(program);
 
@@ -245,10 +246,12 @@ void vdbDrawImage(int slot,
     vdbBindImage(slot, filter, wrap, v_min, v_max);
     glUniform1i(uniform_sampler0, 0);
 
+    #if 0
     // colormap texture
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, color_map_tex);
     glUniform1i(uniform_sampler1, 1);
+    #endif
 
     // other uniforms
     float pvm[4*4];
