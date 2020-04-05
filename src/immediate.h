@@ -92,6 +92,7 @@ namespace immediate
 
     static void DefaultState()
     {
+        vdbColor(vdbGetForegroundColor(), 1.0f);
         vdbLineWidth(1.0f);
         vdbPointSize(1.0f);
         vdbPointSegments(16);
