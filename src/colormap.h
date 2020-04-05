@@ -50,7 +50,7 @@ vdbVec4 vdbNextColor()
     unsigned char *rgb = vdb_colormap_data[colormap::current_colormap].colors + 3*i;
     colormap::current_color = (colormap::current_color + 1) % n;
     unsigned char a8 = 255;
-    vdbColor3ubv(rgb, a8);
+    vdbColor4ub(rgb[0], rgb[1], rgb[2], a8);
     return vdbVec4(rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f, a8/255.0f);
 }
 
@@ -61,7 +61,7 @@ vdbVec4 vdbResetColor(int offset)
     int i = colormap::current_color;
     unsigned char *rgb = vdb_colormap_data[colormap::current_colormap].colors + 3*i;
     unsigned char a8 = 255;
-    vdbColor3ubv(rgb, 255);
+    vdbColor4ub(rgb[0], rgb[1], rgb[2], a8);
     return vdbVec4(rgb[0]/255.0f, rgb[1]/255.0f, rgb[2]/255.0f, a8/255.0f);
 }
 
@@ -93,7 +93,7 @@ void vdbColor(float t, float alpha)
     int a8 = (int)(alpha*255.0f);
     if (a8 < 0) a8 = 0;
     if (a8 > 255) a8 = 255;
-    vdbColor3ubv(rgb, (unsigned char)a8);
+    vdbColor4ub(rgb[0], rgb[1], rgb[2], (unsigned char)a8);
 }
 
 void vdbColor(int i, float alpha)
@@ -104,6 +104,6 @@ void vdbColor(int i, float alpha)
     int a8 = (int)(alpha*255.0f);
     if (a8 < 0) a8 = 0;
     if (a8 > 255) a8 = 255;
-    vdbColor3ubv(rgb, (unsigned char)a8);
+    vdbColor4ub(rgb[0], rgb[1], rgb[2], (unsigned char)a8);
 }
 

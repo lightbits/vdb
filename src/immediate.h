@@ -707,18 +707,11 @@ void vdbBeginTriangles()                             { BeginImmediate(IMM_PRIM_T
 void vdbBeginLines()                                 { BeginImmediate(IMM_PRIM_LINES); }
 void vdbBeginPoints()                                { BeginImmediate(IMM_PRIM_POINTS); }
 
-// convenience functions
-static void vdbVertex(vdbVec3 v, float w)            { vdbVertex(v.x, v.y, v.z, w); }
-static void vdbVertex(vdbVec4 v)                     { vdbVertex(v.x, v.y, v.z, v.w); }
-static void vdbColor(vdbVec3 v, float a)             { vdbColor(v.x, v.y, v.z, a); }
-static void vdbColor(vdbVec4 v)                      { vdbColor(v.x, v.y, v.z, v.w); }
-void vdbVertex2fv(float *v, float z, float w)        { vdbVertex(v[0], v[1], z, w); }
-void vdbVertex3fv(float *v, float w)                 { vdbVertex(v[0], v[1], v[2], w); }
-void vdbVertex4fv(float *v)                          { vdbVertex(v[0], v[1], v[2], v[3]); }
-void vdbColor4ubv(unsigned char *v)                  { vdbColor4ub(v[0], v[1], v[2], v[3]); }
-void vdbColor3ubv(unsigned char *v, unsigned char a) { vdbColor4ub(v[0], v[1], v[2], a); }
-void vdbColor4fv(float *v)                           { vdbColor(v[0], v[1], v[2], v[3]); }
-void vdbColor3fv(float *v, float a)                  { vdbColor(v[0], v[1], v[2], a); }
+void vdbVertex(vdbVec2 v, float z, float w)   { vdbVertex(v.x, v.y, z, w); }
+void vdbVertex(vdbVec3 v, float w)            { vdbVertex(v.x, v.y, v.z, w); }
+void vdbVertex(vdbVec4 v)                     { vdbVertex(v.x, v.y, v.z, v.w); }
+void vdbColor(vdbVec3 v, float a)             { vdbColor(v.x, v.y, v.z, a); }
+void vdbColor(vdbVec4 v)                      { vdbColor(v.x, v.y, v.z, v.w); }
 
 void vdbInverseColor(bool enable)
 {

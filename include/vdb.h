@@ -69,10 +69,10 @@ void    vdbDepthWrite(bool enable);
 void    vdbDepthFuncLess();
 void    vdbDepthFuncLessOrEqual();
 void    vdbDepthFuncAlways();
-void    vdbLineWidth(float width);      // line diameter in window units
-void    vdbPointSegments(int segments); // points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
-void    vdbPointSize(float size);       // point diameter in window units
-void    vdbPointSize3D(float size);     // point diameter in model coordinates (is affected by projection)
+void    vdbLineWidth(float width);      // Line diameter is in window units (=framebuffer units x DPI scale)
+void    vdbPointSegments(int segments); // Points can be rendered as triangles (segments=3), quads (segments=4) or circles or varying fineness (segments > 4)
+void    vdbPointSize(float size);       // Point diameter in window units (=framebuffer units x DPI scale)
+void    vdbPointSize3D(float size);     // Point diameter in model coordinates (is affected by projection)
 void    vdbBeginLines();
 void    vdbBeginPoints();
 void    vdbBeginTriangles();
@@ -80,6 +80,12 @@ void    vdbEnd();
 void    vdbVertex(float x, float y, float z=0.0f, float w=1.0f);
 void    vdbColor(float r, float g, float b, float a=1.0f);
 void    vdbTexel(float u, float v);
+
+void    vdbVertex(vdbVec2 xy, float z=0.0f, float w=1.0f);
+void    vdbVertex(vdbVec3 xyz, float w=1.0f);
+void    vdbVertex(vdbVec4 xyzw);
+void    vdbColor(vdbVec3 rgb, float alpha=1.0f);
+void    vdbColor(vdbVec4 rgba);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Draw list:
@@ -95,18 +101,6 @@ void    vdbTexel(float u, float v);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginList(int list);
 void    vdbDrawList(int list);
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Pointer- and array versions of drawing functions
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbVertex2fv(float *v, float z=0.0f, float w=1.0f);
-void    vdbVertex3fv(float *v, float w=1.0f);
-void    vdbVertex4fv(float *v);
-void    vdbColor4ub (unsigned char r, unsigned char g, unsigned char b, unsigned char a=255);
-void    vdbColor4ubv(unsigned char *v);
-void    vdbColor3ubv(unsigned char *v, unsigned char a=255);
-void    vdbColor4fv (float *v);
-void    vdbColor3fv (float *v, float a=1.0f);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Utility drawing functions
