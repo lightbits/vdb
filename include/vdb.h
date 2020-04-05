@@ -108,19 +108,20 @@ void    vdbDrawList(int list);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
 void    vdbNote(float x, float y, const char *fmt, ...);
-void    vdbFillArc(vdbVec3 base, vdbVec3 p1, vdbVec3 p2);
-void    vdbLineCube_(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
-void    vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
+void    vdbLineCube_(float size_x, float size_y, float size_z);
+void    vdbLineCube (float size_x, float size_y, float size_z);
 void    vdbLineCube_(vdbVec3 p_min, vdbVec3 p_max);
-void    vdbLineCube(vdbVec3 p_min, vdbVec3 p_max);
+void    vdbLineCube (vdbVec3 p_min, vdbVec3 p_max);
 void    vdbLineRect_(float x, float y, float size_x, float size_y);
-void    vdbLineRect(float x, float y, float size_x, float size_y);
-void    vdbFillRect_(float x, float y, float size_x, float size_y);
-void    vdbFillRect(float x, float y, float size_x, float size_y);
+void    vdbLineRect (float x, float y, float size_x, float size_y);
 void    vdbLineCircle_(float x, float y, float radius);
-void    vdbLineCircle(float x, float y, float radius);
+void    vdbLineCircle (float x, float y, float radius);
+void    vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2);
+void    vdbFillArc (vdbVec3 base, vdbVec3 p1, vdbVec3 p2);
+void    vdbFillRect_(float x, float y, float size_x, float size_y);
+void    vdbFillRect (float x, float y, float size_x, float size_y);
 void    vdbFillCircle_(float x, float y, float radius);
-void    vdbFillCircle(float x, float y, float radius);
+void    vdbFillCircle (float x, float y, float radius);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Colormaps

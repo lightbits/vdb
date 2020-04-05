@@ -1,4 +1,4 @@
-#include "colormap_data.h"
+#include "data/colormap_data.h"
 
 namespace colormap
 {
