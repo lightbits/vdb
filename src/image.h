@@ -226,39 +226,44 @@ void vdbDrawImage(int slot,
     static GLint uniform_im_pos   = glGetUniformLocation(program, "im_pos");
     static GLint uniform_im_size  = glGetUniformLocation(program, "im_size");
 
-    #if 0
-    // upload 1D colormap as 2D texture of height 1
-    static GLuint color_map_tex = TexImage2D(
-        cmap_inferno,
-        cmap_inferno_length,
-        1,
-        GL_RGB,
-        GL_FLOAT,
-        GL_LINEAR, GL_LINEAR,
-        GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
-        GL_RGBA);
-    #endif
-
     glUseProgram(program);
 
-    // primary texture
-    // glActiveTexture(GL_TEXTURE0);
+    if (GetImage(slot)->channels == 1)
+    {
+        vdbColormapData *cmap = colormap::GetColormapData();
+        assert(cmap);
+        if (cmap->gl_texture == 0)
+        {
+            cmap->gl_texture = TexImage2D(
+                cmap->colors,
+                cmap->num_colors,
+                1,
+                GL_RGB,
+                GL_UNSIGNED_BYTE,
+                GL_LINEAR, GL_LINEAR,
+                GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE,
+                GL_RGBA);
+        }
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, cmap->gl_texture);
+        glUniform1i(uniform_sampler1, 1);
+        glActiveTexture(GL_TEXTURE0);
+
+        glUniform1i(uniform_is_mono, 1);
+        glUniform1i(uniform_is_cmap, 1);
+    }
+    else
+    {
+        glUniform1i(uniform_is_mono, 0);
+        glUniform1i(uniform_is_cmap, 0);
+    }
+
     vdbBindImage(slot, filter, wrap, v_min, v_max);
     glUniform1i(uniform_sampler0, 0);
 
-    #if 0
-    // colormap texture
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, color_map_tex);
-    glUniform1i(uniform_sampler1, 1);
-    #endif
-
-    // other uniforms
     float pvm[4*4];
     vdbGetPVM(pvm);
     UniformMat4fv(uniform_pvm, 1, pvm);
-    glUniform1i(uniform_is_mono, GetImage(slot)->channels == 1 ? 1 : 0);
-    glUniform1i(uniform_is_cmap, 0);
     glUniform2f(uniform_im_pos, x, y);
     glUniform2f(uniform_im_size, w, h);
     UniformVec4(uniform_vmin, v_min);

@@ -5,6 +5,13 @@ namespace colormap
     static int current_colormap = 0;
     static int current_color = 0;
 
+    static vdbColormapData *GetColormapData()
+    {
+        assert(current_colormap >= 0);
+        assert(current_colormap < sizeof(vdb_colormap_data)/sizeof(vdb_colormap_data[0]));
+        return &vdb_colormap_data[current_colormap];
+    }
+
     static void NewFrame()
     {
         current_colormap = 0;
@@ -42,6 +49,8 @@ int vdbSetColormap(const char *name)
     colormap::current_color = 0;
     return vdb_colormap_data[i].num_colors;
 }
+
+void vdbColor4ub(unsigned char,unsigned char,unsigned char,unsigned char);
 
 vdbVec4 vdbNextColor()
 {
