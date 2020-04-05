@@ -102,23 +102,6 @@ void vdbFillCircle(float x, float y, float radius)
     vdbEnd();
 }
 
-void vdbLineGrid_(float x_min, float x_max, float y_min, float y_max, int n)
-{
-    for (int i = 0; i <= n; i++)
-    {
-        float x = x_min + (x_max-x_min)*(float)i/n;
-        float y = y_min + (y_max-y_min)*(float)i/n;
-        vdbVertex(x_min, y); vdbVertex(x_max, y);
-        vdbVertex(x, y_min); vdbVertex(x, y_max);
-    }
-}
-void vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n)
-{
-    vdbBeginLines();
-    vdbLineGrid_(x_min, x_max, y_min, y_max, n);
-    vdbEnd();
-}
-
 void vdbLineCube_(float wx, float wy, float wz)
 {
     float x2 = wx/2.0f;

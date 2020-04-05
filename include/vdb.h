@@ -113,8 +113,6 @@ void    vdbLineCube_(float size_x, float size_y, float size_z); // Draws a cube 
 void    vdbLineCube(float size_x, float size_y, float size_z); // Draws a cube from [-size/2, +size/2] in each axis. Do not call vdbBegin|EndLines before|after.
 void    vdbLineCube_(vdbVec3 p_min, vdbVec3 p_max);
 void    vdbLineCube(vdbVec3 p_min, vdbVec3 p_max);
-void    vdbLineGrid_(float x_min, float x_max, float y_min, float y_max, int n);
-void    vdbLineGrid(float x_min, float x_max, float y_min, float y_max, int n);
 void    vdbLineRect_(float x, float y, float size_x, float size_y);
 void    vdbLineRect(float x, float y, float size_x, float size_y);
 void    vdbFillRect_(float x, float y, float size_x, float size_y);
