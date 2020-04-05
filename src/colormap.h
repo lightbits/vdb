@@ -8,7 +8,7 @@ namespace colormap
     static vdbColormapData *GetColormapData()
     {
         assert(current_colormap >= 0);
-        assert(current_colormap < sizeof(vdb_colormap_data)/sizeof(vdb_colormap_data[0]));
+        assert(current_colormap < NUM_COLORMAPS);
         return &vdb_colormap_data[current_colormap];
     }
 
@@ -41,13 +41,20 @@ vdbVec3 vdbGetBackgroundColor()
 
 int vdbSetColormap(const char *name)
 {
-    int i = 0;
-    for (i = 0; i < sizeof(vdb_colormap_data)/sizeof(vdbColormapData) - 1; i++)
+    int found = 0;
+    for (int i = 0; i < NUM_COLORMAPS; i++)
+    {
         if (strcmp(vdb_colormap_data[i].name, name) == 0)
+        {
+            found = i;
             break;
-    colormap::current_colormap = i;
+        }
+    }
+    assert(found >= 0);
+    assert(found < NUM_COLORMAPS);
+    colormap::current_colormap = found;
     colormap::current_color = 0;
-    return vdb_colormap_data[i].num_colors;
+    return vdb_colormap_data[found].num_colors;
 }
 
 void vdbColor4ub(unsigned char,unsigned char,unsigned char,unsigned char);

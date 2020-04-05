@@ -10,7 +10,7 @@ struct vdbColormapData
     unsigned char colors[3*1024];
 };
 
-#define NUM_COLORMAPS 67
+#define NUM_COLORMAPS (sizeof(vdb_colormap_data)/sizeof(vdb_colormap_data[0]))
 
 static vdbColormapData vdb_colormap_data[] =
 {
