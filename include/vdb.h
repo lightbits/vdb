@@ -138,6 +138,8 @@ vdbVec4 vdbGetColor(float t, float alpha=1.0f); // Get current color using t in 
 vdbVec4 vdbGetColor(int i, float alpha=1.0f);   // Get current color using i in range [0, n-1] where n is the number of colors in the colormap
 void    vdbColor(float t, float alpha=1.0f);    // Short-hand for vdbColor(vdbGetColor(*))
 void    vdbColor(int i, float alpha=1.0f);      // Short-hand for vdbColor(vdbGetColor(*))
+void    vdbColorForeground(float alpha=1.0f);   // Short-hand for vdbColor(vdbGetForegroundColor())
+void    vdbColorBackground(float alpha=1.0f);   // Short-hand for vdbColor(vdbGetBackgroundColor())
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Matrix stack

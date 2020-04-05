@@ -123,3 +123,12 @@ void vdbColor(int i, float alpha)
     vdbColor4ub(rgb[0], rgb[1], rgb[2], (unsigned char)a8);
 }
 
+void vdbColorForeground(float alpha)
+{
+    vdbColor(vdbGetForegroundColor(), alpha);
+}
+
+void vdbColorBackground(float alpha)
+{
+    vdbColor(vdbGetBackgroundColor(), alpha);
+}
