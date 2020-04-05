@@ -5,39 +5,37 @@ namespace hints
     static vdbCameraType camera_type;  static bool camera_type_pending;
     static vdbOrientation orientation; static bool orientation_pending;
     static vdbKey camera_key;          static bool camera_key_pending;
-}
-
-static void ApplyHints()
-{
-    using namespace hints;
-    if (view_scale_pending)
+    static void BeginFrame()
     {
-        GetFrameSettings()->grid.grid_scale = view_scale;
-        GetFrameSettings()->grid.dirty = true;
-        view_scale_pending = false;
-    }
-    if (show_grid_pending)
-    {
-        GetFrameSettings()->grid.grid_visible = show_grid;
-        GetFrameSettings()->grid.dirty = true;
-        show_grid_pending = false;
-    }
-    if (camera_type_pending)
-    {
-        GetFrameSettings()->camera.type = camera_type;
-        GetFrameSettings()->camera.dirty = true;
-        camera_type_pending = false;
-    }
-    if (orientation_pending)
-    {
-        // obs! this must be applied after we apply the new camera type!
-        *GetCameraUp() = orientation;
-        orientation_pending = false;
-    }
-    if (camera_key_pending)
-    {
-        GetFrameSettings()->camera.key = camera_key;
-        camera_key_pending = false;
+        if (view_scale_pending)
+        {
+            GetFrameSettings()->grid.grid_scale = view_scale;
+            GetFrameSettings()->grid.dirty = true;
+            view_scale_pending = false;
+        }
+        if (show_grid_pending)
+        {
+            GetFrameSettings()->grid.grid_visible = show_grid;
+            GetFrameSettings()->grid.dirty = true;
+            show_grid_pending = false;
+        }
+        if (camera_type_pending)
+        {
+            GetFrameSettings()->camera.type = camera_type;
+            GetFrameSettings()->camera.dirty = true;
+            camera_type_pending = false;
+        }
+        if (orientation_pending)
+        {
+            // obs! this must be applied after we apply the new camera type!
+            *GetCameraUp() = orientation;
+            orientation_pending = false;
+        }
+        if (camera_key_pending)
+        {
+            GetFrameSettings()->camera.key = camera_key;
+            camera_key_pending = false;
+        }
     }
 }
 

@@ -252,8 +252,6 @@ bool vdbBeginBreak(const char *label)
         vdb::frame_settings = fs;
     }
 
-    ApplyHints();
-
     window::EnsureContextIsCurrent();
 
     if (settings.can_idle && !ui::auto_step)
@@ -312,6 +310,7 @@ bool vdbBeginBreak(const char *label)
         exit(0);
     }
 
+    hints::BeginFrame();
     transform::BeginFrame();
     mouse::BeginFrame();
     immediate_util::BeginFrame();
