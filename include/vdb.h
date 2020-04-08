@@ -253,7 +253,7 @@ void    vdbUnbindRenderTarget();
 // Note: vdb includes Dear ImGui (https://github.com/ocornut/imgui), which can
 // be accessed by #include <vdb/imgui.h> (see test/test.cpp).
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init);
+float   vdbSliderFloat(const char *name, float vmin, float vmax, float v_init, const char *format="%.3f");
 int     vdbSliderInt  (const char *name, int vmin, int vmax, int v_init);
 bool    vdbCheckbox   (const char *name, bool init);
 bool    vdbRadioButton(const char *name);

@@ -6,7 +6,7 @@ struct widget_t
     widget_type_t type;
     bool changed;
     bool deactivated;
-    struct float_var_t { float value; float vmin; float vmax; };
+    struct float_var_t { float value; float vmin; float vmax; const char *format; };
     struct int_var_t { int value; int vmin; int vmax; };
     struct toggle_var_t { bool enabled; };
     struct radio_var_t { int index; };
@@ -65,7 +65,7 @@ namespace widgets
         {
             widget_t *var = vars + i;
             if (var->type == VAR_TYPE_FLOAT)
-                var->changed = ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax);
+                var->changed = ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax, var->f.format);
             else if (var->type == VAR_TYPE_INT)
                 var->changed = ImGui::SliderInt(var->name, &var->i.value, var->i.vmin, var->i.vmax);
             else if (var->type == VAR_TYPE_TOGGLE)
@@ -85,7 +85,7 @@ namespace widgets
     }
 }
 
-float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit)
+float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit, const char *format)
 {
     using namespace widgets;
     widget_t *var = vars + (var_index++);
@@ -95,6 +95,7 @@ float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit)
         var->f.value = vinit;
         var->f.vmin = vmin;
         var->f.vmax = vmax;
+        var->f.format = format;
         var->name = name;
         var->type = VAR_TYPE_FLOAT;
     }
