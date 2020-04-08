@@ -4,18 +4,20 @@ struct widget_t
 {
     const char *name;
     widget_type_t type;
+    bool changed;
+    bool deactivated;
     struct float_var_t { float value; float vmin; float vmax; };
     struct int_var_t { int value; int vmin; int vmax; };
     struct toggle_var_t { bool enabled; };
     struct radio_var_t { int index; };
-    struct button_var_t { bool was_pressed; };
+    // struct button_var_t { };
     union
     {
          float_var_t f;
          int_var_t i;
          toggle_var_t t;
          radio_var_t r;
-         button_var_t b;
+         // button_var_t b;
     };
 };
 
@@ -23,6 +25,7 @@ namespace widgets
 {
     enum { MAX_VARS = 1024 };
     static int var_index = 0;
+    static int edit_index = 0;
     static int radiobutton_index = 0;
     static int active_radiobutton_index = 0;
     static widget_t vars[MAX_VARS];
@@ -30,6 +33,7 @@ namespace widgets
     static void BeginFrame()
     {
         var_index = 0;
+        edit_index = 0;
         radiobutton_index = 0;
     }
 
@@ -61,15 +65,16 @@ namespace widgets
         {
             widget_t *var = vars + i;
             if (var->type == VAR_TYPE_FLOAT)
-                ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax);
+                var->changed = ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax);
             else if (var->type == VAR_TYPE_INT)
-                ImGui::SliderInt(var->name, &var->i.value, var->i.vmin, var->i.vmax);
+                var->changed = ImGui::SliderInt(var->name, &var->i.value, var->i.vmin, var->i.vmax);
             else if (var->type == VAR_TYPE_TOGGLE)
-                ImGui::Checkbox(var->name, &var->t.enabled);
+                var->changed = ImGui::Checkbox(var->name, &var->t.enabled);
             else if (var->type == VAR_TYPE_RADIO)
-                ImGui::RadioButton(var->name, &active_radiobutton_index, var->r.index);
+                var->changed = ImGui::RadioButton(var->name, &active_radiobutton_index, var->r.index);
             else if (var->type == VAR_TYPE_BUTTON)
-                var->b.was_pressed = ImGui::Button(var->name);
+                var->changed = ImGui::Button(var->name);
+            var->deactivated = ImGui::IsItemDeactivatedAfterEdit();
         }
         ImGui::PopItemWidth();
         ImGui::End();
@@ -86,6 +91,7 @@ float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit)
     widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() && vdbIsDifferentLabel()) // todo: better way to preserve variables for same-label windows
     {
+        var->changed = false;
         var->f.value = vinit;
         var->f.vmin = vmin;
         var->f.vmax = vmax;
@@ -100,6 +106,7 @@ int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
     widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
+        var->changed = false;
         var->i.value = vinit;
         var->i.vmin = vmin;
         var->i.vmax = vmax;
@@ -114,6 +121,7 @@ bool vdbCheckbox(const char *name, bool init)
     widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
+        var->changed = false;
         var->t.enabled = init;
         var->name = name;
         var->type = VAR_TYPE_TOGGLE;
@@ -126,6 +134,7 @@ bool vdbRadioButton(const char *name)
     widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
+        var->changed = false;
         var->r.index = radiobutton_index++;
         var->name = name;
         var->type = VAR_TYPE_RADIO;
@@ -138,8 +147,27 @@ bool vdbButton(const char *name)
     widget_t *var = vars + (var_index++);
     if (vdbIsFirstFrame() & vdbIsDifferentLabel())
     {
+        var->changed = false;
         var->name = name;
         var->type = VAR_TYPE_BUTTON;
     }
-    return var->b.was_pressed;
+    return var->changed;
+}
+bool vdbWereItemsEdited()
+{
+    using namespace widgets;
+    bool result = false;
+    for (int i = edit_index; i < var_index; i++)
+        result |= vars[i].changed;
+    edit_index = var_index;
+    return result;
+}
+bool vdbWereItemsDeactivated()
+{
+    using namespace widgets;
+    bool result = false;
+    for (int i = edit_index; i < var_index; i++)
+        result |= vars[i].deactivated;
+    edit_index = var_index;
+    return result;
 }

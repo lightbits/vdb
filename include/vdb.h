@@ -44,6 +44,7 @@ extern vdbOrientation   VDB_X_DOWN,VDB_X_UP;
 extern vdbOrientation   VDB_Y_DOWN,VDB_Y_UP;
 extern vdbOrientation   VDB_Z_DOWN,VDB_Z_UP;
 extern vdbTheme         VDB_DARK_THEME,VDB_BRIGHT_THEME;
+// extern vdbWidgetFlag    VDB_NOTIFY_ON_RELEASE;
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Hints:
@@ -257,6 +258,8 @@ int     vdbSliderInt  (const char *name, int vmin, int vmax, int v_init);
 bool    vdbCheckbox   (const char *name, bool init);
 bool    vdbRadioButton(const char *name);
 bool    vdbButton     (const char *name);
+bool    vdbWereItemsEdited();      // did any widget so far modify its value?
+bool    vdbWereItemsDeactivated(); // did any widget so far just go inactive and had its value change when active?
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render scaler
