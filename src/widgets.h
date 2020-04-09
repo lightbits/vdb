@@ -1,3 +1,5 @@
+#include <algorithm>
+
 enum widget_type_t
 {
     WIDGET_TYPE_BUTTON,
@@ -12,6 +14,7 @@ struct widget_t
     widget_type_t type;
     bool changed;
     bool deactivated;
+    int position;
     struct float_var_t  { float value; float vmin; float vmax; const char *format; };
     struct int_var_t    { int value; int vmin; int vmax; };
     struct toggle_var_t { bool enabled; };
@@ -27,7 +30,7 @@ namespace widgets_panel
 {
     enum { MAX_WIDGETS = 1024 };
     static widget_t widgets[MAX_WIDGETS];
-    static int indirection[MAX_WIDGETS];
+    static int indices[MAX_WIDGETS];
     static int num_widgets = 0; // Number of variables for the current frame (a uniquely labelled begin/end block)
     static int selected = -1;
 
@@ -55,8 +58,16 @@ namespace widgets_panel
     {
         if (num_widgets == 0)
             return;
-        vdb_style_t style = GetStyle();
         static bool is_hovered = false;
+
+        for (int i = 0; i < num_widgets; i++)
+            indices[i] = i;
+        std::sort(indices, indices + num_widgets, [&](int a, int b) {
+            return widgets[a].position < widgets[b].position;
+        });
+
+        // Set style
+        vdb_style_t style = GetStyle();
         ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
@@ -71,35 +82,39 @@ namespace widgets_panel
             ImGuiWindowFlags_NoSavedSettings |
             ImGuiWindowFlags_NoScrollbar |
             ImGuiWindowFlags_NoCollapse;
+
         ImGui::Begin("Quick Var##vdb", NULL, flags);
         is_hovered = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
         ImGui::PushItemWidth(120.0f);
         for (int j = 0; j < num_widgets; j++)
         {
-            int i = indirection[j];
+            int i = indices[j];
             widget_t &w = widgets[i];
-            ImVec2 p0 = ImGui::GetCursorPos();
+
+            // Drag handle
+            ImGui::BeginGroup();
             ImGui::Text("::");
-            if (ImGui::IsItemActive() && selected == -1)
-            {
-                selected = j;
-                printf("selected! %d\n", j);
-            }
             ImGui::SameLine();
             if      (w.type == WIDGET_TYPE_FLOAT)    w.changed = ImGui::SliderFloat(w.name, &w.f.value, w.f.vmin, w.f.vmax, w.f.format);
             else if (w.type == WIDGET_TYPE_INT)      w.changed = ImGui::SliderInt(w.name, &w.i.value, w.i.vmin, w.i.vmax);
             else if (w.type == WIDGET_TYPE_CHECKBOX) w.changed = ImGui::Checkbox(w.name, &w.t.enabled);
             else if (w.type == WIDGET_TYPE_BUTTON)   w.changed = ImGui::Button(w.name);
             w.deactivated = ImGui::IsItemDeactivatedAfterEdit();
-            ImVec2 p1 = ImGui::GetCursorPos();
-            if (selected == j)
+            ImGui::EndGroup();
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected == -1)
+                selected = i;
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected >= 0 && i != selected)
             {
-                ImDrawList *draw = ImGui::GetWindowDrawList();
-                draw->AddRect(p0, ImVec2(p1.x, p1.y+32.0f), IM_COL32(1.0f,0.5f,0.1f,1.0f));
+                int temp = widgets[selected].position;
+                widgets[selected].position = widgets[i].position;
+                widgets[i].position = temp;
             }
         }
         ImGui::PopItemWidth();
         ImGui::End();
+
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();
@@ -114,8 +129,8 @@ float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit, cons
     if (!widget)
     {
         assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
-        indirection[num_widgets] = num_widgets;
         widget = &widgets[num_widgets++];
+        widget->position = num_widgets;
         widget->changed = false;
         widget->f.value = vinit;
         widget->f.vmin = vmin;
@@ -133,8 +148,8 @@ int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
     if (!widget)
     {
         assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
-        indirection[num_widgets] = num_widgets;
         widget = &widgets[num_widgets++];
+        widget->position = num_widgets;
         widget->changed = false;
         widget->i.value = vinit;
         widget->i.vmin = vmin;
@@ -151,8 +166,8 @@ bool vdbCheckbox(const char *name, bool init)
     if (!widget)
     {
         assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
-        indirection[num_widgets] = num_widgets;
         widget = &widgets[num_widgets++];
+        widget->position = num_widgets;
         widget->changed = false;
         widget->t.enabled = init;
         widget->name = name;
@@ -167,8 +182,8 @@ bool vdbButton(const char *name)
     if (!widget)
     {
         assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
-        indirection[num_widgets] = num_widgets;
         widget = &widgets[num_widgets++];
+        widget->position = num_widgets;
         widget->changed = false;
         widget->name = name;
         widget->type = WIDGET_TYPE_BUTTON;
