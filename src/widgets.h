@@ -60,10 +60,8 @@ namespace widgets_panel
         struct index_t { int index; int position; };
         static index_t indices[MAX_WIDGETS];
         for (int i = 0; i < num_widgets; i++)
-        {
-            indices[i].index = i;
-            indices[i].position = widgets[i].position;
-        }
+            indices[i] = { i, widgets[i].position };
+
         qsort(indices, num_widgets, sizeof(index_t), [](const void *pa, const void *pb){
             const index_t *a = (const index_t*)pa;
             const index_t *b = (const index_t*)pb;
