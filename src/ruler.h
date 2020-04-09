@@ -98,7 +98,7 @@ static void ruler::DrawOverlay()
     ImGui::BeginMainMenuBar();
     ImGui::Separator();
     static char label[256];
-    if (!display_pixel_units)
+    if (display_pixel_units)
         sprintf(label, "%7d,%7d: %7d (pixels)###vdb_ruler_button", (int)mouse.x, (int)mouse.y, (int)distance);
     else
         sprintf(label, "%10.6f,%10.6f: %10.6f (model)###vdb_ruler_button", mouse_model.x, mouse_model.y, distance_model);
