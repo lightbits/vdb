@@ -349,7 +349,6 @@ static void ui::MainMenuBar(frame_settings_t *fs)
         if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
         if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
         ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
-        ImGui::MenuItem("Draw", "Alt+D", &sketch_mode_active);
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Logs"))
