@@ -1,4 +1,10 @@
-enum widget_type_t { VAR_TYPE_BUTTON, VAR_TYPE_FLOAT, VAR_TYPE_INT, VAR_TYPE_TOGGLE, VAR_TYPE_RADIO };
+enum widget_type_t
+{
+    WIDGET_TYPE_BUTTON,
+    WIDGET_TYPE_FLOAT,
+    WIDGET_TYPE_INT,
+    WIDGET_TYPE_CHECKBOX,
+};
 
 struct widget_t
 {
@@ -6,40 +12,48 @@ struct widget_t
     widget_type_t type;
     bool changed;
     bool deactivated;
-    struct float_var_t { float value; float vmin; float vmax; const char *format; };
-    struct int_var_t { int value; int vmin; int vmax; };
+    struct float_var_t  { float value; float vmin; float vmax; const char *format; };
+    struct int_var_t    { int value; int vmin; int vmax; };
     struct toggle_var_t { bool enabled; };
-    struct radio_var_t { int index; };
-    // struct button_var_t { };
     union
     {
          float_var_t f;
          int_var_t i;
          toggle_var_t t;
-         radio_var_t r;
-         // button_var_t b;
     };
 };
 
-namespace widgets
+namespace widgets_panel
 {
-    enum { MAX_VARS = 1024 };
-    static int var_index = 0;
-    static int edit_index = 0;
-    static int radiobutton_index = 0;
-    static int active_radiobutton_index = 0;
-    static widget_t vars[MAX_VARS];
+    enum { MAX_WIDGETS = 1024 };
+    static widget_t widgets[MAX_WIDGETS];
+    static int indirection[MAX_WIDGETS];
+    static int num_widgets = 0; // Number of variables for the current frame (a uniquely labelled begin/end block)
+    static int selected = -1;
+
+    static widget_t *GetWidget(const char *name, widget_type_t type)
+    {
+        for (int i = 0; i < num_widgets; i++)
+            if (strcmp(widgets[i].name, name) == 0 && widgets[i].type == type)
+                return &widgets[i];
+        return NULL;
+    }
+
+    static void NewFrame()
+    {
+        num_widgets = 0;
+        selected = -1;
+    }
 
     static void BeginFrame()
     {
-        var_index = 0;
-        edit_index = 0;
-        radiobutton_index = 0;
+        if (!ImGui::IsMouseDown(0))
+            selected = -1;
     }
 
     static void EndFrame()
     {
-        if (var_index == 0)
+        if (num_widgets == 0)
             return;
         vdb_style_t style = GetStyle();
         static bool is_hovered = false;
@@ -48,7 +62,7 @@ namespace widgets
         ImGui::PushStyleVar(ImGuiStyleVar_Alpha, is_hovered ? 1.0f : 0.3f);
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(style.text.x, style.text.y, style.text.z, 1.0f));
         ImGui::SetNextWindowBgAlpha(0.0f);
-        ImGui::SetNextWindowPos(ImVec2(-8.0f, 5.0f + ui::main_menu_bar_height));
+        ImGui::SetNextWindowPos(ImVec2(0.0f, 5.0f + ui::main_menu_bar_height));
         ImGui::SetNextWindowSize(ImVec2(200.0f, -1));
         ImGuiWindowFlags flags =
             ImGuiWindowFlags_NoTitleBar |
@@ -60,21 +74,29 @@ namespace widgets
         ImGui::Begin("Quick Var##vdb", NULL, flags);
         is_hovered = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
         ImGui::PushItemWidth(120.0f);
-        // ImGui::Begin("Debug##Default");
-        for (int i = 0; i < var_index; i++)
+        for (int j = 0; j < num_widgets; j++)
         {
-            widget_t *var = vars + i;
-            if (var->type == VAR_TYPE_FLOAT)
-                var->changed = ImGui::SliderFloat(var->name, &var->f.value, var->f.vmin, var->f.vmax, var->f.format);
-            else if (var->type == VAR_TYPE_INT)
-                var->changed = ImGui::SliderInt(var->name, &var->i.value, var->i.vmin, var->i.vmax);
-            else if (var->type == VAR_TYPE_TOGGLE)
-                var->changed = ImGui::Checkbox(var->name, &var->t.enabled);
-            else if (var->type == VAR_TYPE_RADIO)
-                var->changed = ImGui::RadioButton(var->name, &active_radiobutton_index, var->r.index);
-            else if (var->type == VAR_TYPE_BUTTON)
-                var->changed = ImGui::Button(var->name);
-            var->deactivated = ImGui::IsItemDeactivatedAfterEdit();
+            int i = indirection[j];
+            widget_t &w = widgets[i];
+            ImVec2 p0 = ImGui::GetCursorPos();
+            ImGui::Text("::");
+            if (ImGui::IsItemActive() && selected == -1)
+            {
+                selected = j;
+                printf("selected! %d\n", j);
+            }
+            ImGui::SameLine();
+            if      (w.type == WIDGET_TYPE_FLOAT)    w.changed = ImGui::SliderFloat(w.name, &w.f.value, w.f.vmin, w.f.vmax, w.f.format);
+            else if (w.type == WIDGET_TYPE_INT)      w.changed = ImGui::SliderInt(w.name, &w.i.value, w.i.vmin, w.i.vmax);
+            else if (w.type == WIDGET_TYPE_CHECKBOX) w.changed = ImGui::Checkbox(w.name, &w.t.enabled);
+            else if (w.type == WIDGET_TYPE_BUTTON)   w.changed = ImGui::Button(w.name);
+            w.deactivated = ImGui::IsItemDeactivatedAfterEdit();
+            ImVec2 p1 = ImGui::GetCursorPos();
+            if (selected == j)
+            {
+                ImDrawList *draw = ImGui::GetWindowDrawList();
+                draw->AddRect(p0, ImVec2(p1.x, p1.y+32.0f), IM_COL32(1.0f,0.5f,0.1f,1.0f));
+            }
         }
         ImGui::PopItemWidth();
         ImGui::End();
@@ -87,88 +109,89 @@ namespace widgets
 
 float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit, const char *format)
 {
-    using namespace widgets;
-    widget_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame() && vdbIsDifferentLabel()) // todo: better way to preserve variables for same-label windows
+    using namespace widgets_panel;
+    widget_t *widget = GetWidget(name, WIDGET_TYPE_FLOAT);
+    if (!widget)
     {
-        var->changed = false;
-        var->f.value = vinit;
-        var->f.vmin = vmin;
-        var->f.vmax = vmax;
-        var->f.format = format;
-        var->name = name;
-        var->type = VAR_TYPE_FLOAT;
+        assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
+        indirection[num_widgets] = num_widgets;
+        widget = &widgets[num_widgets++];
+        widget->changed = false;
+        widget->f.value = vinit;
+        widget->f.vmin = vmin;
+        widget->f.vmax = vmax;
+        widget->f.format = format;
+        widget->name = name;
+        widget->type = WIDGET_TYPE_FLOAT;
     }
-    return var->f.value;
+    return widget->f.value;
 }
 int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
 {
-    using namespace widgets;
-    widget_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
+    using namespace widgets_panel;
+    widget_t *widget = GetWidget(name, WIDGET_TYPE_INT);
+    if (!widget)
     {
-        var->changed = false;
-        var->i.value = vinit;
-        var->i.vmin = vmin;
-        var->i.vmax = vmax;
-        var->name = name;
-        var->type = VAR_TYPE_INT;
+        assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
+        indirection[num_widgets] = num_widgets;
+        widget = &widgets[num_widgets++];
+        widget->changed = false;
+        widget->i.value = vinit;
+        widget->i.vmin = vmin;
+        widget->i.vmax = vmax;
+        widget->name = name;
+        widget->type = WIDGET_TYPE_INT;
     }
-    return var->i.value;
+    return widget->i.value;
 }
 bool vdbCheckbox(const char *name, bool init)
 {
-    using namespace widgets;
-    widget_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
+    using namespace widgets_panel;
+    widget_t *widget = GetWidget(name, WIDGET_TYPE_CHECKBOX);
+    if (!widget)
     {
-        var->changed = false;
-        var->t.enabled = init;
-        var->name = name;
-        var->type = VAR_TYPE_TOGGLE;
+        assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
+        indirection[num_widgets] = num_widgets;
+        widget = &widgets[num_widgets++];
+        widget->changed = false;
+        widget->t.enabled = init;
+        widget->name = name;
+        widget->type = WIDGET_TYPE_CHECKBOX;
     }
-    return var->t.enabled;
-}
-bool vdbRadioButton(const char *name)
-{
-    using namespace widgets;
-    widget_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
-    {
-        var->changed = false;
-        var->r.index = radiobutton_index++;
-        var->name = name;
-        var->type = VAR_TYPE_RADIO;
-    }
-    return var->r.index == active_radiobutton_index;
+    return widget->t.enabled;
 }
 bool vdbButton(const char *name)
 {
-    using namespace widgets;
-    widget_t *var = vars + (var_index++);
-    if (vdbIsFirstFrame() & vdbIsDifferentLabel())
+    using namespace widgets_panel;
+    widget_t *widget = GetWidget(name, WIDGET_TYPE_BUTTON);
+    if (!widget)
     {
-        var->changed = false;
-        var->name = name;
-        var->type = VAR_TYPE_BUTTON;
+        assert(num_widgets < MAX_WIDGETS && "Reached maximum number of widgets");
+        indirection[num_widgets] = num_widgets;
+        widget = &widgets[num_widgets++];
+        widget->changed = false;
+        widget->name = name;
+        widget->type = WIDGET_TYPE_BUTTON;
     }
-    return var->changed;
+    return widget->changed;
 }
 bool vdbWereItemsEdited()
 {
-    using namespace widgets;
-    bool result = false;
-    for (int i = edit_index; i < var_index; i++)
-        result |= vars[i].changed;
-    edit_index = var_index;
-    return result;
+    // using namespace widgets_panel;
+    // bool result = false;
+    // for (int i = edit_index; i < var_index; i++)
+    //     result |= vars[i].changed;
+    // edit_index = var_index;
+    // return result;
+    return false;
 }
 bool vdbWereItemsDeactivated()
 {
-    using namespace widgets;
-    bool result = false;
-    for (int i = edit_index; i < var_index; i++)
-        result |= vars[i].deactivated;
-    edit_index = var_index;
-    return result;
+    // using namespace widgets_panel;
+    // bool result = false;
+    // for (int i = edit_index; i < var_index; i++)
+    //     result |= vars[i].deactivated;
+    // edit_index = var_index;
+    // return result;
+    return false;
 }

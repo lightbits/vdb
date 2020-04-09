@@ -214,7 +214,6 @@ bool vdbBeginBreak(const char *label)
         static ImVector<ImWchar> glyph_ranges; // this must persist until call to GetTexData
         builder.BuildRanges(&glyph_ranges);
         ui::big_font = ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(data, sizeof_data, (float)big_font_size, &config, glyph_ranges.Data);
-        #endif
 
         // This should be called before ImGui::GetTexDataAsRGBA32 (e.g. inside ImGui_ImplSdlGL3_CreateFontsTexture)
         #if VDB_IMGUI_FREETYPE==1
@@ -223,6 +222,7 @@ bool vdbBeginBreak(const char *label)
             ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
         #else
         ImGuiFreeType::BuildFontAtlas(ImGui::GetIO().Fonts, 0);
+        #endif
         #endif
     }
 
@@ -324,7 +324,9 @@ bool vdbBeginBreak(const char *label)
     ImGui_ImplSDL2_NewFrame(window::sdl_window);
     ImGui::NewFrame();
 
-    widgets::BeginFrame();
+    if (vdbIsFirstFrame())
+        widgets_panel::NewFrame();
+    widgets_panel::BeginFrame();
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // Assuming user uploads images that are one-byte packed
 
     // Note: ui is checked at BeginFrame instead of EndFrame because we want it to have
@@ -590,7 +592,7 @@ void vdbEndBreak()
         }
     }
 
-    widgets::EndFrame();
+    widgets_panel::EndFrame();
 
     if (framegrab::active)
     {
