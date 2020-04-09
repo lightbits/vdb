@@ -2,12 +2,13 @@ namespace ruler
 {
     static bool active;
     static bool dragging;
-    static vdbVec2 mouse; // window coordinates (ImGui coordinates)
-    static vdbVec2 a,b; // window coordinates (ImGui coordinates)
+    static vdbVec2 a,b,mouse; // window coordinates
+    static vdbVec3 a_model,b_model,mouse_model; // model coordinates
+    static float distance_model;
+    static float distance;
+    static int max_text_length;
 
-    // Results
-    static float distance_user;
-    static float distance_pixels;
+    static bool display_pixel_units;
 
     static void BeginFrame();
     static void EndFrame();
@@ -20,7 +21,10 @@ static void ruler::BeginFrame()
         active = !active;
 
     if (!active)
+    {
+        max_text_length = 0;
         return;
+    }
 
     if (keys::pressed[VDB_KEY_ESCAPE])
     {
@@ -58,14 +62,16 @@ static void ruler::EndFrame()
     if (!active)
         return;
 
-    vdbVec2 ndc_a = vdbWindowToNDC(a.x, a.y);
-    vdbVec3 model_a = vdbNDCToModel(ndc_a.x, ndc_a.y);
-    vdbVec2 ndc_b = vdbWindowToNDC(b.x, b.y);
-    vdbVec3 model_b = vdbNDCToModel(ndc_b.x, ndc_b.y);
-    float dx = model_b.x - model_a.x;
-    float dy = model_b.y - model_a.y;
-    distance_user = sqrtf(dx*dx + dy*dy);
-    distance_pixels = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
+    vdbVec2 a_ndc = vdbWindowToNDC(a.x, a.y);
+    vdbVec2 b_ndc = vdbWindowToNDC(b.x, b.y);
+    vdbVec2 mouse_ndc = vdbWindowToNDC(mouse.x, mouse.y);
+    a_model = vdbNDCToModel(a_ndc.x, a_ndc.y);
+    b_model = vdbNDCToModel(b_ndc.x, b_ndc.y);
+    mouse_model = vdbNDCToModel(mouse_ndc.x, mouse_ndc.y);
+    float dx = b_model.x - a_model.x;
+    float dy = b_model.y - a_model.y;
+    distance_model = sqrtf(dx*dx + dy*dy);
+    distance = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
 }
 
 static void ruler::DrawOverlay()
@@ -78,7 +84,7 @@ static void ruler::DrawOverlay()
     ImU32 fg = IM_COL32(255,255,255,255);
     ImU32 bg = IM_COL32(0,0,0,255);
 
-    if (distance_pixels > 1.0f)
+    if (distance > 1.0f)
     {
         float thickness = 2.0f;
         draw->AddLine(ImVec2(a.x,a.y), ImVec2(b.x,b.y), bg, thickness+2.0f);
@@ -91,10 +97,11 @@ static void ruler::DrawOverlay()
 
     ImGui::BeginMainMenuBar();
     ImGui::Separator();
-    ImGui::Text("%4d, %4d px", (int)mouse.x, (int)mouse.y);
-    ImGui::Separator();
-    ImGui::Text("%4d px", (int)distance_pixels);
-    ImGui::Separator();
-    ImGui::Text("%g user", distance_user);
+    static char label[256];
+    if (!display_pixel_units)
+        sprintf(label, "%7d,%7d: %7d (pixels)###vdb_ruler_button", (int)mouse.x, (int)mouse.y, (int)distance);
+    else
+        sprintf(label, "%10.6f,%10.6f: %10.6f (model)###vdb_ruler_button", mouse_model.x, mouse_model.y, distance_model);
+    if (ImGui::MenuItem(label)) display_pixel_units = !display_pixel_units;
     ImGui::EndMainMenuBar();
 }
