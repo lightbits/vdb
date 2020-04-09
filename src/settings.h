@@ -27,6 +27,19 @@ enum { MAX_FRAME_SETTINGS = 1024 };
 enum { VDB_MAX_RENDER_SCALE_DOWN = 3 };
 enum { VDB_MAX_RENDER_SCALE_UP = 3 };
 
+struct saved_widget_t
+{
+    char *name;
+    int position;
+    float value;
+};
+
+struct widget_settings_t
+{
+    saved_widget_t *widgets;
+    int num_widgets;
+};
+
 struct camera_trackball_settings_t
 {
     bool dirty;
@@ -94,6 +107,7 @@ struct frame_settings_t
     camera_settings_t camera;
     render_scaler_settings_t render_scaler;
     grid_settings_t grid;
+    widget_settings_t widgets;
 };
 
 struct global_camera_settings_t
@@ -182,6 +196,8 @@ void DefaultFrameSettings(frame_settings_t *fs)
     fs->render_scaler.dirty = false;
     fs->render_scaler.down = 0;
     fs->render_scaler.up = 0;
+    fs->widgets.widgets = NULL;
+    fs->widgets.num_widgets = 0;
 }
 
 namespace settings_parser
@@ -257,7 +273,18 @@ namespace settings_parser
         return false;
     }
 
-    static bool ParseString(const char **c, const char *match)
+    static bool ParseChar(const char **c, char match)
+    {
+        ParseBlank(c);
+        if (**c == match)
+        {
+            *c = *c + 1;
+            return true;
+        }
+        return false;
+    }
+
+    static bool ParseMatch(const char **c, const char *match)
     {
         ParseBlank(c);
         const char *a = *c;
@@ -274,10 +301,27 @@ namespace settings_parser
         return true;
     }
 
+    static bool ParseString(const char **c, char **dst)
+    {
+        ParseBlank(c);
+        if (!ParseChar(c, '"')) return false;
+        const char *first = *c;
+        while (**c != '"' && **c != '\n')
+            *c = *c + 1;
+        const char *last_plus_one = *c;
+        if (!ParseChar(c, '"')) return false;
+        size_t length = last_plus_one - first;
+        *dst = new char[length + 1];
+        for (size_t i = 0; i < length; i++)
+            (*dst)[i] = first[i];
+        (*dst)[length] = '\0';
+        return true;
+    }
+
     static bool ParseKey(const char **c, const char *match)
     {
         ParseBlank(c);
-        if (!ParseString(c, match)) return false;
+        if (!ParseMatch(c, match)) return false;
         ParseBlank(c);
         if (**c != '=') return false;
         *c = *c + 1;
@@ -289,40 +333,40 @@ namespace settings_parser
         ParseBlank(c);
              if (**c == '0')              { *x = false; *c = *c + 1; return true; }
         else if (**c == '1')              { *x = true; *c = *c + 1; return true; }
-        else if (ParseString(c, "False")) { *x = false; return true; }
-        else if (ParseString(c, "True"))  { *x = true; return true; }
-        else if (ParseString(c, "false")) { *x = false; return true; }
-        else if (ParseString(c, "true"))  { *x = true; return true; }
+        else if (ParseMatch(c, "False")) { *x = false; return true; }
+        else if (ParseMatch(c, "True"))  { *x = true; return true; }
+        else if (ParseMatch(c, "false")) { *x = false; return true; }
+        else if (ParseMatch(c, "true"))  { *x = true; return true; }
         return false;
     }
 
     static bool ParseCameraType(const char **c, vdbCameraType *type)
     {
         ParseBlank(c);
-        if      (ParseString(c, "disabled"))  { *type = VDB_CUSTOM; return true; }
-        else if (ParseString(c, "planar"))    { *type = VDB_PLANAR; return true; }
-        else if (ParseString(c, "trackball")) { *type = VDB_TRACKBALL; return true; }
-        else if (ParseString(c, "turntable")) { *type = VDB_TURNTABLE; return true; }
+        if      (ParseMatch(c, "disabled"))  { *type = VDB_CUSTOM; return true; }
+        else if (ParseMatch(c, "planar"))    { *type = VDB_PLANAR; return true; }
+        else if (ParseMatch(c, "trackball")) { *type = VDB_TRACKBALL; return true; }
+        else if (ParseMatch(c, "turntable")) { *type = VDB_TURNTABLE; return true; }
         return false;
     }
 
     static bool ParseCameraUp(const char **c, vdbOrientation *up)
     {
         ParseBlank(c);
-        if      (ParseString(c, "z_up"))   { *up = VDB_Z_UP; return true; }
-        else if (ParseString(c, "y_up"))   { *up = VDB_Y_UP; return true; }
-        else if (ParseString(c, "x_up"))   { *up = VDB_X_UP; return true; }
-        else if (ParseString(c, "z_down")) { *up = VDB_Z_DOWN; return true; }
-        else if (ParseString(c, "y_down")) { *up = VDB_Y_DOWN; return true; }
-        else if (ParseString(c, "x_down")) { *up = VDB_X_DOWN; return true; }
+        if      (ParseMatch(c, "z_up"))   { *up = VDB_Z_UP; return true; }
+        else if (ParseMatch(c, "y_up"))   { *up = VDB_Y_UP; return true; }
+        else if (ParseMatch(c, "x_up"))   { *up = VDB_X_UP; return true; }
+        else if (ParseMatch(c, "z_down")) { *up = VDB_Z_DOWN; return true; }
+        else if (ParseMatch(c, "y_down")) { *up = VDB_Y_DOWN; return true; }
+        else if (ParseMatch(c, "x_down")) { *up = VDB_X_DOWN; return true; }
         return false;
     }
 
     static bool ParseTheme(const char **c, vdbTheme *theme)
     {
         ParseBlank(c);
-        if      (ParseString(c, "dark"))    { *theme = VDB_DARK_THEME; return true; }
-        else if (ParseString(c, "bright"))  { *theme = VDB_BRIGHT_THEME; return true; }
+        if      (ParseMatch(c, "dark"))    { *theme = VDB_DARK_THEME; return true; }
+        else if (ParseMatch(c, "bright"))  { *theme = VDB_BRIGHT_THEME; return true; }
         return false;
     }
 
@@ -376,13 +420,56 @@ namespace settings_parser
         vdbVec4 temp;
         ParseBlank(c);
         if (!ParseFloat(c, &temp.x)) return false;
-        if (!ParseComma(c))        return false;
+        if (!ParseComma(c))          return false;
         if (!ParseFloat(c, &temp.y)) return false;
-        if (!ParseComma(c))        return false;
+        if (!ParseComma(c))          return false;
         if (!ParseFloat(c, &temp.z)) return false;
-        if (!ParseComma(c))        return false;
+        if (!ParseComma(c))          return false;
         if (!ParseFloat(c, &temp.w)) return false;
         *x = temp;
+        return true;
+    }
+
+    static bool ParseWidgets(const char **c, widget_settings_t *w)
+    {
+        const char *start = *c;
+        widget_settings_t temp;
+        temp.num_widgets = 0;
+        int dummyi;
+        float dummyf;
+        while (**c != '\n')
+        {
+            ParseBlank(c);
+            if (temp.num_widgets > 0 && !ParseComma(c))
+                return false;
+            if (!ParseChar(c, '"')) return false;
+            while (**c != '"' && **c != '\n')
+                *c = *c + 1;
+            if (!ParseChar(c, '"'))      return false;
+            if (!ParseComma(c))          return false;
+            if (!ParseInt(c, &dummyi))   return false;
+            if (!ParseComma(c))          return false;
+            if (!ParseFloat(c, &dummyf)) return false;
+            temp.num_widgets++;
+        }
+        *c = start;
+        if (temp.num_widgets == 0)
+            return false;
+        temp.widgets = new saved_widget_t[temp.num_widgets];
+        for (int i = 0; i < temp.num_widgets; i++)
+        {
+            ParseBlank(c);
+            if (i > 0 && !ParseComma(c))
+                return false;
+            if (!ParseString(c, &temp.widgets[i].name))  return false;
+            if (!ParseComma(c))                          return false;
+            if (!ParseInt(c, &temp.widgets[i].position)) return false;
+            if (!ParseComma(c))                          return false;
+            if (!ParseFloat(c, &temp.widgets[i].value))  return false;
+
+            // printf("Widget: %s, %d, %g\n", temp.widgets[i].name, temp.widgets[i].position, temp.widgets[i].value);
+        }
+        *w = temp;
         return true;
     }
 }
@@ -470,6 +557,7 @@ void settings_t::LoadOrDefault(const char *filename)
             else if (ParseKey(c, "cube_visible"))       { ParseBool(c,       &frame->grid.cube_visible);           frame->grid.dirty = true; }
             else if (ParseKey(c, "render_scale_down"))  { ParseInt(c,        &frame->render_scaler.down, 0, VDB_MAX_RENDER_SCALE_DOWN); frame->render_scaler.dirty = true; }
             else if (ParseKey(c, "render_scale_up"))    { ParseInt(c,        &frame->render_scaler.up, 0, VDB_MAX_RENDER_SCALE_UP); frame->render_scaler.dirty = true; }
+            else if (ParseKey(c, "widgets"))            { ParseWidgets(c,    &frame->widgets); }
             else *c = *c + 1;
         }
         else if (ParseKey(c, "window_pos"))         ParseInt2(c,       &window.x, &window.y);
@@ -533,6 +621,15 @@ namespace settings_writer
     static void WriteVec4(FILE *f, const char *key, vdbVec4 v)
     {
         fprintf(f, "%s=%g, %g, %g, %g\n", key, v.x, v.y, v.z, v.w);
+    }
+
+    static void WriteWidgets(FILE *f, const char *key, widget_settings_t w)
+    {
+        if (w.num_widgets <= 0)
+            return;
+        fprintf(f, "%s=", key);
+        for (int i = 0; i < w.num_widgets; i++)
+            fprintf(f, "\"%s\",%d,%g", w.widgets[i].name, w.widgets[i].position, w.widgets[i].value);
     }
 }
 
@@ -612,6 +709,8 @@ void settings_t::Save(const char *filename)
             fprintf(f, "render_scale_down=%d\n", frame->render_scaler.down);
             fprintf(f, "render_scale_up=%d\n", frame->render_scaler.up);
         }
+
+        WriteWidgets(f, "widgets", frame->widgets);
     }
     fclose(f);
 }

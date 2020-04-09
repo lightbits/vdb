@@ -39,6 +39,31 @@ namespace widgets_panel
         return NULL;
     }
 
+    static void ImportSavedWidgetSettings(widget_t *w)
+    {
+        assert(w->name);
+        assert(w);
+        frame_settings_t *fs = GetFrameSettings();
+        assert(fs);
+        if (!fs->widgets.widgets)
+            return;
+        for (int i = 0; i < fs->widgets.num_widgets; i++)
+        {
+            assert(fs->widgets.widgets[i].name);
+            if (strcmp(fs->widgets.widgets[i].name, w->name) == 0)
+            {
+                // todo: make this work
+                #if 0
+                w->position = fs->widgets.widgets[i].position;
+                #endif
+                if      (w->type == WIDGET_TYPE_FLOAT)    w->f.value = fs->widgets.widgets[i].value;
+                else if (w->type == WIDGET_TYPE_INT)      w->i.value = (int)fs->widgets.widgets[i].value;
+                else if (w->type == WIDGET_TYPE_CHECKBOX) w->t.enabled = fs->widgets.widgets[i].value == 1.0f ? true : false;
+                break;
+            }
+        }
+    }
+
     static void NewFrame()
     {
         num_widgets = 0;
@@ -55,6 +80,7 @@ namespace widgets_panel
     {
         if (num_widgets == 0)
             return;
+
         static bool is_hovered = false;
 
         struct index_t { int index; int position; };
@@ -93,7 +119,6 @@ namespace widgets_panel
             int i = indices[j].index;
             widget_t &w = widgets[i];
 
-            // Drag handle
             ImGui::BeginGroup();
             ImGui::Text("::");
             ImGui::SameLine();
@@ -140,6 +165,7 @@ float vdbSliderFloat(const char *name, float vmin, float vmax, float vinit, cons
         widget->f.format = format;
         widget->name = name;
         widget->type = WIDGET_TYPE_FLOAT;
+        ImportSavedWidgetSettings(widget);
     }
     return widget->f.value;
 }
@@ -158,6 +184,7 @@ int vdbSliderInt(const char *name, int vmin, int vmax, int vinit)
         widget->i.vmax = vmax;
         widget->name = name;
         widget->type = WIDGET_TYPE_INT;
+        ImportSavedWidgetSettings(widget);
     }
     return widget->i.value;
 }
@@ -174,6 +201,7 @@ bool vdbCheckbox(const char *name, bool init)
         widget->t.enabled = init;
         widget->name = name;
         widget->type = WIDGET_TYPE_CHECKBOX;
+        ImportSavedWidgetSettings(widget);
     }
     return widget->t.enabled;
 }
@@ -189,6 +217,7 @@ bool vdbButton(const char *name)
         widget->changed = false;
         widget->name = name;
         widget->type = WIDGET_TYPE_BUTTON;
+        ImportSavedWidgetSettings(widget);
     }
     return widget->changed;
 }
