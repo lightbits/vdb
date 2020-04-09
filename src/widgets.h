@@ -82,6 +82,8 @@ namespace widgets_panel
             return;
 
         static bool is_hovered = false;
+        static bool context_menu_open = false;
+        static bool unlocked = false;
 
         struct index_t { int index; int position; };
         static index_t indices[MAX_WIDGETS];
@@ -112,7 +114,7 @@ namespace widgets_panel
             ImGuiWindowFlags_NoCollapse;
 
         ImGui::Begin("Quick Var##vdb", NULL, flags);
-        is_hovered = ImGui::IsWindowHovered() || ImGui::IsWindowFocused();
+        is_hovered = ImGui::IsWindowHovered() || ImGui::IsWindowFocused() || context_menu_open;
         ImGui::PushItemWidth(120.0f);
         for (int j = 0; j < num_widgets; j++)
         {
@@ -120,8 +122,11 @@ namespace widgets_panel
             widget_t &w = widgets[i];
 
             ImGui::BeginGroup();
-            ImGui::Text("::");
-            ImGui::SameLine();
+            if (unlocked)
+            {
+                ImGui::Text("::");
+                ImGui::SameLine();
+            }
             if      (w.type == WIDGET_TYPE_FLOAT)    w.changed = ImGui::SliderFloat(w.name, &w.f.value, w.f.vmin, w.f.vmax, w.f.format);
             else if (w.type == WIDGET_TYPE_INT)      w.changed = ImGui::SliderInt(w.name, &w.i.value, w.i.vmin, w.i.vmax);
             else if (w.type == WIDGET_TYPE_CHECKBOX) w.changed = ImGui::Checkbox(w.name, &w.t.enabled);
@@ -129,19 +134,39 @@ namespace widgets_panel
             w.deactivated = ImGui::IsItemDeactivatedAfterEdit();
             ImGui::EndGroup();
 
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected == -1)
-                selected = i;
+            if (ImGui::IsItemHovered() && ImGui::IsMouseReleased(1))
+                ImGui::OpenPopup("widget context menu");
 
-            if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected >= 0 && i != selected)
+            if (unlocked)
             {
-                int temp = widgets[selected].position;
-                widgets[selected].position = widgets[i].position;
-                widgets[i].position = temp;
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected == -1)
+                    selected = i;
+
+                if (ImGui::IsItemHovered() && ImGui::IsMouseDown(0) && selected >= 0 && i != selected)
+                {
+                    int temp = widgets[selected].position;
+                    widgets[selected].position = widgets[i].position;
+                    widgets[i].position = temp;
+                }
             }
         }
         ImGui::PopItemWidth();
-        ImGui::End();
 
+        if (ImGui::BeginPopup("widget context menu"))
+        {
+            context_menu_open = true;
+            if (unlocked && ImGui::Selectable("Lock###lock/unlock"))
+                unlocked = !unlocked;
+            else if (!unlocked && ImGui::Selectable("Unlock###lock/unlock"))
+                unlocked = !unlocked;
+            ImGui::EndPopup();
+        }
+        else
+        {
+            context_menu_open = false;
+        }
+
+        ImGui::End();
         ImGui::PopStyleColor();
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();
