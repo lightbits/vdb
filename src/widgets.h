@@ -1,5 +1,3 @@
-#include <algorithm>
-
 enum widget_type_t
 {
     WIDGET_TYPE_BUTTON,
@@ -30,7 +28,6 @@ namespace widgets_panel
 {
     enum { MAX_WIDGETS = 1024 };
     static widget_t widgets[MAX_WIDGETS];
-    static int indices[MAX_WIDGETS];
     static int num_widgets = 0; // Number of variables for the current frame (a uniquely labelled begin/end block)
     static int selected = -1;
 
@@ -60,10 +57,17 @@ namespace widgets_panel
             return;
         static bool is_hovered = false;
 
+        struct index_t { int index; int position; };
+        static index_t indices[MAX_WIDGETS];
         for (int i = 0; i < num_widgets; i++)
-            indices[i] = i;
-        std::sort(indices, indices + num_widgets, [&](int a, int b) {
-            return widgets[a].position < widgets[b].position;
+        {
+            indices[i].index = i;
+            indices[i].position = widgets[i].position;
+        }
+        qsort(indices, num_widgets, sizeof(index_t), [](const void *pa, const void *pb){
+            const index_t *a = (const index_t*)pa;
+            const index_t *b = (const index_t*)pb;
+            return a->position < b->position ? -1 : +1;
         });
 
         // Set style
@@ -88,7 +92,7 @@ namespace widgets_panel
         ImGui::PushItemWidth(120.0f);
         for (int j = 0; j < num_widgets; j++)
         {
-            int i = indices[j];
+            int i = indices[j].index;
             widget_t &w = widgets[i];
 
             // Drag handle
