@@ -20,6 +20,12 @@ static void ruler::BeginFrame()
     if (VDB_HOTKEY_RULER_MODE)
         active = !active;
 
+    if (ui::ruler_should_open)
+    {
+        active = true;
+        ui::ruler_should_open = false;
+    }
+
     if (!active)
     {
         max_text_length = 0;

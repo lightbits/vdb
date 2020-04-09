@@ -328,7 +328,6 @@ bool vdbBeginBreak(const char *label)
     // Note: ui is checked at BeginFrame instead of EndFrame because we want it to have
     // priority over ImGui panels created by the user.
     ui::escape_eaten = false;
-    ui::SketchBeginFrame();
     ruler::BeginFrame();
 
     vdb_style_t style = GetStyle();

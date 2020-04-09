@@ -1,12 +1,11 @@
 namespace ui
 {
     static bool escape_eaten;
-    static bool sketch_mode_active;
-    static bool ruler_mode_active;
     static bool window_size_dialog_should_open;
     static bool take_screenshot_should_open;
     static bool record_video_should_open;
     static bool save_logs_should_open;
+    static bool ruler_should_open;
     static bool hide_logs;
 
     static ImFont *regular_font;
@@ -39,8 +38,6 @@ namespace ui
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
-    static void SketchBeginFrame();
-    static void SketchEndFrame();
     static void NewLogWindow();
     static void ShowLogWindow(log_window_t *window);
     static void ShowLogWindows();
@@ -346,7 +343,7 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     {
         if (ImGui::MenuItem("Take screenshot", "Alt+S")) take_screenshot_should_open = true;
         if (ImGui::MenuItem("Record video", "Alt+S")) record_video_should_open = true;
-        ImGui::MenuItem("Ruler", "Alt+R", &ruler_mode_active);
+        if (ImGui::MenuItem("Ruler", "Alt+R")) ruler_should_open = true;
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Logs"))
