@@ -55,6 +55,7 @@
 #include "render_scaler.h"
 #include "log.h"
 #include "ui.h"
+#include "ruler.h"
 #include "widgets.h"
 #include "hints.h"
 #include "data/open_sans_regular.h"
@@ -328,7 +329,7 @@ bool vdbBeginBreak(const char *label)
     // priority over ImGui panels created by the user.
     ui::escape_eaten = false;
     ui::SketchBeginFrame();
-    ui::RulerBeginFrame();
+    ruler::BeginFrame();
 
     vdb_style_t style = GetStyle();
 
@@ -402,6 +403,8 @@ void vdbEndBreak()
 
     if (render_scaler::has_begun)
         render_scaler::End();
+
+    ruler::EndFrame();
 
     immediate::DefaultState();
 
@@ -590,7 +593,7 @@ void vdbEndBreak()
 
     if (framegrab::active)
     {
-        if (keys::pressed[VDB_KEY_ESCAPE])
+        if (!ui::escape_eaten && keys::pressed[VDB_KEY_ESCAPE])
         {
             framegrab::StopRecording();
             ui::escape_eaten = true;
@@ -639,8 +642,7 @@ void vdbEndBreak()
         ui::WindowSizeDialog();
         ui::FramegrabDialog();
         ui::ExitDialog();
-        ui::RulerEndFrame();
-        ui::SketchEndFrame();
+        ruler::DrawOverlay();
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

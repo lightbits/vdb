@@ -20,13 +20,6 @@ namespace ui
 
     static bool auto_step;
 
-    namespace ruler
-    {
-        // window coordinates (ImGui coordinates)
-        static vdbVec2 mouse;
-        static vdbVec2 a,b;
-    }
-
     enum { query_buffer_size = 1024 };
     struct log_window_t
     {
@@ -48,8 +41,6 @@ namespace ui
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
-    static void RulerBeginFrame();
-    static void RulerEndFrame();
     static void SketchBeginFrame();
     static void SketchEndFrame();
     static void NewLogWindow();
@@ -616,86 +607,6 @@ static void ui::FramegrabDialog()
         }
         EndPopup();
     }
-}
-
-static void ui::RulerBeginFrame()
-{
-    if (VDB_HOTKEY_RULER_MODE)
-        ruler_mode_active = !ruler_mode_active;
-
-    if (ruler_mode_active)
-    {
-        if (keys::pressed[VDB_KEY_ESCAPE])
-        {
-            ruler_mode_active = false;
-            escape_eaten = true;
-        }
-
-        static bool dragging = false;
-        ruler::mouse = vdbGetMousePos();
-        if (vdbIsMouseLeftDown())
-        {
-            if (!dragging)
-            {
-                dragging = true;
-                ruler::a = ruler::mouse;
-                ruler::b = ruler::mouse;
-            }
-            else
-            {
-                ruler::b = ruler::mouse;
-            }
-        }
-        else
-        {
-            dragging = false;
-        }
-
-        // force all subsequent calls to vdb{Is,Was}{Mouse,Key}{UpDownPressed} to return false
-        ImGui::GetIO().WantCaptureKeyboard = true;
-        ImGui::GetIO().WantCaptureMouse = true;
-    }
-}
-
-static void ui::RulerEndFrame()
-{
-    if (!ruler_mode_active)
-        return;
-
-    using namespace ruler;
-    vdbVec2 ndc_a = vdbWindowToNDC(a.x, a.y);
-    vdbVec3 model_a = vdbNDCToModel(ndc_a.x, ndc_a.y);
-    vdbVec2 ndc_b = vdbWindowToNDC(b.x, b.y);
-    vdbVec3 model_b = vdbNDCToModel(ndc_b.x, ndc_b.y);
-    float dx = model_b.x - model_a.x;
-    float dy = model_b.y - model_a.y;
-    float distance = sqrtf(dx*dx + dy*dy);
-    float distance_px = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
-
-    ImDrawList *draw = ImGui::GetOverlayDrawList();
-
-    ImU32 fg = IM_COL32(255,255,255,255);
-    ImU32 bg = IM_COL32(0,0,0,255);
-
-    if (distance_px > 1.0f)
-    {
-        float thickness = 2.0f;
-        draw->AddLine(ImVec2(a.x,a.y), ImVec2(b.x,b.y), bg, thickness+2.0f);
-        draw->AddCircleFilled(ImVec2(a.x,a.y), 5.0f, bg);
-        draw->AddCircleFilled(ImVec2(b.x,b.y), 5.0f, bg);
-        draw->AddLine(ImVec2(a.x,a.y), ImVec2(b.x,b.y), fg, thickness);
-        draw->AddCircleFilled(ImVec2(a.x,a.y), 4.0f, fg);
-        draw->AddCircleFilled(ImVec2(b.x,b.y), 4.0f, fg);
-    }
-
-    ImGui::BeginMainMenuBar();
-    ImGui::Separator();
-    ImGui::Text("%4d, %4d px", (int)mouse.x, (int)mouse.y);
-    ImGui::Separator();
-    ImGui::Text("%4d px", (int)distance_px);
-    ImGui::Separator();
-    ImGui::Text("%g user", distance);
-    ImGui::EndMainMenuBar();
 }
 
 static void ui::SketchBeginFrame()
