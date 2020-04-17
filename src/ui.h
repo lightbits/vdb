@@ -237,38 +237,74 @@ static void ui::MainMenuBar(frame_settings_t *fs)
     ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 0.0f);
     ImGui::BeginMainMenuBar();
     main_menu_bar_height = ImGui::GetWindowHeight();
-    if (ImGui::BeginMenu("Camera"))
+    if (ImGui::BeginMenu("View"))
     {
-        #define ITEM(s, e) if (ImGui::MenuItem(s, NULL, fs->camera.type == e)) { fs->camera.type = e; fs->camera.dirty = true; }
-        ITEM("Disabled", VDB_CUSTOM);
-        // ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
-        ITEM("Planar", VDB_PLANAR);
-        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
-        ITEM("Trackball", VDB_TRACKBALL);
-        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
-        ITEM("Turntable", VDB_TURNTABLE);
-        // ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
-        #undef ITEM
-        ImGui::EndMenu();
-    }
-    if (ImGui::BeginMenu("Grid"))
-    {
-        if (ImGui::MenuItem("Show grid", NULL, &fs->grid.grid_visible)) fs->grid.dirty = true;
-        if (ImGui::MenuItem("Show cube", NULL, &fs->grid.cube_visible)) fs->grid.dirty = true;
-        ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
-        ImGui::PushItemWidth(60.0f);
-        if (ImGui::DragFloat("Major div.", &fs->grid.grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f)) fs->grid.dirty = true;
+        // type
+        {
+            int *camera_type = &fs->camera.type;
+            ImGui::Text("Camera type: ");
+            if (ImGui::RadioButton("Disabled",  camera_type, VDB_CUSTOM))    { fs->camera.dirty = true; }
+            ImGui::SameLine(); ImGui::ShowHelpMarker("The built-in camera is disabled. All projection and matrix transforms are controlled through your API calls.");
+            if (ImGui::RadioButton("Planar",    camera_type, VDB_PLANAR))    { fs->camera.dirty = true; }
+            ImGui::SameLine(); ImGui::ShowHelpMarker("A 2D camera (left: pan, right: rotate, wheel: zoom).");
+            if (ImGui::RadioButton("Trackball", camera_type, VDB_TRACKBALL)) { fs->camera.dirty = true; }
+            ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, WASD: move, wheel: zoom).");
+            if (ImGui::RadioButton("Turntable", camera_type, VDB_TURNTABLE)) { fs->camera.dirty = true; }
+            ImGui::SameLine(); ImGui::ShowHelpMarker("A 3D camera (left: rotate, wheel: zoom).");
+        }
+
+        ImGui::PushItemWidth(160.0f);
+
+        // projection
+        ImGui::Separator();
+        {
+            static float y_fov_deg = fs->camera.projection.y_fov*180.0f/3.1415926f;
+            static float near_pct = 100.0f*fs->camera.projection.min_depth/(25.0f*fs->grid.grid_scale);
+            static float far_pct = 100.0f*fs->camera.projection.max_depth/(25.0f*fs->grid.grid_scale);
+
+            bool *dirty = &fs->camera.projection.dirty;
+            if (ImGui::SliderFloat("Field of view", &y_fov_deg, 1.0f, 180.0f, "%.0f deg"))
+            {
+                *dirty = true;
+                fs->camera.projection.y_fov = y_fov_deg*3.1415926f/180.0f;
+            }
+            if (ImGui::DragFloat("Near clip plane", &near_pct, 1.0f, 0.0f, 200.0f, "%.2f %%"))
+            {
+                fs->camera.projection.min_depth = near_pct*25.0f*fs->grid.grid_scale/100.0f;
+                *dirty = true;
+            }
+            if (ImGui::DragFloat("Far clip plane", &far_pct, 1.0f, 0.0f, 200.0f, "%.2f %%"))
+            {
+                fs->camera.projection.max_depth = far_pct*25.0f*fs->grid.grid_scale/100.0f;
+                *dirty = true;
+            }
+        }
+
+        // grid and cube
+        ImGui::Separator();
+        {
+            if (ImGui::MenuItem("Show grid", NULL, &fs->grid.grid_visible)) fs->grid.dirty = true;
+            if (ImGui::MenuItem("Show cube", NULL, &fs->grid.cube_visible)) fs->grid.dirty = true;
+            ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
+            if (ImGui::DragFloat("Major div.", &fs->grid.grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f)) fs->grid.dirty = true;
+            ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
+        }
+
+        // up vector
+        ImGui::Separator();
+        {
+            ImGui::Text("Up: ");
+            vdbOrientation *up = GetCameraUp();
+            bool *dirty = GetCameraDirty();
+            if (ImGui::RadioButton("+Z", up, VDB_Z_UP)) *dirty = true; ImGui::SameLine();
+            if (ImGui::RadioButton("+Y", up, VDB_Y_UP)) *dirty = true; ImGui::SameLine();
+            if (ImGui::RadioButton("+X", up, VDB_X_UP)) *dirty = true; ImGui::SameLine();
+            if (ImGui::RadioButton("-Z", up, VDB_Z_DOWN)) *dirty = true; ImGui::SameLine();
+            if (ImGui::RadioButton("-Y", up, VDB_Y_DOWN)) *dirty = true; ImGui::SameLine();
+            if (ImGui::RadioButton("-X", up, VDB_X_DOWN)) *dirty = true;
+        }
+
         ImGui::PopItemWidth();
-        ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
-        ImGui::Text("Up: ");
-        vdbOrientation *up = GetCameraUp();
-        bool *dirty = GetCameraDirty();
-        if (ImGui::RadioButton("+Z", up, VDB_Z_UP)) *dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("+Y", up, VDB_Y_UP)) *dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("+X", up, VDB_X_UP)) *dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-Z", up, VDB_Z_DOWN)) *dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-Y", up, VDB_Y_DOWN)) *dirty = true; ImGui::SameLine();
-        if (ImGui::RadioButton("-X", up, VDB_X_DOWN)) *dirty = true;
         ImGui::EndMenu();
     }
     if (ImGui::BeginMenu("Settings"))
