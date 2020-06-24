@@ -255,6 +255,13 @@ static void ui::MainMenuBar(frame_settings_t *fs)
 
         ImGui::PushItemWidth(160.0f);
 
+        ImGui::Separator();
+        {
+            if (ImGui::MenuItem("Show grid", NULL, &fs->grid.grid_visible)) fs->grid.dirty = true;
+            if (ImGui::MenuItem("Show cube", NULL, &fs->grid.cube_visible)) fs->grid.dirty = true;
+            ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
+        }
+
         // projection
         ImGui::Separator();
         {
@@ -280,12 +287,8 @@ static void ui::MainMenuBar(frame_settings_t *fs)
             }
         }
 
-        // grid and cube
         ImGui::Separator();
         {
-            if (ImGui::MenuItem("Show grid", NULL, &fs->grid.grid_visible)) fs->grid.dirty = true;
-            if (ImGui::MenuItem("Show cube", NULL, &fs->grid.cube_visible)) fs->grid.dirty = true;
-            ImGui::SameLine(); ImGui::ShowHelpMarker("Draw a unit cube (from -0.5 to +0.5 in each axis).");
             if (ImGui::DragFloat("Major div.", &fs->grid.grid_scale, 0.1f, 0.0f,0.0f,"%.3f", 2.0f)) fs->grid.dirty = true;
             ImGui::SameLine(); ImGui::ShowHelpMarker("The length (in your units) between the major grid lines (the brighter ones).");
         }
