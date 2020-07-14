@@ -172,15 +172,15 @@ void vdbEndShader()
     glBindVertexArray(0);
     vdb_gl_current_program = 0;
 }
-void vdbUniform1f(const char *name, float x)                            { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform1f(glGetUniformLocation(program, name), x); }
-void vdbUniform2f(const char *name, float x, float y)                   { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform2f(glGetUniformLocation(program, name), x,y); }
-void vdbUniform3f(const char *name, float x, float y, float z)          { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform3f(glGetUniformLocation(program, name), x,y,z); }
-void vdbUniform4f(const char *name, float x, float y, float z, float w) { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform4f(glGetUniformLocation(program, name), x,y,z,w); }
-void vdbUniform1i(const char *name, int x)                              { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform1i(glGetUniformLocation(program, name), x); }
-void vdbUniform2i(const char *name, int x, int y)                       { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform2i(glGetUniformLocation(program, name), x,y); }
-void vdbUniform3i(const char *name, int x, int y, int z)                { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform3i(glGetUniformLocation(program, name), x,y,z); }
-void vdbUniform4i(const char *name, int x, int y, int z, int w)         { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform4i(glGetUniformLocation(program, name), x,y,z,w); }
-void vdbUniformMatrix4fv(const char *name, float *x)                    { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix4fv(glGetUniformLocation(program, name), 1, false, x);}
-void vdbUniformMatrix3fv(const char *name, float *x)                    { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix3fv(glGetUniformLocation(program, name), 1, false, x);}
-void vdbUniformMatrix4fv_RowMaj(const char *name, float *x)             { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix4fv(glGetUniformLocation(program, name), 1, true, x);}
-void vdbUniformMatrix3fv_RowMaj(const char *name, float *x)             { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix3fv(glGetUniformLocation(program, name), 1, true, x);}
+void vdbUniform1f(const char *name, float x)                            { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform1f(glGetUniformLocation(program, name), x);  AssertGL("vdbUniform1f failed with name '%s'\n", name); }
+void vdbUniform2f(const char *name, float x, float y)                   { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform2f(glGetUniformLocation(program, name), x,y);  AssertGL("vdbUniform2f failed with name '%s'\n", name); }
+void vdbUniform3f(const char *name, float x, float y, float z)          { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform3f(glGetUniformLocation(program, name), x,y,z);  AssertGL("vdbUniform3f failed with name '%s'\n", name); }
+void vdbUniform4f(const char *name, float x, float y, float z, float w) { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform4f(glGetUniformLocation(program, name), x,y,z,w);  AssertGL("vdbUniform4f failed with name '%s'\n", name); }
+void vdbUniform1i(const char *name, int x)                              { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform1i(glGetUniformLocation(program, name), x);  AssertGL("vdbUniform1i failed with name '%s'\n", name); }
+void vdbUniform2i(const char *name, int x, int y)                       { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform2i(glGetUniformLocation(program, name), x,y);  AssertGL("vdbUniform2i failed with name '%s'\n", name); }
+void vdbUniform3i(const char *name, int x, int y, int z)                { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform3i(glGetUniformLocation(program, name), x,y,z);  AssertGL("vdbUniform3i failed with name '%s'\n", name); }
+void vdbUniform4i(const char *name, int x, int y, int z, int w)         { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniform4i(glGetUniformLocation(program, name), x,y,z,w);  AssertGL("vdbUniform4i failed with name '%s'\n", name); }
+void vdbUniformMatrix4fv(const char *name, float *x)                    { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix4fv(glGetUniformLocation(program, name), 1, false, x); AssertGL("vdbUniformMatrix4fv failed with name '%s'\n", name); }
+void vdbUniformMatrix3fv(const char *name, float *x)                    { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix3fv(glGetUniformLocation(program, name), 1, false, x); AssertGL("vdbUniformMatrix3fv failed with name '%s'\n", name); }
+void vdbUniformMatrix4fv_RowMaj(const char *name, float *x)             { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix4fv(glGetUniformLocation(program, name), 1, true, x); AssertGL("vdbUniformMatrix4fv_RowMaj failed with name '%s'\n", name); }
+void vdbUniformMatrix3fv_RowMaj(const char *name, float *x)             { GLint program; glGetIntegerv(GL_CURRENT_PROGRAM, &program); glUniformMatrix3fv(glGetUniformLocation(program, name), 1, true, x); AssertGL("vdbUniformMatrix3fv_RowMaj failed with name '%s'\n", name); }
