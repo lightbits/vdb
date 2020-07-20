@@ -102,6 +102,22 @@ void vdbFillCircle(float x, float y, float radius)
     vdbEnd();
 }
 
+void vdbFillTexturedRect_(float x, float y, float w, float h)
+{
+    vdbTexel(0,0); vdbVertex(x, y);
+    vdbTexel(1,0); vdbVertex(x+w, y);
+    vdbTexel(1,1); vdbVertex(x+w, y+h);
+    vdbTexel(1,1); vdbVertex(x+w, y+h);
+    vdbTexel(0,1); vdbVertex(x, y+h);
+    vdbTexel(0,0); vdbVertex(x, y);
+}
+void vdbFillTexturedRect(float x, float y, float w, float h)
+{
+    vdbBeginTriangles();
+    vdbFillTexturedRect_(x, y, w, h);
+    vdbEnd();
+}
+
 void vdbLineCube_(float wx, float wy, float wz)
 {
     float x2 = wx/2.0f;

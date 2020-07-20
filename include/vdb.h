@@ -123,6 +123,8 @@ void    vdbFillRect_(float x, float y, float size_x, float size_y);
 void    vdbFillRect (float x, float y, float size_x, float size_y);
 void    vdbFillCircle_(float x, float y, float radius);
 void    vdbFillCircle (float x, float y, float radius);
+void    vdbFillTexturedRect_(float x, float y, float w, float h);
+void    vdbFillTexturedRect (float x, float y, float w, float h);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Colormaps
