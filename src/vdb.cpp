@@ -153,31 +153,26 @@ void vdbAutoStep(bool enabled)
     ui::auto_step = enabled;
 }
 
-// void    vdbScreenshot(float crop_x, float crop_y, float crop_w, float crop_h,
-//                       const char *filename);
-// void vdbScreenshot()
-// {
-//     GLenum format = opt.alpha_channel ? GL_RGBA : GL_RGB;
-//     int channels = opt.alpha_channel ? 4 : 3;
-//     int width = window::framebuffer_width;
-//     int height = window::framebuffer_height;
-//     unsigned char *data = (unsigned char*)malloc(width*height*channels);
-//     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-//     glReadBuffer(GL_BACK);
-//     glReadPixels(0, 0, width, height, format, GL_UNSIGNED_BYTE, data);
-
-//     if (!opt.draw_imgui)
-//     {
-//         ImGui::Render();
-//         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-//     }
-
-//     framegrab::SaveFrame(data, width, height, channels, format);
-// }
-
 static frame_settings_t *GetFrameSettings()
 {
     return vdb::frame_settings;
+}
+
+void vdbSaveScreenshot(const char *filename)
+{
+    int width = vdbGetFramebufferWidth();
+    int height = vdbGetFramebufferHeight();
+    int channels = 4;
+    int stride = width*channels;
+    assert(current_framebuffer == NULL && "vdbSaveScreenshot cannot be called while a render target is active");
+    GLenum internal_format = GL_RGBA8;
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer(GL_BACK);
+    unsigned char *data = (unsigned char*)malloc(width*height*channels);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    assert(strstr(filename, ".png") && "vdbSaveScreenshot must save as .png");
+    stbi_write_png(filename, width, height, channels, data+stride*(height-1), -stride);
+    free(data);
 }
 
 bool vdbBeginBreak(const char *label)

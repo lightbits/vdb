@@ -7,6 +7,7 @@ struct framebuffer_t
     int num_color_attachments;
     GLint last_viewport[4];
     framebuffer_t *last_framebuffer;
+    GLenum internal_color_format;
 };
 
 static framebuffer_t *current_framebuffer = NULL;
@@ -76,6 +77,7 @@ static framebuffer_t MakeFramebuffer(
         GLuint color = TexImage2D(NULL, width, height, data_format, data_type, mag_filter, min_filter, GL_CLAMP_TO_EDGE, GL_CLAMP_TO_EDGE, internal_color_format);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, color, 0);
         result.color[i] = color;
+        result.internal_color_format = internal_color_format;
     }
 
     if (enable_depth)

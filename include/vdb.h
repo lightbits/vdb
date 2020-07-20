@@ -286,6 +286,7 @@ void    vdbEndBreak();
 bool    vdbIsFirstFrame();
 bool    vdbIsDifferentLabel();
 void    vdbAutoStep(bool enabled);
+void    vdbSaveScreenshot(const char *filename);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Logging
