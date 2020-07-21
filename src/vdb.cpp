@@ -164,13 +164,15 @@ void vdbSaveScreenshot(const char *filename)
     int height = vdbGetFramebufferHeight();
     int channels = 4;
     int stride = width*channels;
-    assert(current_framebuffer == NULL && "vdbSaveScreenshot cannot be called while a render target is active");
-    GLenum internal_format = GL_RGBA8;
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadBuffer(GL_BACK);
     unsigned char *data = (unsigned char*)malloc(width*height*channels);
+
+    GLint read_buffer; glGetIntegerv(GL_READ_BUFFER, &read_buffer);
+    GLint pack_alignment; glGetIntegerv(GL_PACK_ALIGNMENT, &pack_alignment);
+    glReadBuffer((current_framebuffer) ? GL_COLOR_ATTACHMENT0 : GL_BACK);
     glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    assert(strstr(filename, ".png") && "vdbSaveScreenshot must save as .png");
+    glReadBuffer(read_buffer);
+    glPixelStorei(GL_PACK_ALIGNMENT, pack_alignment);
+
     stbi_write_png(filename, width, height, channels, data+stride*(height-1), -stride);
     free(data);
 }
