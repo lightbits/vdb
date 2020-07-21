@@ -39,10 +39,10 @@ void vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFor
     EnableFramebuffer(rt);
 }
 
-void vdbEndRenderTarget(int slot)
+void vdbEndRenderTarget()
 {
-    assert(slot >= 0 && slot < MAX_RENDER_TARGETS && "You are trying to use a render texture beyond the available slots.");
-    DisableFramebuffer(render_targets + slot);
+    assert(current_framebuffer && "vdbEndRenderTarget was called but no render target was bound.");
+    DisableFramebuffer(current_framebuffer);
 
     // todo: if LINEAR_MIPMAP, regenerate mipmaps
 }

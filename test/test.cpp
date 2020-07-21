@@ -263,7 +263,7 @@ int main(int, char **)
         vdbColor(0.5f, 1.0f, 0.5f, 1.0f); vdbVertex(+0.5f, -0.5f);
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
-        vdbEndRenderTarget(0);
+        vdbEndRenderTarget();
         vdbDrawRenderTarget(0);
 
         tile++;

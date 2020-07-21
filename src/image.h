@@ -326,7 +326,7 @@ void vdbBindImageToTextureUnit(int slot, int unit, vdbTextureFilter filter, vdbT
     vdbSetTextureParameters(filter, wrap);
 }
 
-void vdbUnbindImageFromTextureUnit(int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
+void vdbUnbindImageFromTextureUnit(int unit)
 {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);

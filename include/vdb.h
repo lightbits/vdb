@@ -222,7 +222,7 @@ void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFil
 void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
 void    vdbUnbindImage();
 void    vdbBindImageToTextureUnit(int slot, int unit, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbUnbindImageFromTextureUnit(int unit, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbUnbindImageFromTextureUnit(int unit);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Shaders
@@ -251,7 +251,7 @@ void    vdbEndShader();
 // § Render targets
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFormat format);
-void    vdbEndRenderTarget(int slot);
+void    vdbEndRenderTarget();
 void    vdbBindRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbUnbindRenderTarget();
