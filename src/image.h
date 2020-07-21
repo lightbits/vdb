@@ -297,20 +297,21 @@ void vdbDrawImage(int slot,
     glUseProgram(0);
 }
 
-void vdbBindImage(int slot, int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
+void vdbActiveTextureUnit(int unit)
 {
     glActiveTexture(GL_TEXTURE0 + unit);
+}
+
+void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
+{
     if (GetImage(slot)->volume)
         glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
     else
         glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
     vdbSetTextureParameters(filter, wrap);
-    glActiveTexture(GL_TEXTURE0);
 }
 
-void vdbUnbindImage(int unit)
+void vdbUnbindImage()
 {
-    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glActiveTexture(GL_TEXTURE0);
 }

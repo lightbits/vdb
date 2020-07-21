@@ -101,7 +101,7 @@ namespace immediate
         vdbDepthTest(false);
         vdbCullFace(false);
         vdbInverseColor(false);
-        vdbDepthFuncLess();
+        vdbDepthFuncLessOrEqual();
         glDisable(GL_SCISSOR_TEST);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }

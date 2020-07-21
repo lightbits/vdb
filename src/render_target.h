@@ -50,7 +50,6 @@ void vdbEndRenderTarget()
 void vdbBindRenderTarget(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     assert(slot >= 0 && slot < MAX_RENDER_TARGETS && "You are trying to use a render texture beyond the available slots.");
-    glActiveTexture(GL_TEXTURE0); // todo: let user specify this
     glBindTexture(GL_TEXTURE_2D, render_targets[slot].color[0]);
     vdbSetTextureParameters(filter, wrap);
 }
