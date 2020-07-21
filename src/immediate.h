@@ -535,9 +535,8 @@ static void DrawImmediateLines(imm_list_t list)
 
     bool use_thick_shader =
         imm.state.line_width_is_3D ||
-        imm.state.line_width != 1.0f ||
-        vdbGetRenderScale().x != 1.0f ||
-        vdbGetRenderScale().y != 1.0f;
+        imm.state.line_width*vdbGetRenderScale().x != 1.0f ||
+        imm.state.line_width*vdbGetRenderScale().y != 1.0f;
 
     if (use_thick_shader)
         DrawImmediateLinesThick(list);
