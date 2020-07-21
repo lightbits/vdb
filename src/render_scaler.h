@@ -235,7 +235,7 @@ namespace render_scaler
         // composite full resolution framebuffer onto window framebuffer
         // note: we re-enable user's draw state (e.g. depth test/write).
         immediate::SetState(last_state);
-        DrawRenderTargetWithDepth(output);
+        DrawRenderTargetWithDepth(output, VDB_NEAREST, VDB_CLAMP);
 
         vdbPopMatrix();
         vdbPopProjection();

@@ -62,7 +62,7 @@ void    vdbBlendNone();
 void    vdbBlendAdd();
 void    vdbBlendAlpha();
 void    vdbCullFace(bool enable);
-void    vdbDepthTest(bool enable);
+void    vdbDepthTest(bool enable); // Note that depth testing may have to be enabled for depth writes to work (use vdbDepthFuncAlways in order to always pass depth tests in that case)
 void    vdbDepthWrite(bool enable);
 void    vdbDepthFuncLess();
 void    vdbDepthFuncLessOrEqual();
@@ -247,6 +247,7 @@ void    vdbEndShader();
 void    vdbBeginRenderTarget(int slot, vdbRenderTargetDesc desc);
 void    vdbEndRenderTarget();
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbDrawRenderTargetWithDepth(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Texture bindings

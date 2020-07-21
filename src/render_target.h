@@ -64,7 +64,7 @@ void vdbBindRenderTargetDepth(int slot, vdbTextureFilter filter, vdbTextureWrap 
     vdbSetTextureParameters(filter, wrap);
 }
 
-void DrawRenderTargetWithDepth(render_target_t rt)
+void DrawRenderTargetWithDepth(render_target_t rt, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     #define SHADER(S) "#version 150\n" #S
     const char *vs = SHADER(
@@ -114,9 +114,11 @@ void DrawRenderTargetWithDepth(render_target_t rt)
     glActiveTexture(GL_TEXTURE1);
     glUniform1i(uniform_sampler1, 1);
     glBindTexture(GL_TEXTURE_2D, rt.depth);
+    vdbSetTextureParameters(filter, wrap);
     glActiveTexture(GL_TEXTURE0);
     glUniform1i(uniform_sampler0, 0);
     glBindTexture(GL_TEXTURE_2D, rt.color[0]);
+    vdbSetTextureParameters(filter, wrap);
     glVertexAttribPointer(attrib_position, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(attrib_position);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -124,6 +126,12 @@ void DrawRenderTargetWithDepth(render_target_t rt)
     glUseProgram(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void vdbDrawRenderTargetWithDepth(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
+{
+    assert(slot >= 0 && slot < MAX_RENDER_TARGETS && "You are trying to use a render texture beyond the available slots.");
+    DrawRenderTargetWithDepth(render_targets[slot], filter, wrap);
 }
 
 void vdbDrawRenderTarget(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
