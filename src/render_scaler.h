@@ -183,10 +183,9 @@ namespace render_scaler
         DisableFramebuffer(&lowres);
 
         imm_state_t last_state = immediate::GetState();
-        float last_projection[4*4];
-        vdbGetProjection(last_projection);
-        vdbProjection(NULL);
+        vdbPushProjection();
         vdbPushMatrix();
+        vdbLoadProjection(NULL);
         vdbLoadMatrix(NULL);
         vdbBlendNone();
         vdbCullFace(false);
@@ -239,7 +238,7 @@ namespace render_scaler
         DrawRenderTargetWithDepth(output);
 
         vdbPopMatrix();
-        vdbProjection(last_projection);
+        vdbPopProjection();
 
         // just a linear sampling order. want something nicer in the future
         int num_subpixels = (1<<scale_up)*(1<<scale_up);

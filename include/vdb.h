@@ -145,26 +145,32 @@ void    vdbColorForeground(float alpha=1.0f);   // Short-hand for vdbColor(vdbGe
 void    vdbColorBackground(float alpha=1.0f);   // Short-hand for vdbColor(vdbGetBackgroundColor())
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// § Matrix stack
-// Note: by default vdb interprets matrix pointers as 4x4 column-major arrays.
-// You can change this behavior by #defining VDB_ROW_MAJOR before #including
-// <vdb.h>. See also section below for the difference between the two.
+// § Built-in matrix stacks
+// By default vdb interprets matrix pointers as 4x4 column-major arrays. You
+// can change this by #defining VDB_ROW_MAJOR before #including <vdb.h>.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbPushMatrix();                         // Push matrix stack by one (current top is copied)
-void    vdbPopMatrix();                          // Pop matrix stack by one (previous top is restored)
-void    vdbProjection(float *m);                 // Pass NULL to load 4x4 identity matrix
-void    vdbLoadMatrix(float *m);                 // Pass NULL to load 4x4 identity matrix
-void    vdbMultMatrix(float *m);                 // Semantics: M = M mul m (right-multiply top of matrix stack)
+                                                 // MODEL-TO-VIEW MATRIX STACK:
+void    vdbPushMatrix();                         // Push stack by one (current top is copied)
+void    vdbPopMatrix();                          // Pop stack by one (previous top is restored)
+void    vdbLoadMatrix(float *m);                 // Overwrite top stack (pass NULL to load 4x4 identity matrix)
+void    vdbMultMatrix(float *m);                 // Right-multiply top of stack (M <- M mul m)
 void    vdbGetMatrix(float *m);                  // Usage: float m[4*4]; vdbGetMatrix(m);
-void    vdbGetProjection(float *m);              // Usage: float m[4*4]; vdbGetProjection(m);
-void    vdbGetPVM(float *m);                     // Usage: float m[4*4]; vdbGetPVM(m);
 void    vdbTranslate(float x, float y, float z); // Semantics: M <- M mul Translate(x,y,z)
 void    vdbRotateXYZ(float x, float y, float z); // Semantics: M <- M mul Rx(x) mul Ry(y) mul Rz(z)
 void    vdbRotateZYX(float z, float y, float x); // Semantics: M <- M mul Rz(z) mul Ry(y) mul Rx(x)
+
+                                                 // PROJECTION MATRIX STACK:
+void    vdbPushProjection();                     // Push stack by one (current top is copied)
+void    vdbPopProjection();                      // Pop stack by one (previous top is restored)
+void    vdbLoadProjection(float *m);             // Overwrite top stack (pass NULL to load 4x4 identity matrix)
+void    vdbMultProjection(float *m);             // Right-multiply top of stack (M <- M mul m)
+void    vdbGetProjection(float *m);              // Usage: float m[4*4]; vdbGetProjection(m);
 void    vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_near=-1.0f, float z_far=+1.0f);
 void    vdbPerspective(float yfov, float z_near, float z_far, float x_offset=0.0f, float y_offset=0.0f); // x_offset and y_offset shifts all geometry by a given amount in NDC units (shift is independent of depth)
-void    vdbViewporti(int left, int bottom, int width, int height);          // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
-void    vdbViewport(float left, float bottom, float width, float height);   // Window-size indpendent version of the above (coordinates are in the range [0,1])
+
+void    vdbGetPVM(float *m); // Usage: float m[4*4]; vdbGetPVM(m);
+void    vdbViewporti(int left, int bottom, int width, int height); // Map all subsequent rendering operations to this region of the window (framebuffer units, not window units)
+void    vdbViewport(float left, float bottom, float width, float height); // Window-size indpendent version of the above (coordinates are in the range [0,1])
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Window information
@@ -314,7 +320,7 @@ void    vdbLogDump(const char *filename);
 //   float m[] = {A,B,C,D}; -> |A C|
 //                             |B D|
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbProjection_RowMaj(float *m);
+void    vdbLoadProjection_RowMaj(float *m);
 void    vdbLoadMatrix_RowMaj(float *m);
 void    vdbMultMatrix_RowMaj(float *m);
 void    vdbGetMatrix_RowMaj(float *m);
@@ -330,7 +336,7 @@ void    vdbLogMatrix_RowMaj(const char *label, float *x, int rows, int columns);
 // To enable: #define VDB_ROW_MAJOR before including vdb.h
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #ifdef VDB_ROW_MAJOR
-#define vdbProjection       vdbProjection_RowMaj
+#define vdbLoadProjection   vdbLoadProjection_RowMaj
 #define vdbLoadMatrix       vdbLoadMatrix_RowMaj
 #define vdbMultMatrix       vdbMultMatrix_RowMaj
 #define vdbGetMatrix        vdbGetMatrix_RowMaj

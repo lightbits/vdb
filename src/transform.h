@@ -4,6 +4,7 @@ namespace transform
     static vdbMat4 view_model = vdbMatIdentity();
     static vdbMat4 pvm = vdbMatIdentity();
     static matrix_stack_t matrix_stack = {0};
+    static matrix_stack_t projection_stack = {0};
     int viewport_left;
     int viewport_bottom;
     int viewport_width;
@@ -15,6 +16,7 @@ namespace transform
         view_model = vdbMatIdentity();
         pvm = vdbMatIdentity();
         matrix_stack.Reset();
+        projection_stack.Reset();
         vdbViewporti(0, 0, window::framebuffer_width, window::framebuffer_height);
     }
 }
@@ -34,10 +36,33 @@ void vdbPopMatrix()
     pvm = vdbMul4x4(projection, view_model);
 }
 
-void vdbProjection(vdbMat4 m)
+void vdbPushProjection()
 {
-    transform::projection = m;
+    using namespace transform;
+    projection_stack.Push();
+    projection = projection_stack.Top();
+}
+
+void vdbPopProjection()
+{
+    using namespace transform;
+    projection_stack.Pop();
+    projection = projection_stack.Top();
+    pvm = vdbMul4x4(projection, view_model);
+}
+
+void vdbLoadProjection(vdbMat4 m)
+{
+    transform::projection_stack.Load(m);
+    transform::projection = transform::projection_stack.Top();
     transform::pvm = vdbMul4x4(m, transform::view_model);
+}
+
+void vdbMultProjection(vdbMat4 m)
+{
+    transform::projection_stack.Multiply(m);
+    transform::projection = transform::projection_stack.Top();
+    transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
 void vdbLoadMatrix(vdbMat4 m)
@@ -54,8 +79,11 @@ void vdbMultMatrix(vdbMat4 m)
     transform::pvm = vdbMul4x4(transform::projection, transform::view_model);
 }
 
-void vdbProjection(float *m)           { vdbProjection(m ? *(vdbMat4*)m : vdbMatIdentity()); }
-void vdbProjection_RowMaj(float *m)    { vdbProjection(m ? vdbMatTranspose(*(vdbMat4*)m) : vdbMatIdentity()); }
+void vdbLoadProjection(float *m)       { vdbLoadProjection(m ? *(vdbMat4*)m : vdbMatIdentity()); }
+void vdbLoadProjection_RowMaj(float *m){ vdbLoadProjection(m ? vdbMatTranspose(*(vdbMat4*)m) : vdbMatIdentity()); }
+
+void vdbMultProjection(float *m)       { vdbMultProjection(m ? *(vdbMat4*)m : vdbMatIdentity()); }
+void vdbMultProjection_RowMaj(float *m){ vdbMultProjection(m ? vdbMatTranspose(*(vdbMat4*)m) : vdbMatIdentity()); }
 
 void vdbLoadMatrix(float *m)           { if (m) vdbLoadMatrix(*(vdbMat4*)m); else vdbLoadMatrix(vdbMatIdentity()); }
 void vdbLoadMatrix_RowMaj(float *m)    { if (m) vdbLoadMatrix(vdbMatTranspose(*(vdbMat4*)m)); else vdbLoadMatrix(vdbMatIdentity()); }
@@ -85,7 +113,7 @@ void vdbOrtho(float x_left, float x_right, float y_bottom, float y_top, float z_
     p(1,3) = (y_bottom+y_top)/(y_bottom-y_top);
     p(2,2) = 2.0f/(z_near-z_far);
     p(2,3) = (z_near+z_far)/(z_near-z_far);
-    vdbProjection(p.data);
+    vdbLoadProjection(p.data);
 }
 
 void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float y_offset)
@@ -99,7 +127,7 @@ void vdbPerspective(float yfov, float z_near, float z_far, float x_offset, float
     p(2,2) = (z_near+z_far)/(z_near-z_far);
     p(3,2) = -1.0f;
     p(2,3) = 2.0f*z_near*z_far/(z_near-z_far);
-    vdbProjection(p.data);
+    vdbLoadProjection(p.data);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
