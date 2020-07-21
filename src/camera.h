@@ -1,5 +1,13 @@
+static bool is_camera_moving = false;
+
+bool vdbIsCameraMoving()
+{
+    return is_camera_moving;
+}
+
 void vdbCamera2D()
 {
+    is_camera_moving = false;
     const float dt = 1.0f/60.0f;
 
     GetFrameSettings()->camera.planar.dirty = true;
@@ -20,6 +28,7 @@ void vdbCamera2D()
         float A = W < H ? W : H;
         if (vdbGetMouseWheel() < 0.0f)
         {
+            is_camera_moving = true;
             float next_zoom = zoom*1.2f;
             position_x += W/A*vdbGetMousePosNDC().x*(next_zoom - zoom);
             position_y += H/A*vdbGetMousePosNDC().y*(next_zoom - zoom);
@@ -27,6 +36,7 @@ void vdbCamera2D()
         }
         else if (vdbGetMouseWheel() > 0.0f)
         {
+            is_camera_moving = true;
             float next_zoom = zoom/1.2f;
             position_x += W/A*vdbGetMousePosNDC().x*(next_zoom - zoom);
             position_y += H/A*vdbGetMousePosNDC().y*(next_zoom - zoom);
@@ -49,6 +59,7 @@ void vdbCamera2D()
         if (vdbIsMouseRightDown() && fabsf(delta_angle) < 1.9f*pi)
         {
             angle += mouse_sensitivity*delta_angle*dt;
+            is_camera_moving = true;
         }
 
         if (angle < 0.0f) angle += 2.0f*pi;
@@ -76,6 +87,7 @@ void vdbCamera2D()
         {
             position_x += mouse_sensitivity*zoom*dx*dt;
             position_y += mouse_sensitivity*zoom*dy*dt;
+            is_camera_moving = true;
         }
     }
 
@@ -93,6 +105,7 @@ void vdbCamera2D()
 
 void vdbCameraTrackball()
 {
+    is_camera_moving = false;
     const float dt = 1.0f/60.0f; // todo: expose API vdbGetFrameDelta()
 
     auto &cs = settings.camera;
@@ -107,6 +120,8 @@ void vdbCameraTrackball()
     if (vdbIsKeyDown(VDB_KEY_LSHIFT)) move_speed = cs.move_speed_slow;
 
     // zooming
+    if (vdbGetMouseWheel() != 0.0f)
+        is_camera_moving = true;
     zoom -= cs.scroll_sensitivity*vdbGetMouseWheel()*zoom*dt;
 
     float radius = 1.0f;
@@ -126,6 +141,7 @@ void vdbCameraTrackball()
     vdbMat4 R = R0;
     if (dragging)
     {
+        is_camera_moving = true;
         float mouse_x_end = mouse_x;
         float mouse_y_end = mouse_y;
 
@@ -181,12 +197,12 @@ void vdbCameraTrackball()
         float x = 0.0f;
         float y = 0.0f;
         float z = 0.0f;
-        if (vdbIsKeyDown(VDB_KEY_A))     x = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_D))     x = +move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_W))     z = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_S))     z = +move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_LCTRL)) y = -move_speed*zoom;
-        if (vdbIsKeyDown(VDB_KEY_SPACE)) y = +move_speed*zoom;
+        if (vdbIsKeyDown(VDB_KEY_A))     { x = -move_speed*zoom; is_camera_moving = true; }
+        if (vdbIsKeyDown(VDB_KEY_D))     { x = +move_speed*zoom; is_camera_moving = true; }
+        if (vdbIsKeyDown(VDB_KEY_W))     { z = -move_speed*zoom; is_camera_moving = true; }
+        if (vdbIsKeyDown(VDB_KEY_S))     { z = +move_speed*zoom; is_camera_moving = true; }
+        if (vdbIsKeyDown(VDB_KEY_LCTRL)) { y = -move_speed*zoom; is_camera_moving = true; }
+        if (vdbIsKeyDown(VDB_KEY_SPACE)) { y = +move_speed*zoom; is_camera_moving = true; }
         vdbVec4 in_camera_vel = vdbVec4(x,y,z,0.0f);
         vdbVec4 in_world_vel = vdbMulTranspose4x1(R, in_camera_vel);
         T = T + in_world_vel*dt;
@@ -201,6 +217,7 @@ void vdbCameraTrackball()
 
 void vdbCameraTurntable()
 {
+    is_camera_moving = false;
     GetFrameSettings()->camera.turntable.dirty = true;
     float scroll_sensitivity = settings.camera.scroll_sensitivity;
     float mouse_sensitivity = settings.camera.mouse_sensitivity;
@@ -212,6 +229,8 @@ void vdbCameraTurntable()
     const float dt = 1.0f/60.0f;
 
     // zooming
+    if (vdbGetMouseWheel() != 0.0f)
+        is_camera_moving = true;
     radius -= scroll_sensitivity*vdbGetMouseWheel()*radius*dt;
 
     float aspect = vdbGetAspectRatio();
@@ -227,6 +246,7 @@ void vdbCameraTurntable()
     }
     if (dragging)
     {
+        is_camera_moving = true;
         float dx = vdbGetMousePosNDC().x*aspect - last_mouse_x;
         float dy = vdbGetMousePosNDC().y - last_mouse_y;
         angle_x += mouse_sensitivity*dy*dt;

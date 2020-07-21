@@ -211,6 +211,7 @@ bool    vdbWasMouseMiddleReleased();
 bool    vdbIsMouseLeftDown();
 bool    vdbIsMouseRightDown();
 bool    vdbIsMouseMiddleDown();
+bool    vdbIsCameraMoving();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Images
