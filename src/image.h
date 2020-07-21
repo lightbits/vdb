@@ -19,8 +19,6 @@ struct image_t
     int depth;
     int channels;
     bool volume;
-    vdbVec4 v_min;
-    vdbVec4 v_max;
 };
 
 enum { MAX_IMAGES = 1024 };
@@ -258,7 +256,7 @@ void vdbDrawImage(int slot,
         glUniform1i(uniform_is_cmap, 0);
     }
 
-    vdbBindImage(slot, filter, wrap, v_min, v_max);
+    vdbBindImage(slot, filter, wrap);
     glUniform1i(uniform_sampler0, 0);
 
     float pvm[4*4];
@@ -299,35 +297,20 @@ void vdbDrawImage(int slot,
     glUseProgram(0);
 }
 
-void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap, vdbVec4 v_min, vdbVec4 v_max)
+void vdbBindImage(int slot, int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
+    glActiveTexture(GL_TEXTURE0 + unit);
+    if (GetImage(slot)->volume)
+        glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
+    else
+        glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
+    vdbSetTextureParameters(filter, wrap);
     glActiveTexture(GL_TEXTURE0);
-    if (GetImage(slot)->volume)
-        glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
-    else
-        glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
-    vdbSetTextureParameters(filter, wrap);
-    GetImage(slot)->v_min = v_min;
-    GetImage(slot)->v_max = v_max;
 }
 
-void vdbUnbindImage()
-{
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void vdbBindImageToTextureUnit(int slot, int unit, vdbTextureFilter filter, vdbTextureWrap wrap)
-{
-    glActiveTexture(GL_TEXTURE0 + unit);
-    if (GetImage(slot)->volume)
-        glBindTexture(GL_TEXTURE_3D, GetImage(slot)->handle);
-    else
-        glBindTexture(GL_TEXTURE_2D, GetImage(slot)->handle);
-    vdbSetTextureParameters(filter, wrap);
-}
-
-void vdbUnbindImageFromTextureUnit(int unit)
+void vdbUnbindImage(int unit)
 {
     glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);
+    glActiveTexture(GL_TEXTURE0);
 }

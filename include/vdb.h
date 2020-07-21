@@ -219,10 +219,8 @@ void    vdbLoadImageUint8  (int slot, const void *data, int width, int height, i
 void    vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void    vdbLoadVolumeFloat32(int slot, const void *data, int width, int height, int depth, int channels);
 void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
-void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
+void    vdbBindImage(int slot, int unit=0, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbUnbindImage();
-void    vdbBindImageToTextureUnit(int slot, int unit, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbUnbindImageFromTextureUnit(int unit);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Shaders
