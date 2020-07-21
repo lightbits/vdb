@@ -252,9 +252,7 @@ int main(int, char **)
         int tile_x = tile % tiles_x;
         int tile_y = tile / tiles_x;
 
-        vdbBeginRenderTarget(0,
-            vdbRenderTargetSize(tiles_x*tile_w, tiles_y*tile_h),
-            vdbRenderTargetFormat(VDB_RGBA8));
+        vdbBeginRenderTarget(0, {.width=tiles_x*tile_w, .height=tiles_y*tile_h, .format=VDB_RGBA8});
         vdbViewporti(tile_x*tile_w, tile_y*tile_h, tile_w, tile_h);
         if (tile == 0)
             vdbClearColor(1.0f, 0.73f, 0.22f, 1.0f);

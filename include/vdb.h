@@ -15,16 +15,13 @@ typedef int vdbTheme;
 struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
 struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
 struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
-struct vdbRenderTargetSize
+struct vdbRenderTargetDesc
 {
-    int width,height;
-    vdbRenderTargetSize(int w, int h) : width(w), height(h) { }
-};
-struct vdbRenderTargetFormat
-{
+    int width;
+    int height;
     vdbTextureFormat format;
-    int depth_bits,stencil_bits;
-    vdbRenderTargetFormat(vdbTextureFormat f, int d=0, int s=0) : format(f), depth_bits(d), stencil_bits(s) { }
+    int depth_bits;
+    int stencil_bits;
 };
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -247,7 +244,7 @@ void    vdbEndShader();
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Render targets
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFormat format);
+void    vdbBeginRenderTarget(int slot, vdbRenderTargetDesc desc);
 void    vdbEndRenderTarget();
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 

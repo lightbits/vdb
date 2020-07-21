@@ -3,16 +3,19 @@ typedef framebuffer_t render_target_t;
 enum { MAX_RENDER_TARGETS = 1024 };
 static framebuffer_t render_targets[MAX_RENDER_TARGETS];
 
-void vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFormat format)
+void vdbBeginRenderTarget(int slot, vdbRenderTargetDesc desc)
 {
     assert(slot >= 0 && slot < MAX_RENDER_TARGETS && "You are trying to use a render texture beyond the available slots.");
-    assert(format.stencil_bits == 0 && "Stencil in RenderTarget is not implemented yet.");
+
+    assert(desc.format == VDB_RGBA32F || desc.format == VDB_RGBA8);
+    assert(desc.stencil_bits == 0 && "Stencil in RenderTarget is not implemented yet.");
+    assert(desc.width > 0 && desc.height > 0 && "RenderTarget must have non-zero width and height.");
 
     render_target_t *rt = render_targets + slot;
     bool should_create = false;
     if (rt->fbo)
     {
-        if (rt->width != size.width || rt->height != size.height)
+        if (rt->width != desc.width || rt->height != desc.height)
         {
             FreeFramebuffer(rt);
             should_create = true;
@@ -25,10 +28,10 @@ void vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFor
 
     if (should_create)
     {
-        GLenum internal_format = TextureFormatToGL(format.format);
-        bool enable_depth = (format.depth_bits > 0);
+        GLenum internal_format = TextureFormatToGL(desc.format);
+        bool enable_depth = (desc.depth_bits > 0);
 
-        *rt = MakeFramebuffer(size.width, size.height, GL_LINEAR, GL_LINEAR, enable_depth, internal_format);
+        *rt = MakeFramebuffer(desc.width, desc.height, GL_LINEAR, GL_LINEAR, enable_depth, internal_format);
         EnableFramebuffer(rt);
         glClearColor(0,0,0,0);
         if (enable_depth) glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
