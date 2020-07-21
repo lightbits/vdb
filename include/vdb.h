@@ -254,7 +254,7 @@ void    vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTarget
 void    vdbEndRenderTarget();
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbBindRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbUnbindRenderTarget(int unit);
+void    vdbUnbindRenderTarget();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Widgets
