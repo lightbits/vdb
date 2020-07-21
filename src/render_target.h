@@ -54,9 +54,11 @@ void vdbBindRenderTarget(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
     vdbSetTextureParameters(filter, wrap);
 }
 
-void vdbUnbindRenderTarget()
+void vdbBindRenderTargetDepth(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
-    glBindTexture(GL_TEXTURE_2D, 0);
+    assert(slot >= 0 && slot < MAX_RENDER_TARGETS && "You are trying to use a render texture beyond the available slots.");
+    glBindTexture(GL_TEXTURE_2D, render_targets[slot].depth);
+    vdbSetTextureParameters(filter, wrap);
 }
 
 void DrawRenderTargetWithDepth(render_target_t rt)

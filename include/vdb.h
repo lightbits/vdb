@@ -60,7 +60,7 @@ void    vdbHint(vdbHintKey key, bool value);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbInverseColor(bool enable);
 void    vdbClearColor(float r, float g, float b, float a);
-void    vdbClearDepth(float d);
+void    vdbClearDepth(float d); // Clear the depth buffer (d is clamped to [0, 1]).
 void    vdbBlendNone();
 void    vdbBlendAdd();
 void    vdbBlendAlpha();
@@ -216,13 +216,10 @@ bool    vdbIsCameraMoving();
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Images
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbActiveTextureUnit(int unit); // Similar to glActiveTexture
 void    vdbLoadImageUint8  (int slot, const void *data, int width, int height, int channels);
 void    vdbLoadImageFloat32(int slot, const void *data, int width, int height, int channels);
 void    vdbLoadVolumeFloat32(int slot, const void *data, int width, int height, int depth, int channels);
 void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP, vdbVec4 v_min=vdbVec4(0,0,0,0), vdbVec4 v_max=vdbVec4(1,1,1,1));
-void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbUnbindImage();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Shaders
@@ -253,8 +250,15 @@ void    vdbEndShader();
 void    vdbBeginRenderTarget(int slot, vdbRenderTargetSize size, vdbRenderTargetFormat format);
 void    vdbEndRenderTarget();
 void    vdbDrawRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// § Texture bindings
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void    vdbActiveTextureUnit(int unit); // Only useful for providing multiple textures to a custom shader. Specifies the texture sampler unit that subsequent calls to vdbBind* will bind to. (Similar to glActiveTexture.)
+void    vdbBindImage(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
 void    vdbBindRenderTarget(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
-void    vdbUnbindRenderTarget();
+void    vdbBindRenderTargetDepth(int slot, vdbTextureFilter filter=VDB_LINEAR, vdbTextureWrap wrap=VDB_CLAMP);
+void    vdbUnbindTexture();
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Widgets

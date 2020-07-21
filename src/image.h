@@ -302,6 +302,11 @@ void vdbActiveTextureUnit(int unit)
     glActiveTexture(GL_TEXTURE0 + unit);
 }
 
+void vdbUnbindTexture()
+{
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
 {
     if (GetImage(slot)->volume)
@@ -311,7 +316,3 @@ void vdbBindImage(int slot, vdbTextureFilter filter, vdbTextureWrap wrap)
     vdbSetTextureParameters(filter, wrap);
 }
 
-void vdbUnbindImage()
-{
-    glBindTexture(GL_TEXTURE_2D, 0);
-}

@@ -284,7 +284,7 @@ int main(int, char **)
             void mainImage(out vec4 fragColor, in vec2 fragCoord) {
                 vec2 ndc = vec2(-1.0) + 2.0*fragCoord.xy/iResolution.xy;
 
-                // compute the ray origin and direction for this pixel
+                // Compute the ray origin and direction for this pixel
                 mat4 inv_pvm = inverse(iPVM);
                 vec4 ro = inv_pvm*vec4(ndc, -1.0, 1.0);
                 ro.xyz /= ro.w;
@@ -292,18 +292,25 @@ int main(int, char **)
                 rd.xyz /= rd.w;
                 rd = normalize(rd - ro);
 
-                // color and depth if we don't hit anything
+                // Color and depth if we don't hit anything
                 fragColor = vec4(0.0,0.0,0.0,0.0);
                 gl_FragDepth = 1.0;
 
-                // simple ray-marched scene
+                // Simple ray-marched scene
                 float t = 0.0;
                 for (int i = 0; i < 64; i++) {
                     vec3 p = ro.xyz + rd.xyz*t;
                     float d = scene(p);
-                    if (d < 0.001) {
+                    if (d < 0.001) { // We hit the scene.
+
+                        // Color based on normal
                         fragColor.rgb = 0.5*(vec3(0.5) + 0.5*normalize(p));
                         fragColor.a = 1.0;
+
+                        // Overwrite fragment depth (see OpenGL Spec: Coordinate Transformations).
+                        // Note that gl_DepthRange.near|far is not the same as the near and far
+                        // values used to form the projection matrix. vdb sets gl_DepthRange to
+                        // [0, 1] regardless, so their involvement here can be omitted.
                         vec4 clip = iPVM*vec4(p, 1.0);
                         float z_d = clip.z/clip.w;
                         gl_FragDepth = gl_DepthRange.near + (gl_DepthRange.diff)*(0.5 + 0.5*z_d);
