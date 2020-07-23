@@ -304,10 +304,11 @@ void    vdbSaveScreenshot(const char *filename);
 void    vdbLogPush(const char *label);
 void    vdbLogPush();
 void    vdbLogPop();
-void    vdbLogScalar(const char *label, float x);
-void    vdbLogMatrix(const char *label, float *x, int rows, int columns);
-void    vdbLogVector(const char *label, float *x, int elements);
+void    vdbLogScalar(const char *label, float x, int history=0);
+void    vdbLogMatrix(const char *label, float *x, int rows, int columns, int history=0);
+void    vdbLogVector(const char *label, float *x, int elements, int history=0);
 void    vdbLogDump(const char *filename);
+void    vdbLogShow(const char *id, const char *query);
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // § Row-major versions of matrix functions:

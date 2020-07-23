@@ -38,7 +38,7 @@ namespace ui
     static void ExitDialog();
     static void WindowSizeDialog();
     static void FramegrabDialog();
-    static void NewLogWindow();
+    static log_window_t *NewLogWindow();
     static void ShowLogWindow(log_window_t *window);
     static void ShowLogWindows();
 }
@@ -61,7 +61,7 @@ namespace ImGui
     }
 }
 
-static void ui::NewLogWindow()
+static ui::log_window_t *ui::NewLogWindow()
 {
     log_window_t *new_window = (log_window_t*)calloc(1, sizeof(log_window_t));
     new_window->counter = log_windows::counter++;
@@ -82,6 +82,32 @@ static void ui::NewLogWindow()
             window = window->next;
         }
         prev->next = new_window;
+    }
+    return new_window;
+}
+
+void vdbLogShow(const char *label, const char *query)
+{
+    using namespace ui;
+    log_window_t *w = NULL;
+    if (log_windows::first)
+    {
+        log_window_t *w1 = log_windows::first;
+        while (w1)
+        {
+            if (strcmp(w1->label, label) == 0)
+            {
+                w = w1;
+                break;
+            }
+            w1 = w1->next;
+        }
+    }
+    if (!w)
+    {
+        w = ui::NewLogWindow();
+        sprintf(w->label, label);
+        sprintf(w->query_buffer, query);
     }
 }
 

@@ -17,6 +17,7 @@ struct log_t
     std::vector<float> data;
     int rows, columns; // for matrix types
                        // note: matrix data is always column-major
+    int history;
 };
 
 struct logs_t
@@ -166,35 +167,89 @@ struct logs_t
         return l;
     }
 
-    void Scalar(const char *label, float x)
+    void Scalar(const char *label, float x, int history)
     {
         log_t *l = GetLog(label, log_type_scalar);
-        l->data.push_back(x);
+        l->history = history;
+        if (l->data.size() < history || history <= 0)
+        {
+            l->data.push_back(x);
+        }
+        else if (l->data.size() == history)
+        {
+            for (size_t i = 0; i < l->data.size() - 1; i++)
+                l->data[i] = l->data[i + 1];
+            l->data[l->data.size() - 1] = x;
+        }
+        else
+        {
+            assert(false && "Adjusting history is not handled");
+        }
     }
 
-    void Matrix(const char *label, float *x, int rows, int columns)
+    void Matrix(const char *label, float *x, int rows, int columns, int history)
     {
         log_t *l = GetLog(label, log_type_matrix);
+        l->history = history;
         l->rows = rows;
         l->columns = columns;
-        for (int col = 0; col < columns; col++)
-        for (int row = 0; row < rows; row++)
-            l->data.push_back(x[row + col*rows]);
+        int n = rows*columns;
+        if (l->data.size() < n*history || history <= 0)
+        {
+            for (int col = 0; col < columns; col++)
+            for (int row = 0; row < rows; row++)
+                l->data.push_back(x[row + col*rows]);
+        }
+        else if (l->data.size() == n*history)
+        {
+            for (size_t i = 0; i < l->data.size() - n; i++)
+                l->data[i] = l->data[i + n];
+            for (int col = 0; col < columns; col++)
+            for (int row = 0; row < rows; row++)
+            {
+                int i = row + col*rows;
+                l->data[l->data.size() - n + i] = x[i];
+            }
+        }
+        else
+        {
+            assert(false && "Adjusting history is not handled");
+        }
     }
 
-    void Matrix_RowMaj(const char *label, float *x, int rows, int columns)
+    void Matrix_RowMaj(const char *label, float *x, int rows, int columns, int history)
     {
         log_t *l = GetLog(label, log_type_matrix);
+        l->history = history;
         l->rows = rows;
         l->columns = columns;
-        for (int col = 0; col < columns; col++)
-        for (int row = 0; row < rows; row++)
-            l->data.push_back(x[col + row*columns]);
+        int n = rows*columns;
+        if (l->data.size() < n*history || history <= 0)
+        {
+            for (int col = 0; col < columns; col++)
+            for (int row = 0; row < rows; row++)
+                l->data.push_back(x[col + row*columns]);
+        }
+        else if (l->data.size() == n*history)
+        {
+            for (size_t i = 0; i < l->data.size() - n; i++)
+                l->data[i] = l->data[i + n];
+            for (int col = 0; col < columns; col++)
+            for (int row = 0; row < rows; row++)
+            {
+                int i = col + row*columns;
+                l->data[l->data.size() - n + i] = x[i];
+            }
+        }
+        else
+        {
+            assert(false && "Adjusting history is not handled");
+        }
     }
 
-    void Vector(const char *label, float *x, int elements)
+    void Vector(const char *label, float *x, int elements, int history)
     {
-        Matrix(label, x, elements, 1);
+        Matrix(label, x, elements, 1, history);
     }
 
     void _Dump(FILE *f, log_t *l, int indent_level)
@@ -290,8 +345,8 @@ static logs_t logs;
 void vdbLogPush(const char *label) { logs.Push(label); }
 void vdbLogPush() { logs.Push(); }
 void vdbLogPop() { logs.Pop(); }
-void vdbLogScalar(const char *label, float x) { logs.Scalar(label, x); }
-void vdbLogMatrix(const char *label, float *x, int rows, int columns) { logs.Matrix(label, x, rows, columns); }
-void vdbLogMatrix_RowMaj(const char *label, float *x, int rows, int columns) { logs.Matrix_RowMaj(label, x, rows, columns); }
-void vdbLogVector(const char *label, float *x, int elements) { logs.Vector(label, x, elements); }
+void vdbLogScalar(const char *label, float x, int history) { logs.Scalar(label, x, history); }
+void vdbLogMatrix(const char *label, float *x, int rows, int columns, int history) { logs.Matrix(label, x, rows, columns, history); }
+void vdbLogMatrix_RowMaj(const char *label, float *x, int rows, int columns, int history) { logs.Matrix_RowMaj(label, x, rows, columns, history); }
+void vdbLogVector(const char *label, float *x, int elements, int history) { logs.Vector(label, x, elements, history); }
 void vdbLogDump(const char *filename) { logs.Dump(filename); }
