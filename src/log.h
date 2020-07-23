@@ -93,7 +93,7 @@ struct logs_t
         return false;
     }
 
-    log_t *Find(const char *str)
+    log_t *Find(const char *str, int *data_index)
     {
         if (!str)
             return NULL;
@@ -111,11 +111,23 @@ struct logs_t
             {
                 char *end;
                 int i = strtol(c, &end, 0);
-                if (i < 0)
-                    i += (int)l->children.size();
-                if (i < 0 || i >= (int)l->children.size())
-                    return NULL;
-                l = l->children[i];
+                if (l->type == log_type_group)
+                {
+                    if (i < 0)
+                        i += (int)l->children.size();
+                    if (i < 0 || i >= (int)l->children.size())
+                        return NULL;
+                    l = l->children[i];
+                }
+                else
+                {
+                    if (i < 0)
+                        i += (int)l->data.size();
+                    if (i < 0 || i >= (int)l->data.size())
+                        return NULL;
+                    *data_index = i;
+                    return l;
+                }
                 c = end - 1;
             }
             // term is a label

@@ -129,7 +129,8 @@ static void ui::ShowLogWindow(log_window_t *window)
         ImGui::PopItemWidth();
     }
 
-    log_t *l = logs.Find(window->query_buffer);
+    int data_index = -1;
+    log_t *l = logs.Find(window->query_buffer, &data_index);
 
     ImVec2 plot_area_size = ImGui::GetContentRegionAvail();
 
@@ -143,10 +144,12 @@ static void ui::ShowLogWindow(log_window_t *window)
         int values_offset = 0;
         const char *overlay = NULL;
 
-        if (values_count == 1)
+        if (values_count == 1 || data_index >= 0)
         {
+            int i = data_index >= 0 ? data_index : 0;
+            assert(i >= 0 && i < values_count);
             static char buffer[1024];
-            sprintf(buffer, "%g", values[0]);
+            sprintf(buffer, "%g", values[i]);
             ImGui::PushFont(ui::big_font);
             ImVec2 text_size = ImGui::CalcTextSize(buffer);
             ImGui::SetCursorPosX(plot_area_size.x*0.5f - text_size.x*0.5f);
@@ -167,7 +170,9 @@ static void ui::ShowLogWindow(log_window_t *window)
     {
         int rows = l->rows;
         int cols = l->columns;
-        float *data = &l->data[0];
+        int i = data_index >= 0 ? rows*cols*data_index : (int)l->data.size() - rows*cols;
+        assert(i >= 0 && i < (int)l->data.size());
+        float *data = &l->data[i];
         for (int row = 0; row < rows; row++)
         for (int col = 0; col < cols; col++)
         {
