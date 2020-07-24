@@ -42,7 +42,8 @@ int main(int, char **)
 {
     VDBB("Hello VDB");
     {
-        ImGui::TextWrapped("Press F10 to continue.");
+        vdbNoteAlign(0.5f, 0.5f);
+        vdbNote(0.0f, 0.0f, "Welcome to vdb!\nPress F10 to continue.");
     }
     VDBE();
 
@@ -62,9 +63,7 @@ int main(int, char **)
             };
             vdbClearColor(c[i%8][0], c[i%8][1], c[i%8][2], 1.0f);
 
-            ImGui::TextWrapped("Iteration: %d", i);
-            ImGui::TextWrapped("F10 steps once.");
-            ImGui::TextWrapped("F5 skips to the next VDBB/VDBE block.");
+            vdbNote(0.0f, 0.0f, "F10 steps once.\nF5 skips to the next VDBB/VDBE block.\nIteration: %d\n", i);
         }
         VDBE();
     }
@@ -78,42 +77,67 @@ int main(int, char **)
         vdbColor(0.5f, 0.5f, 1.0f, 1.0f); vdbVertex(+0.0f, +0.5f);
         vdbEnd();
 
-        ImGui::TextWrapped("Inside a block you can draw things, like this triangle.");
+        vdbNote(0.0f, 0.5f, "Inside a block you can draw things.\nLike this triangle.");
     }
     VDBE();
 
+    // Hints can be used to initialize VDB settings upon entering a block.
+    // Settings can still be changed within the block, but changes will not
+    // persist across restarts of the program.
     vdbHint(VDB_VIEW_SCALE, 2.0f);
     vdbHint(VDB_ORIENTATION, VDB_Z_UP);
     vdbHint(VDB_CAMERA_TYPE, VDB_TURNTABLE);
     VDBB("3D");
     {
         static float t = 0.0f; t += 1.0f/60.0f;
+        int nx = 64;
+        int ny = 64;
         vdbPointSize(6.0f);
         vdbBeginPoints();
+        for (int yi = 0; yi <= ny; yi++)
+        for (int xi = 0; xi <= nx; xi++)
         {
-            int nx = 64;
-            int ny = 64;
-            for (int yi = 0; yi <= ny; yi++)
-            for (int xi = 0; xi <= nx; xi++)
-            {
-                float xt = (float)xi/nx;
-                float yt = (float)yi/ny;
+            float xt = (float)xi/nx;
+            float yt = (float)yi/ny;
 
-                float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
-                h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
+            float h = sinf(6.0f*xt+t)*cosf(7.0f*yt+t);
+            h += 0.25f*sinf(13.0f*xt+1.2f*t)*cosf(18.0f*yt+1.5f*t);
 
-                float x = -1.0f + 2.0f*xt;
-                float y = -1.0f + 2.0f*yt;
-                float z = 0.2f*h;
+            float x = -1.0f + 2.0f*xt;
+            float y = -1.0f + 2.0f*yt;
+            float z = 0.2f*h;
 
-                float c = 0.5f+z;
-                vdbColor(c, 0.5f*c, 0.2f*c, 1.0f);
-                vdbVertex(x, y, z);
-            }
+            float c = 0.5f+z;
+            vdbColor(c, 0.5f*c, 0.2f*c, 1.0f);
+            vdbVertex(x, y, z);
         }
         vdbEnd();
 
-        ImGui::TextWrapped("... or this 3D landscape! Click the 'Camera' tab and select a camera. Use mouse to move around.");
+        vdbNote(0.0f, 0.5f, "...or this 3D landscape.\n(Click the 'View' tab and select a camera.\nUse mouse to move around.)");
+    }
+    VDBE();
+
+    VDBB("Shaders");
+    {
+        if (vdbIsFirstFrame())
+        {
+            vdbLoadShader(0, // <- This number is the "slot", which is used again below to access the shader
+            "uniform float iTime;\n"
+            "void mainImage(out vec4 fragColor, in vec2 fragCoord)\n"
+            "{\n"
+            "    vec2 uv = fragCoord.xy/iResolution.xy;\n"
+            "    fragColor = vec4(uv, 0.5 + 0.5*sin(iTime), 1.0);\n"
+            "}\n");
+        }
+
+        static float iTime = 0.0f;
+        iTime += 1.0f/60.0f;
+
+        vdbBeginShader(0);
+        vdbUniform1f("iTime", iTime); // <- Shader uniforms must be specified inside the vdb(Begin|End)Shader block
+        vdbEndShader();
+
+        vdbNote(0.0f, 0.5f, "...or custom fragment shaders!");
     }
     VDBE();
 
@@ -177,33 +201,15 @@ int main(int, char **)
         if (vdbIsFirstFrame())
             vdbLoadImageUint8(0, data, width, height, 3);
         vdbDrawImage(0, -1.0f,-1.0f,2.0f,2.0f, VDB_NEAREST, VDB_CLAMP);
-        ImGui::TextWrapped("You can access variables outside the block, like this RGB image.");
+        vdbNote(0.0f, 0.0f, "You can access variables outside the block,\nlike this RGB image.");
     }
     VDBE();
 
-    VDBB("ImGui");
+    VDBB("Dear ImGui");
     {
         vdbClearColor(0.99f, 0.55f, 0.38f, 1.0f);
         ImGui::ShowDemoWindow();
-        ImGui::TextWrapped("VDB includes ImGui: https://github.com/ocornut/imgui/");
-    }
-    VDBE();
-
-    VDBB("shader");
-    {
-        const char *fs =
-        "void mainImage(out vec4 fragColor, in vec2 fragCoord)\n"
-        "{\n"
-        "    vec2 uv = fragCoord.xy/iResolution.xy;\n"
-        "    fragColor = vec4(uv, 0.5, 1.0);\n"
-        "}\n";
-
-        if (vdbIsFirstFrame())
-            vdbLoadShader(0, fs);
-        vdbClearColor(1,1,1,1);
-        vdbBeginShader(0);
-        vdbUniform2f("Resolution", (float)vdbGetFramebufferWidth(), (float)vdbGetFramebufferHeight());
-        vdbEndShader();
+        ImGui::TextWrapped("vdb includes Dear ImGui: https://github.com/ocornut/imgui/");
     }
     VDBE();
 
@@ -242,7 +248,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("RenderTarget");
+    VDBB("Offscreen rendering");
     {
         static int tile = 0;
         int tiles_x = 16;
@@ -270,7 +276,7 @@ int main(int, char **)
     }
     VDBE();
 
-    VDBB("Test raycasting");
+    VDBB("Shaders");
     {
         if (vdbIsFirstFrame())
         {
@@ -335,7 +341,7 @@ int main(int, char **)
     VDBE();
 
     vdbHint(VDB_CAMERA_TYPE, VDB_PLANAR);
-    VDBB("colormaps");
+    VDBB("Colormaps");
     {
         // VDB supports most of the colormaps provided by Matplotlib,
         // accessed using a string which follows Matplotlib's naming:

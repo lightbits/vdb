@@ -1,32 +1,42 @@
 namespace immediate_util
 {
     static int note_index;
+    static float note_align_x;
+    static float note_align_y;
+    static char temp_buffer[1024*3 + 1];
     static void BeginFrame()
     {
         note_index = 0;
+        note_align_x = 0.0f;
+        note_align_y = 0.0f;
     }
 }
 
 void vdbNoteV(float x, float y, const char *fmt, va_list args)
 {
-    // Transform position to window coordinates
+    using namespace immediate_util;
     vdbVec2 ndc = vdbModelToNDC(x,y,0.0f,1.0f);
     vdbVec2 win = vdbNDCToWindow(ndc.x,ndc.y);
-
-    char name[1024];
-    sprintf(name, "vdb_tooltip_%d", immediate_util::note_index);
-    ImGui::SetNextWindowPos(ImVec2(win.x, win.y));
-    ImGui::Begin(name, 0, ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
+    ImFormatString(temp_buffer, sizeof(temp_buffer), "vdb_tooltip_%d", note_index);
+    ImGui::SetNextWindowPos(ImVec2(win.x, win.y), 0, ImVec2(note_align_x, note_align_y));
+    ImGui::Begin(temp_buffer, 0, ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::TextV(fmt, args);
     ImGui::End();
-    immediate_util::note_index++;
+    note_index++;
 }
+
 void vdbNote(float x, float y, const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
     vdbNoteV(x, y, fmt, args);
     va_end(args);
+}
+
+void vdbNoteAlign(float x, float y)
+{
+    immediate_util::note_align_x = x;
+    immediate_util::note_align_y = y;
 }
 
 void vdbFillRect_(float x, float y, float w, float h)

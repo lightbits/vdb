@@ -106,6 +106,7 @@ void    vdbDrawList(int list);
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
 void    vdbNote(float x, float y, const char *fmt, ...);
+void    vdbNoteAlign(float x, float y); // x = 0: left-aligned. x = 1: right-aligned. y = 0: bottom-aligned. y = 1: top-aligned.
 void    vdbLineCube_(float size_x, float size_y, float size_z);
 void    vdbLineCube (float size_x, float size_y, float size_z);
 void    vdbLineCube_(vdbVec3 p_min, vdbVec3 p_max);
