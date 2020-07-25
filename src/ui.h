@@ -218,7 +218,7 @@ static void ui::ShowLogWindow(log_window_t *window)
                 {
                     float value = data[row + rows*col];
                     ImGui::CaptureMouseFromApp();
-                    ImGui::SetTooltip("%g", value);
+                    ImGui::SetTooltip("[%d,%d]: %g", row, col, value);
                     ImVec2 ai = ImVec2(a.x + col*cell_size, a.y + row*cell_size);
                     ImVec2 bi = ImVec2(a.x + (col+1)*cell_size, a.y + (row+1)*cell_size);
                     list->AddRect(ai, bi, IM_COL32(255,100,50,255), 0.0f, ImDrawCornerFlags_All, 2.0f);
