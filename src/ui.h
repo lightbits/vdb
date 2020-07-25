@@ -189,10 +189,10 @@ static void ui::ShowLogWindow(log_window_t *window)
             }
 
             ImGui::BeginGroup();
-            ImVec2 p = ImGui::GetWindowPos();
-            ImVec2 a = ImGui::GetWindowContentRegionMin();
-            a.x += p.x;
-            a.y += p.y;
+            ImVec2 a = ImGui::GetCursorScreenPos();
+            // ImVec2 a = ImGui::GetWindowContentRegionMin();
+            // a.x += p.x;
+            // a.y += p.y;
             float w = ImGui::GetWindowContentRegionWidth();
             float cell_size = w/cols;
             float h = rows*cell_size;;
