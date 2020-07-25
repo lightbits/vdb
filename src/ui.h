@@ -25,6 +25,7 @@ namespace ui
         char label[query_buffer_size];
         char query_buffer[query_buffer_size];
         bool plot_as_histogram;
+        bool plot_as_heatmap;
         log_window_t *next;
     };
 
@@ -173,13 +174,64 @@ static void ui::ShowLogWindow(log_window_t *window)
         int i = data_index >= 0 ? rows*cols*data_index : (int)l->data.size() - rows*cols;
         assert(i >= 0 && i < (int)l->data.size());
         float *data = &l->data[i];
-        for (int row = 0; row < rows; row++)
-        for (int col = 0; col < cols; col++)
+
+        if (window->plot_as_heatmap)
         {
-            ImGui::Text("%8.4f", data[row + col*rows]);
-            if (col < cols-1)
-                ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImVec2 p = ImGui::GetWindowPos();
+            ImVec2 a = ImGui::GetWindowContentRegionMin();
+            a.x += p.x;
+            a.y += p.y;
+            float w = ImGui::GetWindowContentRegionWidth();
+            float cell_size = w/cols;
+            float h = rows*cell_size;;
+            ImDrawList *list = ImGui::GetWindowDrawList();
+            for (int row = 0; row < rows; row++)
+            for (int col = 0; col < cols; col++)
+            {
+                ImVec2 ai = ImVec2(a.x + col*cell_size, a.y + row*cell_size);
+                ImVec2 bi = ImVec2(a.x + (col+1)*cell_size, a.y + (row+1)*cell_size);
+                float v = data[row + rows*col];
+                vdbVec4 c = vdbGetColor(v);
+                list->AddRectFilled(ai, bi, IM_COL32(c.x*255.0f,c.y*255.0f,c.z*255.0f,255));
+            }
+            ImGui::Dummy(ImVec2(w, h));
+            if (ImGui::IsItemHovered())
+            {
+                ImVec2 mouse = ImGui::GetMousePos();
+                mouse.x -= a.x;
+                mouse.y -= a.y;
+                int row = (int)(mouse.y/cell_size);
+                int col = (int)(mouse.x/cell_size);
+                if (row >= 0 && row < rows && col >= 0 && col < cols)
+                {
+                    float value = data[row + rows*col];
+                    ImGui::CaptureMouseFromApp();
+                    ImGui::SetTooltip("%g", value);
+                    ImVec2 ai = ImVec2(a.x + col*cell_size, a.y + row*cell_size);
+                    ImVec2 bi = ImVec2(a.x + (col+1)*cell_size, a.y + (row+1)*cell_size);
+                    ImVec2 c = ImVec2(a.x + (col+0.5f)*cell_size, a.y + (row+0.5f)*cell_size);
+                    list->AddCircleFilled(c, cell_size*0.2f, IM_COL32(0,0,0,255));
+                    list->AddCircleFilled(c, cell_size*0.15f, IM_COL32(255,255,255,255));
+                }
+            }
+            ImGui::EndGroup();
         }
+        else
+        {
+            ImGui::BeginGroup();
+            for (int row = 0; row < rows; row++)
+            for (int col = 0; col < cols; col++)
+            {
+                ImGui::Text("%8.4f", data[row + col*rows]);
+                if (col < cols-1)
+                    ImGui::SameLine();
+            }
+            ImGui::EndGroup();
+        }
+
+        if (ImGui::IsItemClicked())
+            window->plot_as_heatmap = !window->plot_as_heatmap;
     }
 
     ImGui::End();
