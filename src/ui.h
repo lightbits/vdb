@@ -195,7 +195,9 @@ static void ui::ShowLogWindow(log_window_t *window)
             // a.y += p.y;
             float w = ImGui::GetWindowContentRegionWidth();
             float cell_size = w/cols;
-            float h = rows*cell_size;;
+            if (cell_size > 64.0f)
+                cell_size = 64.0f;
+            float h = rows*cell_size;
             ImDrawList *list = ImGui::GetWindowDrawList();
             for (int row = 0; row < rows; row++)
             for (int col = 0; col < cols; col++)
