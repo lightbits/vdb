@@ -114,10 +114,16 @@ void vdbLogShow(const char *label, const char *query)
 
 static void ui::ShowLogWindow(log_window_t *window)
 {
+    int data_index = -1;
+    log_t *l = logs.Find(window->query_buffer, &data_index);
+    ImGuiWindowFlags flags = 0;
+    if (l && l->type == log_type_matrix && window->plot_as_heatmap)
+        flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
+
     ImGui::SetNextWindowSize(ImVec2(500, 200), ImGuiCond_FirstUseEver);
     static char window_title[1024];
     sprintf(window_title, "%s###%s", window->query_buffer, window->label);
-    if (!ImGui::Begin(window_title, &window->open))
+    if (!ImGui::Begin(window_title, &window->open, flags))
     {
         ImGui::End();
         return;
@@ -129,9 +135,6 @@ static void ui::ShowLogWindow(log_window_t *window)
         ImGui::InputText("##query", window->query_buffer, query_buffer_size);
         ImGui::PopItemWidth();
     }
-
-    int data_index = -1;
-    log_t *l = logs.Find(window->query_buffer, &data_index);
 
     ImVec2 plot_area_size = ImGui::GetContentRegionAvail();
 
@@ -218,9 +221,7 @@ static void ui::ShowLogWindow(log_window_t *window)
                     ImGui::SetTooltip("%g", value);
                     ImVec2 ai = ImVec2(a.x + col*cell_size, a.y + row*cell_size);
                     ImVec2 bi = ImVec2(a.x + (col+1)*cell_size, a.y + (row+1)*cell_size);
-                    ImVec2 c = ImVec2(a.x + (col+0.5f)*cell_size, a.y + (row+0.5f)*cell_size);
-                    list->AddCircleFilled(c, cell_size*0.2f, IM_COL32(0,0,0,255));
-                    list->AddCircleFilled(c, cell_size*0.15f, IM_COL32(255,255,255,255));
+                    list->AddRect(ai, bi, IM_COL32(255,100,50,255), 0.0f, ImDrawCornerFlags_All, 2.0f);
                 }
             }
             ImGui::EndGroup();
