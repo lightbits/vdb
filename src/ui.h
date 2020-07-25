@@ -177,6 +177,14 @@ static void ui::ShowLogWindow(log_window_t *window)
 
         if (window->plot_as_heatmap)
         {
+            float min_value = FLT_MAX;
+            float max_value = -FLT_MAX;
+            for (int j = 0; j < rows*cols; j++)
+            {
+                if (data[j] > max_value) max_value = data[j];
+                if (data[j] < min_value) min_value = data[j];
+            }
+
             ImGui::BeginGroup();
             ImVec2 p = ImGui::GetWindowPos();
             ImVec2 a = ImGui::GetWindowContentRegionMin();
@@ -192,8 +200,8 @@ static void ui::ShowLogWindow(log_window_t *window)
                 ImVec2 ai = ImVec2(a.x + col*cell_size, a.y + row*cell_size);
                 ImVec2 bi = ImVec2(a.x + (col+1)*cell_size, a.y + (row+1)*cell_size);
                 float v = data[row + rows*col];
-                vdbVec4 c = vdbGetColor(v);
-                list->AddRectFilled(ai, bi, IM_COL32(c.x*255.0f,c.y*255.0f,c.z*255.0f,255));
+                int c = (int)(255.0f*(v - min_value)/(max_value - min_value));
+                list->AddRectFilled(ai, bi, IM_COL32(c,c,c,255));
             }
             ImGui::Dummy(ImVec2(w, h));
             if (ImGui::IsItemHovered())
