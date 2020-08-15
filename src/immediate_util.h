@@ -59,13 +59,13 @@ void vdbLineRect_(float x, float y, float w, float h)
 {
     vdbVertex(x, y); vdbVertex(x+w, y);
     vdbVertex(x+w, y); vdbVertex(x+w, y+h);
-    vdbVertex(x+y, y+h); vdbVertex(x, y+h);
+    vdbVertex(x+w, y+h); vdbVertex(x, y+h);
     vdbVertex(x, y+h); vdbVertex(x, y);
 }
 void vdbLineRect(float x, float y, float w, float h)
 {
     vdbBeginLines();
-    vdbFillRect_(x, y, w, h);
+    vdbLineRect_(x, y, w, h);
     vdbEnd();
 }
 
