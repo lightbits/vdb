@@ -14,6 +14,9 @@ struct vdbColormapData
 
 static vdbColormapData vdb_colormap_data[] =
 {
+    #ifdef VDB_EXTRAS
+    #include "../extras/colormap_data.h"
+    #endif
     {
         "viridis",
         256,
