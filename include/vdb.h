@@ -12,9 +12,9 @@ typedef int vdbTextureFormat;
 typedef int vdbTextureFilter;
 typedef int vdbTextureWrap;
 typedef int vdbTheme;
-struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float _x, float _y) { x=_x; y=_y; } };
-struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float _x, float _y, float _z) { x=_x; y=_y; z=_z; } };
-struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float _x, float _y, float _z, float _w) { x=_x; y=_y; z=_z; w=_w; } };
+struct vdbVec2 { float x,y;     vdbVec2() { x=y=0;     } vdbVec2(float v) : x(v), y(v) { }             vdbVec2(float _x, float _y) : x(_x), y(_y) { } };
+struct vdbVec3 { float x,y,z;   vdbVec3() { x=y=z=0;   } vdbVec3(float v) : x(v), y(v), z(v) { }       vdbVec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) { } };
+struct vdbVec4 { float x,y,z,w; vdbVec4() { x=y=z=w=0; } vdbVec4(float v) : x(v), y(v), z(v), w(v) { } vdbVec4(float _x, float _y, float _z, float _w) : x(_x), y(_y), z(_z), w(_w) { } };
 struct vdbRenderTargetDesc
 {
     int width;
