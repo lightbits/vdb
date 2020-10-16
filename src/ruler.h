@@ -8,8 +8,6 @@ namespace ruler
     static float distance;
     static int max_text_length;
 
-    static bool display_pixel_units;
-
     static void BeginFrame();
     static void EndFrame();
     static void DrawOverlay();
@@ -76,7 +74,8 @@ static void ruler::EndFrame()
     mouse_model = vdbNDCToModel(mouse_ndc.x, mouse_ndc.y);
     float dx = b_model.x - a_model.x;
     float dy = b_model.y - a_model.y;
-    distance_model = sqrtf(dx*dx + dy*dy);
+    float dz = b_model.z - a_model.z;
+    distance_model = sqrtf(dx*dx + dy*dy + dz*dz);
     distance = sqrtf((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y));
 }
 
@@ -103,11 +102,6 @@ static void ruler::DrawOverlay()
 
     ImGui::BeginMainMenuBar();
     ImGui::Separator();
-    static char label[256];
-    if (display_pixel_units)
-        sprintf(label, "%7d,%7d: %7d (pixels)###vdb_ruler_button", (int)mouse.x, (int)mouse.y, (int)distance);
-    else
-        sprintf(label, "%10.6f,%10.6f: %10.6f (model)###vdb_ruler_button", mouse_model.x, mouse_model.y, distance_model);
-    if (ImGui::MenuItem(label)) display_pixel_units = !display_pixel_units;
+    ImGui::Text("Ruler: %10.6f (%d pixels)", distance_model, (int)distance);
     ImGui::EndMainMenuBar();
 }
