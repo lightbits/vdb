@@ -294,7 +294,7 @@ int main(int, char **)
                 ro.xyz /= ro.w;
                 vec4 rd = inv_pvm*vec4(ndc, +1.0, 1.0);
                 rd.xyz /= rd.w;
-                rd = normalize(rd - ro);
+                rd.xyz = normalize(rd.xyz - ro.xyz);
 
                 // Color and depth if we don't hit anything
                 fragColor = vec4(0.0,0.0,0.0,0.0);
