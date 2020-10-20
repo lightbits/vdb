@@ -290,7 +290,7 @@ int main(int, char **)
 
                 // Compute the ray origin and direction for this pixel
                 mat4 inv_pvm = inverse(iPVM);
-                vec4 ro = inv_pvm*vec4(ndc, -1.0, 1.0);
+                vec4 ro = inv_pvm*vec4(ndc, +0.0, 1.0);
                 ro.xyz /= ro.w;
                 vec4 rd = inv_pvm*vec4(ndc, +1.0, 1.0);
                 rd.xyz /= rd.w;
