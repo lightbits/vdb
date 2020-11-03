@@ -91,11 +91,9 @@ GLuint vdb_gl_current_program = 0;
 enum { vdb_max_shaders = 1000 };
 static GLuint vdb_gl_shaders[vdb_max_shaders];
 
-void vdbLoadShader(int slot, const char *user_fs_source)
+bool vdbLoadShader(int slot, const char *user_fs_source)
 {
     assert(slot >= 0 && slot < vdb_max_shaders && "You are trying to set a pixel shader beyond the available number of slots.");
-    if (vdb_gl_shaders[slot])
-        glDeleteProgram(vdb_gl_shaders[slot]);
 
     const char *vs_source =
         "#version 150\n"
@@ -126,8 +124,13 @@ void vdbLoadShader(int slot, const char *user_fs_source)
     };
     int num_fs_source = sizeof(fs_source)/sizeof(fs_source[0]);
 
-    vdb_gl_shaders[slot] = LoadShaderFromMemory(&vs_source, 1, fs_source, num_fs_source);
-    assert(vdb_gl_shaders[slot] && "Failed to load shader.");
+    GLuint shader = LoadShaderFromMemory(&vs_source, 1, fs_source, num_fs_source);
+    if (shader == 0)
+        return false;
+    if (vdb_gl_shaders[slot])
+        glDeleteProgram(vdb_gl_shaders[slot]);
+    vdb_gl_shaders[slot] = shader;
+    return true;
 }
 
 void vdbBeginShader(int slot)

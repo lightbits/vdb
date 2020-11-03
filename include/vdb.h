@@ -228,7 +228,7 @@ void    vdbDrawImage(int slot, float x, float y, float w, float h, vdbTextureFil
 //   uniform mat4  iPVM;         // Projection*ViewModel matrix
 //   uniform mat4  iModelToView; // ViewModel matrix
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void    vdbLoadShader(int slot, const char *fragment_shader_source_string);
+bool    vdbLoadShader(int slot, const char *fragment_shader_source_string);
 void    vdbBeginShader(int slot);
 void    vdbUniform1f(const char *name, float x);
 void    vdbUniform2f(const char *name, float x, float y);
