@@ -1,3 +1,6 @@
+// Obs! When copying latest version of ImGui into VDB, you need to disable
+// freetype includes in imgui_freetype.cpp in the unity build.
+
 // Obs! This file must be included before ImGui that uses freetype functions
 // because we redefine them. This is so that we don't have to change the ImGui
 // source code to use differently named functions (allow for easy updates).
@@ -6,6 +9,10 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 #include FT_SYNTHESIS_H
+#include FT_MODULE_H
+typedef FT_Error (*PFNFTNEWLIBRARY)(FT_Memory memory, FT_Library *alibrary);
+typedef FT_Error (*PFNFTDONELIBRARY)(FT_Library library);
+typedef void     (*PFNFTADDDEFAULTMODULES)(FT_Library library);
 typedef FT_Error (*PFNFTINITFREETYPE)(FT_Library *alibrary);
 typedef FT_Error (*PFNFTRENDERGLYPH)(FT_GlyphSlot slot, FT_Render_Mode render_mode);
 typedef FT_Error (*PFNFTNEWMEMORYFACE)(FT_Library library, const FT_Byte* file_base, FT_Long file_size, FT_Long face_index, FT_Face *aface);
@@ -20,6 +27,9 @@ typedef void (*PFNFTGLYPHSLOTOBLIQUE)(FT_GlyphSlot slot);
 typedef FT_Error (*PFNFTGETGLYPH)(FT_GlyphSlot slot, FT_Glyph *aglyph);
 typedef FT_Error (*PFNFTGLYPHTOBITMAP)(FT_Glyph* the_glyph, FT_Render_Mode render_mode, FT_Vector* origin, FT_Bool destroy);
 typedef void (*PFNFTDONEGLYPH)(FT_Glyph glyph);
+PFNFTNEWLIBRARY VDB_FT_New_Library;
+PFNFTDONELIBRARY VDB_FT_Done_Library;
+PFNFTADDDEFAULTMODULES VDB_FT_Add_Default_Modules;
 PFNFTINITFREETYPE VDB_FT_Init_FreeType;
 PFNFTRENDERGLYPH VDB_FT_Render_Glyph;
 PFNFTNEWMEMORYFACE VDB_FT_New_Memory_Face;
@@ -34,6 +44,9 @@ PFNFTGLYPHSLOTOBLIQUE VDB_FT_GlyphSlot_Oblique;
 PFNFTGETGLYPH VDB_FT_Get_Glyph;
 PFNFTGLYPHTOBITMAP VDB_FT_Glyph_To_Bitmap;
 PFNFTDONEGLYPH VDB_FT_Done_Glyph;
+#define FT_New_Library VDB_FT_New_Library
+#define FT_Done_Library VDB_FT_Done_Library
+#define FT_Add_Default_Modules VDB_FT_Add_Default_Modules
 #define FT_Init_FreeType VDB_FT_Init_FreeType
 #define FT_Render_Glyph VDB_FT_Render_Glyph
 #define FT_New_Memory_Face VDB_FT_New_Memory_Face
@@ -64,20 +77,23 @@ bool TryLoadFreetype()
     if (freetype)
     {
         ok = true;
-        FT_Init_FreeType      = (PFNFTINITFREETYPE)      SDL_LoadFunction(freetype, "FT_Init_FreeType");      if (!VDB_FT_Init_FreeType) ok = false;
-        FT_Render_Glyph       = (PFNFTRENDERGLYPH)       SDL_LoadFunction(freetype, "FT_Render_Glyph");       if (!VDB_FT_Render_Glyph) ok = false;
-        FT_New_Memory_Face    = (PFNFTNEWMEMORYFACE)     SDL_LoadFunction(freetype, "FT_New_Memory_Face");    if (!VDB_FT_New_Memory_Face) ok = false;
-        FT_Select_Charmap     = (PFNFTSELECTCHARMAP)     SDL_LoadFunction(freetype, "FT_Select_Charmap");     if (!VDB_FT_Select_Charmap) ok = false;
-        FT_Done_Face          = (PFNFTDONEFACE)          SDL_LoadFunction(freetype, "FT_Done_Face");          if (!VDB_FT_Done_Face) ok = false;
-        FT_Done_FreeType      = (PFNFTDONEFREETYPE)      SDL_LoadFunction(freetype, "FT_Done_FreeType");      if (!VDB_FT_Done_FreeType) ok = false;
-        FT_Request_Size       = (PFNFTREQUESTSIZE)       SDL_LoadFunction(freetype, "FT_Request_Size");       if (!VDB_FT_Request_Size) ok = false;
-        FT_Get_Char_Index     = (PFNFTGETCHARINDEX)      SDL_LoadFunction(freetype, "FT_Get_Char_Index");     if (!VDB_FT_Get_Char_Index) ok = false;
-        FT_Load_Glyph         = (PFNFTLOADGLYPH)         SDL_LoadFunction(freetype, "FT_Load_Glyph");         if (!VDB_FT_Load_Glyph) ok = false;
-        FT_GlyphSlot_Embolden = (PFNFTGLYPHSLOTEMBOLDEN) SDL_LoadFunction(freetype, "FT_GlyphSlot_Embolden"); if (!VDB_FT_GlyphSlot_Embolden) ok = false;
-        FT_GlyphSlot_Oblique  = (PFNFTGLYPHSLOTOBLIQUE)  SDL_LoadFunction(freetype, "FT_GlyphSlot_Oblique");  if (!VDB_FT_GlyphSlot_Oblique) ok = false;
-        FT_Get_Glyph          = (PFNFTGETGLYPH)          SDL_LoadFunction(freetype, "FT_Get_Glyph");          if (!VDB_FT_Get_Glyph) ok = false;
-        FT_Glyph_To_Bitmap    = (PFNFTGLYPHTOBITMAP)     SDL_LoadFunction(freetype, "FT_Glyph_To_Bitmap");    if (!VDB_FT_Glyph_To_Bitmap) ok = false;
-        FT_Done_Glyph         = (PFNFTDONEGLYPH)         SDL_LoadFunction(freetype, "FT_Done_Glyph");         if (!VDB_FT_Done_Glyph) ok = false;
+        FT_New_Library         = (PFNFTNEWLIBRARY)        SDL_LoadFunction(freetype, "FT_New_Library");
+        FT_Done_Library        = (PFNFTDONELIBRARY)       SDL_LoadFunction(freetype, "FT_Done_Library");
+        FT_Add_Default_Modules = (PFNFTADDDEFAULTMODULES) SDL_LoadFunction(freetype, "FT_Add_Default_Modules");
+        FT_Init_FreeType       = (PFNFTINITFREETYPE)      SDL_LoadFunction(freetype, "FT_Init_FreeType");      if (!VDB_FT_Init_FreeType) ok = false;
+        FT_Render_Glyph        = (PFNFTRENDERGLYPH)       SDL_LoadFunction(freetype, "FT_Render_Glyph");       if (!VDB_FT_Render_Glyph) ok = false;
+        FT_New_Memory_Face     = (PFNFTNEWMEMORYFACE)     SDL_LoadFunction(freetype, "FT_New_Memory_Face");    if (!VDB_FT_New_Memory_Face) ok = false;
+        FT_Select_Charmap      = (PFNFTSELECTCHARMAP)     SDL_LoadFunction(freetype, "FT_Select_Charmap");     if (!VDB_FT_Select_Charmap) ok = false;
+        FT_Done_Face           = (PFNFTDONEFACE)          SDL_LoadFunction(freetype, "FT_Done_Face");          if (!VDB_FT_Done_Face) ok = false;
+        FT_Done_FreeType       = (PFNFTDONEFREETYPE)      SDL_LoadFunction(freetype, "FT_Done_FreeType");      if (!VDB_FT_Done_FreeType) ok = false;
+        FT_Request_Size        = (PFNFTREQUESTSIZE)       SDL_LoadFunction(freetype, "FT_Request_Size");       if (!VDB_FT_Request_Size) ok = false;
+        FT_Get_Char_Index      = (PFNFTGETCHARINDEX)      SDL_LoadFunction(freetype, "FT_Get_Char_Index");     if (!VDB_FT_Get_Char_Index) ok = false;
+        FT_Load_Glyph          = (PFNFTLOADGLYPH)         SDL_LoadFunction(freetype, "FT_Load_Glyph");         if (!VDB_FT_Load_Glyph) ok = false;
+        FT_GlyphSlot_Embolden  = (PFNFTGLYPHSLOTEMBOLDEN) SDL_LoadFunction(freetype, "FT_GlyphSlot_Embolden"); if (!VDB_FT_GlyphSlot_Embolden) ok = false;
+        FT_GlyphSlot_Oblique   = (PFNFTGLYPHSLOTOBLIQUE)  SDL_LoadFunction(freetype, "FT_GlyphSlot_Oblique");  if (!VDB_FT_GlyphSlot_Oblique) ok = false;
+        FT_Get_Glyph           = (PFNFTGETGLYPH)          SDL_LoadFunction(freetype, "FT_Get_Glyph");          if (!VDB_FT_Get_Glyph) ok = false;
+        FT_Glyph_To_Bitmap     = (PFNFTGLYPHTOBITMAP)     SDL_LoadFunction(freetype, "FT_Glyph_To_Bitmap");    if (!VDB_FT_Glyph_To_Bitmap) ok = false;
+        FT_Done_Glyph          = (PFNFTDONEGLYPH)         SDL_LoadFunction(freetype, "FT_Done_Glyph");         if (!VDB_FT_Done_Glyph) ok = false;
     }
     return ok;
 }
