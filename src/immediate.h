@@ -171,7 +171,7 @@ static void BeginImmediate(imm_prim_type_t prim_type)
         if (imm.state.point_size == 0.0f)
             imm.state.point_size = 1.0f;
         if (imm.state.point_segments == 0)
-            imm.state.point_segments = 4;
+            imm.state.point_segments = 16;
 
         imm.buffer_capacity = 1024*100;
         imm.buffer = new imm_vertex_t[imm.buffer_capacity];

@@ -1,5 +1,6 @@
 namespace immediate_util
 {
+    static int circle_segments;
     static int note_index;
     static float note_align_x;
     static float note_align_y;
@@ -9,7 +10,13 @@ namespace immediate_util
         note_index = 0;
         note_align_x = 0.0f;
         note_align_y = 0.0f;
+        circle_segments = 64;
     }
+}
+
+void vdbCircleSegments(int segments)
+{
+    immediate_util::circle_segments = segments;
 }
 
 void vdbNoteV(float x, float y, const char *fmt, va_list args)
@@ -71,7 +78,7 @@ void vdbLineRect(float x, float y, float w, float h)
 
 void vdbLineCircle_(float x, float y, float radius)
 {
-    int segments = imm.state.point_segments;
+    int segments = immediate_util::circle_segments;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -92,7 +99,7 @@ void vdbLineCircle(float x, float y, float radius)
 
 void vdbFillCircle_(float x, float y, float radius)
 {
-    int segments = imm.state.point_segments;
+    int segments = immediate_util::circle_segments;
     const float two_pi = 6.28318530718f;
     for (int i = 0; i < segments; i++)
     {
@@ -181,7 +188,7 @@ void vdbLineCube(vdbVec3 p_min, vdbVec3 p_max)
 
 void vdbFillArc_(vdbVec3 base, vdbVec3 p1, vdbVec3 p2)
 {
-    int segments = imm.state.point_segments;
+    int segments = immediate_util::circle_segments;
     float r1 = vdbVecLength(p1);
     float r2 = vdbVecLength(p2);
     for (int i = 0; i < segments; i++)

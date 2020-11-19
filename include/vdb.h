@@ -104,6 +104,7 @@ void    vdbDrawList(int list);
 // § Utility drawing functions
 // Functions ending with _ don't create their own Begin*/End blocks.
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void    vdbCircleSegments(int segments);
 void    vdbNoteV(float x, float y, const char *fmt, va_list args);
 void    vdbNote(float x, float y, const char *fmt, ...);
 void    vdbNoteAlign(float x, float y); // x = 0: left-aligned. x = 1: right-aligned. y = 0: bottom-aligned. y = 1: top-aligned.
